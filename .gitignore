@@ -362,8 +362,16 @@ Temporary Items
 # End of https://www.toptal.com/developers/gitignore/api/java,macos,visualstudiocode,jetbrains,intellij
 .idea/*
 
+.bsp/*
+
 .vscode/*
 
 .idea
 
 .vscode
+
+.bsp
+
+project
+
+project/*
