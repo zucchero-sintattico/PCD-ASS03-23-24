@@ -5,70 +5,63 @@ import utils.*
 
 enum TrafficLightState:
   case GREEN, YELLOW, RED
-  
-trait TrafficLight:
-  def step(dt: Int): TrafficLight
-  def position: Point2D
-  def roadPosition: Double
-  def state: TrafficLightState
-  
+
 case class TrafficLightTimingSetup(greenDuration: Int, yellowDuration: Int, redDuration: Int)
 
-object TrafficLight:
-  def apply(position: Point2D,
-            roadPosition: Double,
-            timingSetup: TrafficLightTimingSetup,
-            initialState: TrafficLightState): TrafficLight =
-      TrafficLightImpl(position, roadPosition, timingSetup, initialState)
-  
-  private case class TrafficLightImpl(position: Point2D,
-                                      roadPosition: Double,
-                                      timingSetup: TrafficLightTimingSetup,
-                                      state: TrafficLightState,
-                                      private val timeInState: Int = 0) extends TrafficLight:
+case class TrafficLight(position: Point2D,
+                        roadPosition: Double,
+                        timingSetup: TrafficLightTimingSetup,
+                        state: TrafficLightState,
+                        private val timeInState: Int = 0):
 
-    private def updateState(duration: Int, nextState: TrafficLightState): TrafficLight =
-      if timeInState >= duration then this.copy(state = nextState, timeInState = 0) else this
-    
-    override def step(dt: Int): TrafficLight = state match
-      case TrafficLightState.GREEN => updateState(timingSetup.greenDuration, TrafficLightState.YELLOW)
-      case TrafficLightState.YELLOW => updateState(timingSetup.yellowDuration, TrafficLightState.RED)
-      case TrafficLightState.RED => updateState(timingSetup.redDuration, TrafficLightState.GREEN)
+  private def updateState(duration: Int, nextState: TrafficLightState): TrafficLight =
+    if timeInState >= duration then this.copy(state = nextState, timeInState = 0) else this
 
-trait Road:
-  def startPoint: Point2D
-  def endPoint: Point2D
-  def addTrafficLight(position: Point2D, initialState: TrafficLightState, timingSetup: TrafficLightTimingSetup, roadPosition: Double): Road
-  def trafficLights: List[TrafficLight]
-  def length: Double
+  def step(dt: Int): TrafficLight = state match
+    case TrafficLightState.GREEN => updateState(timingSetup.greenDuration, TrafficLightState.YELLOW)
+    case TrafficLightState.YELLOW => updateState(timingSetup.yellowDuration, TrafficLightState.RED)
+    case TrafficLightState.RED => updateState(timingSetup.redDuration, TrafficLightState.GREEN)
 
-object Road:
-  def apply(startPoint: Point2D, endPoint: Point2D): Road = RoadImpl(startPoint, endPoint)
-  private case class RoadImpl(startPoint: Point2D, endPoint: Point2D, trafficLights: List[TrafficLight] = List.empty) extends Road:
-    override def addTrafficLight(position: Point2D, initialState: TrafficLightState, timingSetup: TrafficLightTimingSetup, roadPosition: Double): Road =
-      this.copy(trafficLights = TrafficLight(position, roadPosition, timingSetup, initialState) :: trafficLights)
-    override def length: Double = Math.sqrt(Math.pow(startPoint.x - endPoint.x, 2) + Math.pow(startPoint.y - endPoint.y, 2))
-    
-    
-    
-    
-    
-    
-trait Environment:
 
-  def step(): Environment
-  //
-  //  def registerNewCarAgent(abstractCarAgent: AbstractCarAgent): Unit
-  //
-  //  def CarAgents(): List[AbstractCarAgent]
+case class Road(startPoint: Point2D, endPoint: Point2D, trafficLights: List[TrafficLight] = List.empty):
+  def addTrafficLight(position: Point2D, initialState: TrafficLightState, timingSetup: TrafficLightTimingSetup, roadPosition: Double): Road =
+    this.copy(trafficLights = TrafficLight(position, roadPosition, timingSetup, initialState) :: trafficLights)
+  def length: Double = Math.sqrt(Math.pow(startPoint.x - endPoint.x, 2) + Math.pow(startPoint.y - endPoint.y, 2))
 
-  def createRoad(p0: Point2D, p1: Point2D): Road
+class Environment:
+  private var _roads: List[Road] = List.empty
+  private var _trafficLights: List[TrafficLight] = List.empty
 
-  def Roads(): List[Road]
+  def step(dt: Int): Unit = _trafficLights = _trafficLights.map(_.step(dt))
 
-  def TrafficLights(): List[TrafficLight]
+
+  def createRoad(p0: Point2D, p1: Point2D): Road =
+    val road = Road(p0, p1)
+    _roads = road :: _roads
+    road
+
+  def roads: List[Road] = roads
+
+  def trafficLights: List[TrafficLight] = trafficLights
+
+
+
+
+//trait Environment:
 //
-//  def getCurrentPerception(agentID: String): Perception
+//  def step(): Environment
+//  //
+//  //  def registerNewCarAgent(abstractCarAgent: AbstractCarAgent): Unit
+//  //
+//  //  def CarAgents(): List[AbstractCarAgent]
 //
-//  def doAction(agentID: String, selectedAction: Action): Unit
-
+//  def createRoad(p0: Point2D, p1: Point2D): Road
+//
+//  def Roads(): List[Road]
+//
+//  def TrafficLights(): List[TrafficLight]
+////
+////  def getCurrentPerception(agentID: String): Perception
+////
+////  def doAction(agentID: String, selectedAction: Action): Unit
+//
