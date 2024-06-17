@@ -43,6 +43,8 @@ class Environment:
   def roads: List[Road] = roads
 
   def trafficLights: List[TrafficLight] = trafficLights
+  
+
 
 
 
