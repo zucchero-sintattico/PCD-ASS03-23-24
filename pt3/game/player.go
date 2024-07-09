@@ -4,8 +4,8 @@ import (
 	"fmt"
 )
 
-func playGame(ch chan Message, id string, configuration GameConfiguration) {
-	var lowerBound, upperBound = 0, configuration.upperBound
+func playGame(ch chan Message, id string, max int) {
+	var lowerBound, upperBound = 0, max
 	var guess = calculateGuess(lowerBound, upperBound)
 	ch <- ClientMessage{guess: guess, senderId: id}
 	for msg := range ch {
@@ -39,8 +39,8 @@ func calculateGuess(lowerBound, upperBound int) int {
 	return guess
 }
 
-func spawnPlayer(id string, configuration GameConfiguration) chan Message {
+func spawnPlayer(id string, max int) chan Message {
 	ch := make(chan Message)
-	go playGame(ch, id, configuration)
+	go playGame(ch, id, max)
 	return ch
 }

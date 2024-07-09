@@ -19,8 +19,3 @@ type ClientMessage struct {
 	guess int
 	senderId string 
 }
-
-type GameConfiguration struct {
-	upperBound int
-	turns int 
-}
