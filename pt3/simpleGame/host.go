@@ -5,13 +5,13 @@ import (
 	"math/rand"
 	"reflect"
 )
-	
+
 func createGame(numPlayers int, configuration GameConfiguration) {
-	
+
 	numberToGuess := rand.Intn(configuration.upperBound)
 	println("Number to guess: ", numberToGuess)
 	channels, fanInCases := setupGame(
-		numPlayers, 
+		numPlayers,
 		configuration,
 	)
 
@@ -50,20 +50,20 @@ func startGame(channels []chan Message, fanInCases []reflect.SelectCase, numberT
 		ch := channels[channelIndex]
 		lastTurn := (turns - currentTurn) == 1
 		switch msg := message.Interface().(type) {
-			case ClientMessage:
-				turnResponses[ch] = handleClientMessage(msg, numberToGuess, &win, lastTurn) 
-				if len(turnResponses) == len(channels) {
-					for k, v := range turnResponses {
-						k <- v
-					}
-					turnResponses = make(map[chan Message]ServerMessage)
-					currentTurn++
+		case ClientMessage:
+			turnResponses[ch] = handleClientMessage(msg, numberToGuess, &win, lastTurn)
+			if len(turnResponses) == len(channels) {
+				for k, v := range turnResponses {
+					k <- v
 				}
-			default:
-				//handle channels closures done by clients
-				if !isOpen {
-					closedChannels[ch] = true
-				}
+				turnResponses = make(map[chan Message]ServerMessage)
+				currentTurn++
+			}
+		default:
+			//handle channels closures done by clients
+			if !isOpen {
+				closedChannels[ch] = true
+			}
 		}
 	}
 }
@@ -72,18 +72,36 @@ func handleClientMessage(msg ClientMessage, numberToGuess int, win *bool, lastTu
 	guess := msg.guess
 	fmt.Printf("%s guess: %d\n", msg.senderId, guess)
 	switch {
-		case lastTurn:
+	case lastTurn:
+		return ServerMessage{hint: Lose}
+	case guess < numberToGuess:
+		return ServerMessage{hint: Upper}
+	case guess > numberToGuess:
+		return ServerMessage{hint: Lower}
+	default: //situation where guess == numberToGuess and game is already won could be handle better
+		if *win {
 			return ServerMessage{hint: Lose}
-		case guess < numberToGuess:
-			return ServerMessage{hint: Upper}
-		case guess > numberToGuess:
-			return ServerMessage{hint: Lower}
-		default: //situation where guess == numberToGuess and game is already won could be handle better
-			if *win {
-				return ServerMessage{hint: Lose}	
-			} else {
-				*win = true
-				return ServerMessage{hint: Win}
-			}		
+		} else {
+			*win = true
+			return ServerMessage{hint: Win}
+		}
 	}
 }
+
+/*
+alternative to make a fanInChannel
+
+agg := make(chan string)
+for _, ch := range chans {
+  go func(c chan string) {
+    for msg := range c {
+      agg <- msg
+    }
+  }(ch)
+}
+
+select {
+case msg <- agg:
+    fmt.Println("received ", msg)
+}
+*/
