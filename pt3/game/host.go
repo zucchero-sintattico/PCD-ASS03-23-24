@@ -10,23 +10,14 @@ func createGame(numPlayers, max int) {
 
 	numberToGuess := rand.Intn(max)
 	println("Number to guess: ", numberToGuess)
-	channels, fanInCases := setupGame(numPlayers, max)
+	playerChannels, fanIn := setupGame(numPlayers, max)
 
 	fmt.Println("Game started")
-	startGame(channels, fanInCases, numberToGuess)
+	handleGame(playerChannels, fanIn, numberToGuess)
 	fmt.Println("Game finished")
 }
 
-func setupGame(numPlayers, max int) ([]chan Message, []reflect.SelectCase) {
-	channels := setupChannels(numPlayers, max)
-	cases := make([]reflect.SelectCase, len(channels))
-	for i, ch := range channels {
-		cases[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch)}
-	}
-	return channels, cases
-}
-
-func setupChannels(numPlayers, max int) []chan Message {
+func setupPlayers(numPlayers, max int) []chan Message {
 	var channels []chan Message
 	for i := 0; i < numPlayers; i++ {
 		playerId := fmt.Sprintf("player-%d", i)
@@ -37,27 +28,31 @@ func setupChannels(numPlayers, max int) []chan Message {
 	return channels
 }
 
-func startGame(channels []chan Message, fanInCases []reflect.SelectCase, numberToGuess int) {
+func setupGame(numPlayers, max int) ([]chan Message, []reflect.SelectCase) {
+	channels := setupPlayers(numPlayers, max)
+	fanIn := make([]reflect.SelectCase, len(channels))
+	for i, ch := range channels {
+		fanIn[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch)}
+	}
+	return channels, fanIn
+}
+
+func handleGame(playerChannels []chan Message, fanIn []reflect.SelectCase, numberToGuess int) {
 	turnResponses := make(map[chan Message]ServerMessage)
 	closedChannels := make(map[chan Message]bool)
 	win := false
-	for len(closedChannels) != len(channels) {
-		channelIndex, message, isOpen := reflect.Select(fanInCases)
-		ch := channels[channelIndex]
+	for len(closedChannels) != len(playerChannels) {
+		channelIndex, message, isOpen := reflect.Select(fanIn)
+		ch := playerChannels[channelIndex]
 		switch msg := message.Interface().(type) {
 		case ClientMessage:
 			turnResponses[ch] = handleClientMessage(msg, numberToGuess, &win)
-			if len(turnResponses) == len(channels) {
-				for k, v := range turnResponses {
-					k <- v
-				}
-				turnResponses = make(map[chan Message]ServerMessage)
-			}
 		default:
-			//handle channels closures done by clients
-			if !isOpen {
-				closedChannels[ch] = true
-			}
+			if !isOpen { closedChannels[ch] = true }
+		}
+		if len(turnResponses) == len(playerChannels) {
+			for playerChannel, serverMessage := range turnResponses { playerChannel <- serverMessage }
+			turnResponses = make(map[chan Message]ServerMessage)
 		}
 	}
 }
@@ -66,18 +61,16 @@ func handleClientMessage(msg ClientMessage, numberToGuess int, win *bool) Server
 	guess := msg.guess
 	fmt.Printf("%s guess: %d\n", msg.senderId, guess)
 	switch {
-	case guess < numberToGuess:
-		return ServerMessage{hint: Upper}
-	case guess > numberToGuess:
-		return ServerMessage{hint: Lower}
-	default: //situation where guess == numberToGuess and game is already won could be handle better
-		if *win {
+		case *win: //situation where guess == numberToGuess and game is already won could be handle better
 			return ServerMessage{hint: Lose}
-		} else {
+		case guess < numberToGuess:
+			return ServerMessage{hint: Higher}
+		case guess > numberToGuess:
+			return ServerMessage{hint: Lower}
+		default: 
 			*win = true
 			return ServerMessage{hint: Win}
 		}
-	}
 }
 
 /*

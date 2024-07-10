@@ -4,7 +4,7 @@ type Hint int
 
 const(
 	Lower Hint = iota
-	Upper 
+	Higher 
 	Win
 	Lose 
 )
