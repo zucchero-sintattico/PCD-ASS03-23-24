@@ -16,7 +16,7 @@ func createGame(numPlayers, max int, masterGUIChannel chan Status) {
 		switch eventMsg {
 		case Start:
 			numberToGuess := rand.Intn(max)
-			logChannel <- fmt.Sprintf("Game started, numberToGuess: %d", numberToGuess)
+			logChannel <- fmt.Sprintf("Game started, number to guess: %d", numberToGuess)
 			winnerId := handleGame(playerBackendConfigurations, messageFanIn, eventFanIn, numberToGuess)
 			stats[winnerId]++
 			logStats(stats, logChannel)
@@ -85,18 +85,16 @@ func handleClients(messageFanIn []reflect.SelectCase, playerBackendConfiguration
 func handleClientMessage(msg ClientMessage, numberToGuess int, win *bool, winnerId *string) ServerMessage {
 	guess := msg.guess
 	switch {
+	case *win: //situation where guess == numberToGuess and game is already won could be handle better
+		return ServerMessage{hint: Lose}
 	case guess < numberToGuess:
 		return ServerMessage{hint: Higher}
 	case guess > numberToGuess:
 		return ServerMessage{hint: Lower}
-	default: //situation where guess == numberToGuess and game is already won could be handle better
-		if *win {
-			return ServerMessage{hint: Lose}
-		} else {
-			*win = true
-			*winnerId = msg.senderId
-			return ServerMessage{hint: Win}
-		}
+	default: 
+		*win = true
+		*winnerId = msg.senderId
+		return ServerMessage{hint: Win}
 	}
 }
 
