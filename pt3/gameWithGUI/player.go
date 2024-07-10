@@ -42,11 +42,11 @@ func playGame(playerConfiguration PlayerConfiguration, min, max, guess, turn int
 				min = guess
 				guess, turn = playTurn(playerConfiguration, turn, min, max)
 			case Win:
-				playerConfiguration.playerLogChannel <- fmt.Sprintf("Player %s: WIN", playerConfiguration.id)
+				playerConfiguration.playerLogChannel <- fmt.Sprintf("%s: WIN", playerConfiguration.id)
 				playerConfiguration.playerBackendConfiguration.playerEventChannel <- End
 				return
 			case Lose:
-				playerConfiguration.playerLogChannel <- fmt.Sprintf("Player %s: LOSE", playerConfiguration.id)
+				playerConfiguration.playerLogChannel <- fmt.Sprintf("%s: LOSE", playerConfiguration.id)
 				playerConfiguration.playerBackendConfiguration.playerEventChannel <- End
 				return
 			} 
@@ -57,7 +57,7 @@ func playGame(playerConfiguration PlayerConfiguration, min, max, guess, turn int
 func playTurn(playerConfiguration PlayerConfiguration, turn, min, max int) (int, int) {
 	playerConfiguration.playerLogChannel <- fmt.Sprintf("starting turn %d", turn)
 	guess := calculateGuess(min, max)
-	playerConfiguration.playerLogChannel <- fmt.Sprintf("Player %s: %d", playerConfiguration.id, guess)
+	playerConfiguration.playerLogChannel <- fmt.Sprintf("%s guess: %d", playerConfiguration.id, guess)
 	playerConfiguration.playerBackendConfiguration.playerChannel <- ClientMessage{guess: guess, senderId: playerConfiguration.id}
 	return guess, turn + 1
 }
