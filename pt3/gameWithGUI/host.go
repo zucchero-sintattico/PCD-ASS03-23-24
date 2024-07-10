@@ -4,19 +4,11 @@ import (
 	"fmt"
 	"math/rand"
 	"reflect"
-	"time"
 )
 
-
-
-
 func createGame(numPlayers, max int, masterGUIChannel chan Status) {
-
-	
 	playerBackendConfigurations, messageFanIn, eventFanIn, stats:= setupGame(numPlayers, max)
 
-	
-	
 	logChannel := make(chan string)
 	showGUI("Host", logChannel)
 
@@ -24,20 +16,14 @@ func createGame(numPlayers, max int, masterGUIChannel chan Status) {
 		switch eventMsg {
 		case Start:
 			numberToGuess := rand.Intn(max)
-			println("Max: ", max)
-			println("Number to guess: ", numberToGuess)
-			fmt.Println("Game started")
-			logChannel <- "Game started"
-			winnerId := startGame(playerBackendConfigurations, messageFanIn, eventFanIn, numberToGuess)
+			logChannel <- fmt.Sprintf("Game started, numberToGuess: %d", numberToGuess)
+			winnerId := handleGame(playerBackendConfigurations, messageFanIn, eventFanIn, numberToGuess)
 			stats[winnerId]++
 			logStats(stats, logChannel)
 			logChannel <- "Game finished"
 			masterGUIChannel <- End
 		}
-	}
-	
-	fmt.Println("Game finished")
-	
+	}	
 }
 
 func setupPlayers(numPlayers, max int) ([]PlayerBackendConfiguration, map[string]int) {
@@ -46,7 +32,6 @@ func setupPlayers(numPlayers, max int) ([]PlayerBackendConfiguration, map[string
 	for i := 0; i < numPlayers; i++ {
 		playerId := fmt.Sprintf("player-%d", i)
 		stats[playerId] = 0
-		fmt.Println(playerId, "joined")
 		ch := spawnPlayer(playerId, max)
 		channels = append(channels, ch)
 	}
@@ -64,16 +49,23 @@ func setupGame(numPlayers, max int) ([]PlayerBackendConfiguration, []reflect.Sel
 	return channels, messageFanIn, eventFanIn, stats
 }
 
+func handleGame(playerBackendConfigurations []PlayerBackendConfiguration, messageFanIn, eventFanIn []reflect.SelectCase, numberToGuess int) string {
+	notifyClientToStart(playerBackendConfigurations)
+	winnerID := handleClients(messageFanIn, playerBackendConfigurations, numberToGuess)
+	waitForPlayersToFinish(playerBackendConfigurations, eventFanIn)
+	return winnerID
+}
 
-
-func startGame(playerBackendConfigurations []PlayerBackendConfiguration, messageFanIn, eventFanIn []reflect.SelectCase, numberToGuess int) string {
-	turnResponses := make(map[chan Message]ServerMessage)
-	win := false
-	var winnerId string
+func notifyClientToStart(playerBackendConfigurations []PlayerBackendConfiguration) {
 	for _, ch := range playerBackendConfigurations {
 		ch.playerEventChannel <- Start
 	}
+}
 
+func handleClients(messageFanIn []reflect.SelectCase, playerBackendConfigurations []PlayerBackendConfiguration, numberToGuess int) string {
+	turnResponses := make(map[chan Message]ServerMessage)
+	win := false
+	var winnerId string
 	for {
 		channelIndex, message, _ := reflect.Select(messageFanIn)
 		playerChannel := playerBackendConfigurations[channelIndex].playerChannel
@@ -82,31 +74,16 @@ func startGame(playerBackendConfigurations []PlayerBackendConfiguration, message
 			turnResponses[playerChannel] = handleClientMessage(msg, numberToGuess, &win, &winnerId)
 		}
 		if len(turnResponses) == len(playerBackendConfigurations) {
-			for k, v := range turnResponses {
-				k <- v
-			}
-			time.Sleep(200*time.Millisecond)
-			if win { 
-				break 
-			}
+			for playerChannel, serverMessage := range turnResponses { playerChannel <- serverMessage }
+			if win { break }
 			turnResponses = make(map[chan Message]ServerMessage)
 		}
 	}
-
-	endNotification := 0
-	for endNotification < len(playerBackendConfigurations) {
-		_, message, _ := reflect.Select(eventFanIn)
-		switch message.Interface(){
-		case End: endNotification++
-		}
-	}
-	fmt.Println("Game finished")
 	return winnerId
 }
 
 func handleClientMessage(msg ClientMessage, numberToGuess int, win *bool, winnerId *string) ServerMessage {
 	guess := msg.guess
-	fmt.Printf("%s guess: %d\n", msg.senderId, guess)
 	switch {
 	case guess < numberToGuess:
 		return ServerMessage{hint: Higher}
@@ -119,6 +96,17 @@ func handleClientMessage(msg ClientMessage, numberToGuess int, win *bool, winner
 			*win = true
 			*winnerId = msg.senderId
 			return ServerMessage{hint: Win}
+		}
+	}
+}
+
+func waitForPlayersToFinish(playerBackendConfigurations []PlayerBackendConfiguration, eventFanIn []reflect.SelectCase) {
+	endNotification := 0
+	for endNotification < len(playerBackendConfigurations) {
+		_, message, _ := reflect.Select(eventFanIn)
+		switch message.Interface() {
+		case End:
+			endNotification++
 		}
 	}
 }

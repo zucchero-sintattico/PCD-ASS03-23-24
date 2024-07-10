@@ -27,13 +27,4 @@ type ClientMessage struct {
 	senderId string 
 }
 
-type PlayerBackendConfiguration struct {
-	playerChannel chan Message
-	playerEventChannel chan Status
-}
 
-type PlayerConfiguration struct {
-	id string
-	playerLogChannel chan string
-	playerBackendConfiguration PlayerBackendConfiguration 
-}
