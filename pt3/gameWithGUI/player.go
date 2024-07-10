@@ -5,6 +5,7 @@ import (
 )
 
 func gameHandler(playerConfiguration PlayerConfiguration, max int) {
+	
 	waitForStart(playerConfiguration, 0, max)
 }
 func waitForStart(playerConfiguration PlayerConfiguration, min, max int) {
@@ -21,9 +22,12 @@ func waitForStart(playerConfiguration PlayerConfiguration, min, max int) {
 }
 
 func playGame(playerConfiguration PlayerConfiguration, min, max, guess int) {
+	turn := 0
 	for gameMessage := range playerConfiguration.playerBackendConfiguration.playerChannel{
 		switch m := gameMessage.(type) {
 		case ServerMessage:
+			playerConfiguration.playerLogChannel <- fmt.Sprintf("starting turn %d", turn)
+			turn++
 			switch m.hint {
 			case Lower:
 				max = guess

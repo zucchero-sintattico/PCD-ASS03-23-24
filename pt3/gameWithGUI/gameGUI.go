@@ -4,12 +4,13 @@ import (
 	"log"
 	"strconv"
 	"fyne.io/fyne/v2/widget"
-	// "fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2"
 )
 
-func showGameGUI() {
+func showAndRunGameGUI() {
 	
-	window := application.NewWindow("Form Widget")
+	window := application.NewWindow("Controller GUI")
+	window.Resize(fyne.NewSize(600, 150))
 	ch := make(chan Status)
 
 	numPlayerEntry := widget.NewEntry()

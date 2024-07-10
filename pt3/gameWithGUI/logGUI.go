@@ -4,17 +4,18 @@ import (
     "fyne.io/fyne/v2"
     "fyne.io/fyne/v2/widget"
 )
-func showGUI(playerName string, channel chan string) {
+func showGUI(name string, channel chan string) {
     // New app
     
     // new windown and title
-    window := application.NewWindow(playerName+" GUI")
+    window := application.NewWindow(name+" GUI")
     // resize
     window.Resize(fyne.NewSize(400, 400))
 
     // New Scroll & Vbox
 	
     multilineEntry := widget.NewMultiLineEntry()
+    multilineEntry.SetText("StartLogging")
     //multilineEntry.SetText("Lorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \nLorem Ipsum ... \n ")
     go GUIUpdater(multilineEntry, channel)
     
@@ -42,6 +43,8 @@ func showGUI(playerName string, channel chan string) {
 func GUIUpdater(textGUI *widget.Entry, channel chan string) {
 	for msg := range channel {
 		textGUI.SetText(textGUI.Text+"\n"+msg)
+        textGUI.CursorRow = len(textGUI.Text) - 1
+        textGUI.Refresh()
 	}
 }
 
