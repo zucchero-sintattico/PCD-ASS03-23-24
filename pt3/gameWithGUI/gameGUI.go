@@ -51,7 +51,7 @@ func createSetupForm(onCreate func(int, int)) *widget.Form {
 			{Text: "numPlayer", Widget: numPlayerEntry},
 			{Text: "maxNum", Widget: maxNumEntry},
 		},
-		OnSubmit: func() {
+		OnSubmit: func() { 
 			numPlayer, err1 := strconv.Atoi(numPlayerEntry.Text)
 			maxNum, err2 := strconv.Atoi(maxNumEntry.Text)
 			switch {
