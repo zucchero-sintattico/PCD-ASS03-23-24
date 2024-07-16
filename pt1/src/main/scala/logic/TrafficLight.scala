@@ -2,14 +2,12 @@ package logic
 
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
-import logic.Hal.Response
 import utils.*
 
 object TrafficLightActor:
 
   sealed trait Command
   final case class Step(dt: Int, replyTo: ActorRef[RoadActor.TrafficLightStepDone.type]) extends Command
-
 
   def apply(trafficLight: TrafficLight): Behavior[Command] =
     Behaviors.receive { (context, message) => message match
