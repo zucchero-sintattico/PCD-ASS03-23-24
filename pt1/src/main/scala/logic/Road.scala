@@ -2,7 +2,7 @@ package logic
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-import logic.RoadActor.{CarAction, CarPosition, Command, EvaluateAction, EvaluatePerception, Step}
+import logic.RoadActor.{CarAction, CarPosition, Command, DoCarStep, EvaluateAction, EvaluatePerception, Step, TrafficLightStepDone}
 import utils.Point2D
 
 import scala.concurrent.duration.DurationInt
@@ -11,6 +11,8 @@ object RoadActor:
   
   sealed trait Command
   final case class Step(dt: Int) extends Command
+  case object TrafficLightStepDone extends Command
+  private final case class DoCarStep(dt: Int) extends Command
   final case class CarPosition(id: String, carPosition: Double, car: ActorRef[CarActor.Command]) extends Command
   private final case class EvaluatePerception(positions: List[CarPosition], dt: Int) extends Command
   final case class CarAction(id: String, action: Action, car: ActorRef[CarActor.Command]) extends Command
@@ -30,6 +32,23 @@ case class RoadActor(road: Road, trafficLightActors: List[ActorRef[TrafficLightA
       Behaviors.receiveMessagePartial {
         case Step(dt) =>
           context.spawnAnonymous(
+            Aggregator[TrafficLightStepDone.type, DoCarStep](
+              sendRequests = replyTo => trafficLightActors.foreach(_ ! TrafficLightActor.Step(dt, replyTo)),
+              expectedReplies = trafficLightActors.size,
+              replyTo = context.self,
+              aggregateReplies = replies => DoCarStep(dt),
+              timeout = 5.seconds
+            )
+          )
+          askForCarPosition
+      }
+    }
+  
+  private def askForCarPosition: Behavior[Command] =
+    Behaviors.setup { context =>
+      Behaviors.receiveMessagePartial {
+        case DoCarStep(dt) =>
+          context.spawnAnonymous(
             Aggregator[CarPosition, EvaluatePerception](
               sendRequests = replyTo => carActors.foreach(_ ! CarActor.GetPosition(replyTo)),
               expectedReplies = carActors.size,
@@ -41,7 +60,7 @@ case class RoadActor(road: Road, trafficLightActors: List[ActorRef[TrafficLightA
           evaluatePerceptions
       }
     }
-
+  
   private def evaluatePerceptions: Behavior[Command] =
     Behaviors.setup { context =>
       Behaviors.receiveMessagePartial {
