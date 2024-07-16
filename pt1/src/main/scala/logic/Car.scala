@@ -1,33 +1,38 @@
 package logic
 
-
-import akka.actor.typed.scaladsl.AskPattern.Askable
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-import akka.util.Timeout
 
-import scala.concurrent.duration.FiniteDuration
-import logic.TrafficLight.TrafficLight
+object CarActor:
 
-import scala.util.{Failure, Success}
-
-object Car:
   sealed trait Command
-  final case class step(dt: Int) extends Command
-  final case class getCurrentPerception(carPerception: CarPerception) extends Command
-  case class CarAgentConfiguration(initialPosition: Double, acceleration: Double, deceleration: Double, maxSpeed: Double)
-  case class CarPerception(roadPosition: Double)
-  object CarActor:
-    def apply(car: Car): Behavior[Command] =
-      Behaviors.receive { (context, message) => message match
-        case step(dt) =>
-          implicit val timeout: Timeout = FiniteDuration(3, "second")
-          context.ask(car.parentRoad, Road.getCurrentPerception.apply) {
-            case Success(message) => message
-            case _ => ???
-          }
-          Behaviors.same
-        case getCurrentPerception(carPerception) => ???
-      }
-  case class Car(agentID: String, parentRoad: ActorRef[Road.Command], configuration: CarAgentConfiguration):
-    private var selectedAction = None
+  final case class GetPosition(replyTo: ActorRef[RoadActor.CarPosition]) extends Command
+  final case class DecideAction(dt: Int, carPerception: CarPerception, replyTo: ActorRef[RoadActor.CarAction]) extends Command
+  final case class UpdatePosition(position: Double) extends Command
+  
+  def apply(car: Car): Behavior[Command] =
+    Behaviors.receive { (context, message) => message match
+      case GetPosition(replyTo) =>
+        replyTo ! RoadActor.CarPosition(car.agentID, car.configuration.position, context.self)
+        Behaviors.same
+
+    }
+
+sealed trait Action
+case class MoveForward(distance: Double) extends Action
+
+case class CarAgentConfiguration(position: Double, acceleration: Double, deceleration: Double, maxSpeed: Double)
+
+case class CarPerception(roadPosition: Double)
+
+enum BaseCarAgentState:
+  case STOPPED, ACCELERATING, DECELERATING_BECAUSE_OF_A_CAR, WAIT_A_BIT, MOVING_CONSTANT_SPEED
+
+trait Car:
+  val agentID: String
+  val configuration: CarAgentConfiguration
+  val selectedAction: Option[Action]
+  def decide(dt: Int, carPerception: CarPerception): Car
+
+case class BaseCarAgent(agentID: String, configuration: CarAgentConfiguration, selectedAction: Option[Action] = None) extends Car:
+  override def decide(dt: Int, carPerception: CarPerception): Car = this.copy(selectedAction = Some(MoveForward(1.0))) //TODO improve
