@@ -21,7 +21,7 @@ object CarActor:
 sealed trait Action
 case class MoveForward(distance: Double) extends Action
 
-case class CarAgentConfiguration(position: Double, acceleration: Double, deceleration: Double, maxSpeed: Double)
+case class CarAgentConfiguration(position: Double, acceleration: Double, deceleration: Double, maxSpeed: Double, road: Road)
 
 case class CarPerception(roadPosition: Double)
 
