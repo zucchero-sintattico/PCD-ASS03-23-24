@@ -28,6 +28,7 @@ public class RoadSimView extends JFrame implements SimulationListener {
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
+        display();
 
 
     }
@@ -62,7 +63,6 @@ public class RoadSimView extends JFrame implements SimulationListener {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
             g2.clearRect(0,0,this.getWidth(),this.getHeight());
-
             if (roads != null) {
                 for (var r: roads) {
                     g2.drawLine((int)r.startPoint().x(), (int)r.startPoint().y(), (int)r.endPoint().x(), (int)r.endPoint().y());
