@@ -37,5 +37,9 @@ object ViewActor:
       }
     }
 
+enum Test:
+  case A,B
+//trait ViewActorNotifier:
+  
 
 // Define the behavior of the ViewActor here

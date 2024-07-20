@@ -1,5 +1,6 @@
 package view;
 
+import logic.BaseCarAgentState;
 import utils.Vector2D;
 import logic.TrafficLight;
 import logic.Car;
@@ -85,11 +86,11 @@ public class RoadSimView extends JFrame implements SimulationListener {
             Color c1 = new Color(255,0,0);
             Color c2 = new Color(0,255,0);
             //g.setColor(new Color((int)(Math.random() * 256), (int)(Math.random() * 256), (int)(Math.random() * 256)));
-
+            BaseCarAgentState.values();
             if (cars != null) {
                 for (var c: cars) {
-                    double pos = c.configuration().position();
-                    Road r = c.configuration().road();
+                    double pos = c.position();
+                    Road r = c.road();
                     Vector2D dir = Vector2D.makeV2d(r.startPoint(), r.endPoint()).getNormalized().mul(pos);
                     g.setColor(c2);
                     if (i == 0) {

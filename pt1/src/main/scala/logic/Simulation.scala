@@ -1,8 +1,11 @@
 package logic
 
+import akka.actor.typed.receptionist.Receptionist
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import logic.SimulationActor.{Command, RoadStepDone, Step}
+import view.ViewActor
+
 import scala.concurrent.duration.DurationInt
 
 object SimulationActor:
@@ -10,6 +13,7 @@ object SimulationActor:
   case object Start extends Command
   private case class Step(dt: Int) extends Command
   case object RoadStepDone extends Command
+
   def apply(dt: Int, numStep: Int, roadsBuildData: List[RoadBuildData]): Behavior[Command] =
     Behaviors.setup { context =>
       val roadActors = roadsBuildData.map(rbd => context.spawn(RoadActor(rbd.road, rbd.trafficLights, rbd.cars), rbd.road.agentID))

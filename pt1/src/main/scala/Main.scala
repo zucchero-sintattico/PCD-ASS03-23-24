@@ -2,7 +2,7 @@ import akka.NotUsed
 import akka.actor.typed.receptionist.Receptionist
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorSystem, Behavior}
-import logic.{BaseCarAgent, CarAgentConfiguration, Road, TrafficLight, TrafficLightActor, TrafficLightPositionInfo, TrafficLightState, TrafficLightTimingSetup}
+import logic.{BaseCarAgent, CarAgentConfiguration, Road, RoadBuildData, SimulationActor, TrafficLight, TrafficLightActor, TrafficLightPositionInfo, TrafficLightState, TrafficLightTimingSetup}
 import utils.Point2D
 import view.{RoadSimView, ViewActor}
 
@@ -14,19 +14,20 @@ object StartSystem:
   def apply(): Behavior[Command] =
 
     Behaviors.setup { context =>
-      context.spawnAnonymous(ViewActor(RoadSimView()))
-      context.spawnAnonymous(ViewActor(RoadSimView()))
+      val road = Road("road-1", Point2D(0,300), Point2D(1500, 300))
+      val car1 = BaseCarAgent("car-1", 0, road, CarAgentConfiguration(0.1,0.2,8))
+      val car2 = BaseCarAgent("car-2", 100, road, CarAgentConfiguration(0.1,0.1,7))
+      val roadConfig = RoadBuildData(road, List.empty, List(car1, car2))
+      val sim = context.spawnAnonymous(SimulationActor(1,100,List(roadConfig)))
+      context.spawnAnonymous(ViewActor(RoadSimView(), sim))
       val listingResponseAdapter = context.messageAdapter[Receptionist.Listing](ListingResponse.apply)
-
-
-
       Behaviors.receiveMessage {
         case ListingResponse(listing) =>
           listing.allServiceInstances(ViewActor.viewServiceKey).foreach { viewActorRef =>
             viewActorRef ! ViewActor.StepDone(0, List.empty,
               List(
-                BaseCarAgent("car-1", CarAgentConfiguration(50,1,0,0,Road("road-1", Point2D(0,300), Point2D(1500, 300)))),
-                BaseCarAgent("car-2", CarAgentConfiguration(80,2,0,0,Road("road-1", Point2D(0,300), Point2D(1500, 300))))
+//                BaseCarAgent("car-1", CarAgentConfiguration(50,1,0,0,Road("road-1", Point2D(0,300), Point2D(1500, 300)))),
+//                BaseCarAgent("car-2", CarAgentConfiguration(80,2,0,0,Road("road-1", Point2D(0,300), Point2D(1500, 300))))
               ), List.empty)
           }
           Behaviors.same
@@ -44,8 +45,8 @@ object StartSystem2:
   def apply(): Behavior[Command] =
 
     Behaviors.setup { context =>
-      context.spawnAnonymous(ViewActor(RoadSimView()))
-      context.spawnAnonymous(ViewActor(RoadSimView()))
+//      context.spawnAnonymous(ViewActor(RoadSimView(Nil[SimulationActor])))
+//      context.spawnAnonymous(ViewActor(RoadSimView(Nil)))
       val listingResponseAdapter = context.messageAdapter[Receptionist.Listing](ListingResponse.apply)
 
 
@@ -55,8 +56,8 @@ object StartSystem2:
           listing.allServiceInstances(ViewActor.viewServiceKey).foreach { viewActorRef =>
             viewActorRef ! ViewActor.StepDone(0, List.empty,
               List(
-                BaseCarAgent("car-1", CarAgentConfiguration(50,1,0,0,Road("road-1", Point2D(0,300), Point2D(1500, 300)))),
-                BaseCarAgent("car-2", CarAgentConfiguration(80,2,0,0,Road("road-1", Point2D(0,300), Point2D(1500, 300))))
+//                BaseCarAgent("car-1", CarAgentConfiguration(50,1,0,0,Road("road-1", Point2D(0,300), Point2D(1500, 300)))),
+//                BaseCarAgent("car-2", CarAgentConfiguration(80,2,0,0,Road("road-1", Point2D(0,300), Point2D(1500, 300))))
               ), List.empty)
           }
           Behaviors.same

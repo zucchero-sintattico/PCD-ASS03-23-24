@@ -8,12 +8,16 @@ object TrafficLightActor:
 
   sealed trait Command
   final case class Step(dt: Int, replyTo: ActorRef[RoadActor.TrafficLightStepDone.type]) extends Command
+  final case class RequestTrafficLightRecord(replyTo: ActorRef[RoadActor.TrafficLightRecord]) extends Command
 
   def apply(trafficLight: TrafficLight): Behavior[Command] =
     Behaviors.receive { (context, message) => message match
         case Step(dt, replyTo) =>
           replyTo ! RoadActor.TrafficLightStepDone
           TrafficLightActor(trafficLight.step(dt))
+        case RequestTrafficLightRecord(replyTo) =>
+          replyTo ! RoadActor.TrafficLightRecord(trafficLight)
+          Behaviors.same  
     }
 
 enum TrafficLightState:
