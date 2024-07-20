@@ -3,7 +3,7 @@ package view
 import akka.actor.typed.receptionist.{Receptionist, ServiceKey}
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
-import logic.{Car, Road, TrafficLight}
+import logic.{Car, Road, SimulationActor, TrafficLight}
 import view.ViewActor.Command
 
 import scala.jdk.CollectionConverters.*
@@ -18,7 +18,7 @@ object ViewActor:
   case class SimulationEnded() extends Command
   case class Stat(averageSpeed: Double) extends Command
 
-  def apply(view: RoadSimView): Behavior[Command] =
+  def apply(view: RoadSimView, simulation: ActorRef[SimulationActor.Command]): Behavior[Command] =
     Behaviors.setup { context =>
       context.system.receptionist ! Receptionist.Register(viewServiceKey, context.self)
       Behaviors.receiveMessage {
