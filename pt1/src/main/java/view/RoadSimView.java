@@ -8,7 +8,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-public class RoadSimView extends JFrame {
+public class RoadSimView extends JFrame implements SimulationListener {
 
     private RoadSimViewPanel panel;
     private static final int CAR_DRAW_SIZE = 10;
@@ -38,9 +38,10 @@ public class RoadSimView extends JFrame {
         });
     }
 
+    @Override
+    public void notifyInit(int t, List<Car> agents) {}
 
-//    public void notifyInit(int t, List<Car> agents, Environment env) {}
-
+    @Override
     public void notifyStepDone(int t, List<Road> roads, List<Car> cars, List<TrafficLight> tl) {
         panel.update(roads, cars, tl);
     }
@@ -110,9 +111,9 @@ public class RoadSimView extends JFrame {
         }
     }
 
+    @Override
+    public void notifySimulationEnded() {}
 
-//    public void notifySimulationEnded() {}
-//
-//
-//    public void notifyStat(double averageSpeed) {}
+    @Override
+    public void notifyStat(double averageSpeed) {}
 }
