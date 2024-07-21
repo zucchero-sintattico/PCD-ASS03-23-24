@@ -13,11 +13,12 @@ object TrafficLightActor:
   def apply(trafficLight: TrafficLight): Behavior[Command] =
     Behaviors.receive { (context, message) => message match
         case Step(dt, replyTo) =>
+//          println("[TrafficLight]: Step")
           replyTo ! RoadActor.TrafficLightStepDone
           TrafficLightActor(trafficLight.step(dt))
         case RequestTrafficLightRecord(replyTo) =>
           replyTo ! RoadActor.TrafficLightRecord(trafficLight)
-          Behaviors.same  
+          Behaviors.same
     }
 
 enum TrafficLightState:

@@ -45,7 +45,9 @@ public class RoadSimView extends JFrame implements SimulationListener {
 
     @Override
     public void notifyStepDone(int t, List<Road> roads, List<Car> cars, List<TrafficLight> tl) {
+        System.out.println("NOTIFY STEP DONE"+cars.get(1).position());
         panel.update(roads, cars, tl);
+
     }
 
 
@@ -87,14 +89,15 @@ public class RoadSimView extends JFrame implements SimulationListener {
             Color c2 = new Color(0,255,0);
             //g.setColor(new Color((int)(Math.random() * 256), (int)(Math.random() * 256), (int)(Math.random() * 256)));
             BaseCarAgentState.values();
+            System.out.println("PAINTING");
             if (cars != null) {
                 for (var c: cars) {
                     double pos = c.position();
                     Road r = c.road();
                     Vector2D dir = Vector2D.makeV2d(r.startPoint(), r.endPoint()).getNormalized().mul(pos);
-                    g.setColor(c2);
+//                    g.setColor(c2);
                     if (i == 0) {
-                        g.setColor(c1);
+//                        g.setColor(c1);
                         i++;
                     }
                     g2.fillOval((int)(r.startPoint().x() + dir.x() - CAR_DRAW_SIZE/2), (int)(r.startPoint().y() + dir.y() - CAR_DRAW_SIZE/2), CAR_DRAW_SIZE , CAR_DRAW_SIZE);

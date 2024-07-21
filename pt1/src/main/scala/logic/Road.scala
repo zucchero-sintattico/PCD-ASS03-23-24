@@ -2,7 +2,7 @@ package logic
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-import logic.RoadActor.{CarRecord, Command, ProcessStep, Step, TrafficLightRecord, TrafficLightStepDone}
+import logic.RoadActor.{CarRecord, CarStepDone, Command, ProcessStep, Step, TrafficLightRecord, TrafficLightStepDone}
 import utils.Point2D
 
 import scala.concurrent.duration.DurationInt
@@ -10,13 +10,13 @@ import scala.concurrent.duration.DurationInt
 object RoadActor:
 
   sealed trait Command
-  final case class Step(dt: Int, replyTo: ActorRef[SimulationActor.RoadStepDone.type]) extends Command
-  private final case class ProcessStep(dt: Int, replyTo: ActorRef[SimulationActor.RoadStepDone.type], trafficLights: Option[List[TrafficLightRecord]] = Option.empty, cars: Option[List[CarRecord]] = Option.empty) extends Command
+  final case class Step(dt: Int, replyTo: ActorRef[SimulationActor.RoadStepDone]) extends Command
+  private final case class ProcessStep(dt: Int, replyTo: ActorRef[SimulationActor.RoadStepDone  ], trafficLights: Option[List[TrafficLightRecord]] = Option.empty, cars: Option[List[CarRecord]] = Option.empty) extends Command
 
   case object TrafficLightStepDone extends Command
   final case class TrafficLightRecord(trafficLightRecord: TrafficLight) extends Command
   final case class CarRecord(carRecord: Car, carRef: ActorRef[CarActor.Command]) extends Command
-  case object CarStepDone extends Command
+  final case class CarStepDone(car: Car) extends Command
 
   def apply(road: Road, trafficLights: List[TrafficLight], cars: List[Car]): Behavior[Command] =
     Behaviors.setup { context =>
@@ -31,6 +31,7 @@ case class RoadActor(road: Road, trafficLightActors: List[ActorRef[TrafficLightA
     Behaviors.setup{ context =>
       Behaviors.receiveMessagePartial {
         case Step(dt, replyTo) =>
+//          println("[ROAD]: Step1")
           context.spawnAnonymous(
             Aggregator[TrafficLightStepDone.type, ProcessStep](
               sendRequests = replyTo => trafficLightActors.foreach(_ ! TrafficLightActor.Step(dt, replyTo)),
@@ -47,22 +48,24 @@ case class RoadActor(road: Road, trafficLightActors: List[ActorRef[TrafficLightA
     Behaviors.setup { context =>
       Behaviors.receiveMessagePartial {
         case p: ProcessStep =>
+//          println("[ROAD]: Step2")
           context.spawnAnonymous(
             Aggregator[TrafficLightRecord, ProcessStep](
               sendRequests = replyTo => trafficLightActors.foreach(_ ! TrafficLightActor.RequestTrafficLightRecord(replyTo)),
-              expectedReplies = carActors.size,
+              expectedReplies = trafficLightActors.size,
               replyTo = context.self,
               aggregateReplies = replies => p.copy(trafficLights = Option(replies.toList)),
               timeout = 5.seconds
             )
           )
-          evaluatePerceptions
+          askForCarRecords
       }
     }
   private def askForCarRecords: Behavior[Command] =
     Behaviors.setup { context =>
       Behaviors.receiveMessagePartial {
         case p: ProcessStep =>
+//          println("[ROAD]: Step3")
           context.spawnAnonymous(
             Aggregator[CarRecord, ProcessStep](
               sendRequests = replyTo => carActors.foreach(_ ! CarActor.RequestCarRecord(replyTo)),
@@ -104,17 +107,16 @@ case class RoadActor(road: Road, trafficLightActors: List[ActorRef[TrafficLightA
       Behaviors.receiveMessagePartial {
         case p: ProcessStep =>
           context.spawnAnonymous(
-            Aggregator[CarRecord, SimulationActor.RoadStepDone.type](
-              sendRequests = replyTo =>
-                for
-                  cars <- p.cars
-                  trafficLights <- p.trafficLights
-                  car <- cars
-                  carPerception = Road.calculateCarPerception(car, cars, trafficLights)
-                do car.carRef ! CarActor.DecideAction(p.dt, carPerception, replyTo),
+            Aggregator[CarStepDone, SimulationActor.RoadStepDone](
+              sendRequests = replyTo => for cars <- p.cars do
+                println(cars)
+                var updatedCars = cars
+                cars.foreach(car => updatedCars ::= Road.doAction(car, updatedCars)) //Todo evaluate correctness
+                println(updatedCars)
+                updatedCars.foreach(carRecord => carRecord.carRef ! CarActor.UpdateCarRecord(carRecord.carRecord, replyTo)),
               expectedReplies = carActors.size,
               replyTo = p.replyTo,
-              aggregateReplies = _ => SimulationActor.RoadStepDone,
+              aggregateReplies = replies => SimulationActor.RoadStepDone(road, replies.map(_.car).sortBy(_.agentID).toList, p.trafficLights.get.map(_.trafficLightRecord)),
               timeout = 5.seconds
             )
           )
@@ -143,7 +145,7 @@ object Road:
       .filter(trafficLight => trafficLight.trafficLightPositionInfo.roadPosition > car.carRecord.position && trafficLight.trafficLightPositionInfo.roadPosition - car.carRecord.position < trafficLightDetectionRange)
       .sortBy(_.trafficLightPositionInfo.roadPosition).headOption
 
-  private def doAction(car: CarRecord, cars: List[CarRecord]): CarRecord =
+  def doAction(car: CarRecord, cars: List[CarRecord]): CarRecord =
     car.carRecord.selectedAction match
       case Some(action: MoveForward) =>
           val nearestCarInFront = findNearestCarInFront(car, cars)
@@ -155,7 +157,7 @@ object Road:
                 newPosition = car.carRecord.position + action.distance
             case None => newPosition = car.carRecord.position + action.distance
           if newPosition > car.carRecord.road.length then newPosition = 0
-          car.copy(carRecord = car.carRecord.updatePosition(newPosition))
+          car.copy(carRecord = car.carRecord.updatePositionAndRemoveAction(newPosition))
       case _ => car
 
 case class Road(agentID: String, startPoint: Point2D, endPoint: Point2D):

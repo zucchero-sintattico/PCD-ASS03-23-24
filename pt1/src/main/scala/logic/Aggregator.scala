@@ -20,6 +20,7 @@ object Aggregator:
                                          aggregateReplies: immutable.IndexedSeq[Reply] => Aggregate,
                                          timeout: FiniteDuration): Behavior[Command] =
     Behaviors.setup { context =>
+       
       context.setReceiveTimeout(timeout, ReceiveTimeout)
       val replyAdapter = context.messageAdapter[Reply](WrappedReply(_))
       sendRequests(replyAdapter)
@@ -29,6 +30,8 @@ object Aggregator:
           case WrappedReply(reply) =>
             val newReplies = replies :+ reply.asInstanceOf[Reply]
             if newReplies.size == expectedReplies then
+//              println("[AGGREGATOR]: sending reply to " +replyTo)
+              
               val result = aggregateReplies(newReplies)
               replyTo ! result
               Behaviors.stopped
@@ -41,8 +44,9 @@ object Aggregator:
             Behaviors.stopped
         }
       }
-
+      if expectedReplies == 0 then context.self ! ReceiveTimeout
       collecting(Vector.empty)
+      
     }
 
 

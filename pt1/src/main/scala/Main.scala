@@ -7,65 +7,66 @@ import utils.Point2D
 import view.{RoadSimView, View, ViewActor}
 
 object StartSystem:
-  sealed trait Command
-  private case class ListingResponse(listing: Receptionist.Listing) extends Command
-  case object Spawn extends Command
+//  sealed trait Command
+//  private case class ListingResponse(listing: Receptionist.Listing) extends Command
+//  case object Spawn extends Command
 
-  def apply(): Behavior[Command] =
+  def apply(): Behavior[NotUsed] =
 
     Behaviors.setup { context =>
       val road = Road("road-1", Point2D(0,300), Point2D(1500, 300))
       val car1 = BaseCarAgent("car-1", 0, road, CarAgentConfiguration(0.1,0.2,8))
       val car2 = BaseCarAgent("car-2", 100, road, CarAgentConfiguration(0.1,0.1,7))
       val roadConfig = RoadBuildData(road, List.empty, List(car1, car2))
-      val sim = context.spawnAnonymous(SimulationActor(1,100,List(roadConfig)))
+      val sim = context.spawn(SimulationActor(1,1000,List(roadConfig)), "actor-sim")
       context.spawnAnonymous(ViewActor(View(List(() => RoadSimView())), sim))
-      val listingResponseAdapter = context.messageAdapter[Receptionist.Listing](ListingResponse.apply)
-      Behaviors.receiveMessage {
-        case ListingResponse(listing) =>
-          listing.allServiceInstances(ViewActor.viewServiceKey).foreach { viewActorRef =>
-            viewActorRef ! ViewActor.StepDone(0, List.empty,
-              List(
-//                BaseCarAgent("car-1", CarAgentConfiguration(50,1,0,0,Road("road-1", Point2D(0,300), Point2D(1500, 300)))),
-//                BaseCarAgent("car-2", CarAgentConfiguration(80,2,0,0,Road("road-1", Point2D(0,300), Point2D(1500, 300))))
-              ), List.empty)
-          }
-          Behaviors.same
-        case Spawn =>
-          context.system.receptionist ! Receptionist.Find(ViewActor.viewServiceKey, listingResponseAdapter)
-          Behaviors.same
-      }
+      sim ! SimulationActor.Start
+      Behaviors.same
+//      val listingResponseAdapter = context.messageAdapter[Receptionist.Listing](ListingResponse.apply)
+//      Behaviors.receiveMessage {
+//        case ListingResponse(listing) =>
+//          listing.allServiceInstances(ViewActor.viewServiceKey).foreach { viewActorRef =>
+//            viewActorRef ! ViewActor.StepDone(0, List.empty,
+//              List(
+////                BaseCarAgent("car-1", CarAgentConfiguration(50,1,0,0,Road("road-1", Point2D(0,300), Point2D(1500, 300)))),
+////                BaseCarAgent("car-2", CarAgentConfiguration(80,2,0,0,Road("road-1", Point2D(0,300), Point2D(1500, 300))))
+//              ), List.empty)
+//          }
+//          Behaviors.same
+//        case Spawn =>
+//          context.system.receptionist ! Receptionist.Find(ViewActor.viewServiceKey, listingResponseAdapter)
+//          Behaviors.same
+//      }
     }
 
-object StartSystem2:
-  sealed trait Command
-  private case class ListingResponse(listing: Receptionist.Listing) extends Command
-  case object Spawn extends Command
-
-  def apply(): Behavior[Command] =
-
-    Behaviors.setup { context =>
+//object StartSystem2:
+//  sealed trait Command
+//
+//  case object Spawn extends Command
+//
+//  def apply(): Behavior[Command] =
+//
+//    Behaviors.setup { context =>
 //      context.spawnAnonymous(ViewActor(RoadSimView(Nil[SimulationActor])))
 //      context.spawnAnonymous(ViewActor(RoadSimView(Nil)))
-      val listingResponseAdapter = context.messageAdapter[Receptionist.Listing](ListingResponse.apply)
 
 
 
-      Behaviors.receiveMessage {
-        case ListingResponse(listing) =>
-          listing.allServiceInstances(ViewActor.viewServiceKey).foreach { viewActorRef =>
-            viewActorRef ! ViewActor.StepDone(0, List.empty,
-              List(
-//                BaseCarAgent("car-1", CarAgentConfiguration(50,1,0,0,Road("road-1", Point2D(0,300), Point2D(1500, 300)))),
-//                BaseCarAgent("car-2", CarAgentConfiguration(80,2,0,0,Road("road-1", Point2D(0,300), Point2D(1500, 300))))
-              ), List.empty)
-          }
-          Behaviors.same
-        case Spawn =>
-          context.system.receptionist ! Receptionist.Find(ViewActor.viewServiceKey, listingResponseAdapter)
-          Behaviors.same
-      }
-    }
+//      Behaviors.receiveMessage {
+//        case ListingResponse(listing) =>
+//          listing.allServiceInstances(ViewActor.viewServiceKey).foreach { viewActorRef =>
+//            viewActorRef ! ViewActor.StepDone(0, List.empty,
+//              List(
+////                BaseCarAgent("car-1", CarAgentConfiguration(50,1,0,0,Road("road-1", Point2D(0,300), Point2D(1500, 300)))),
+////                BaseCarAgent("car-2", CarAgentConfiguration(80,2,0,0,Road("road-1", Point2D(0,300), Point2D(1500, 300))))
+//              ), List.empty)
+//          }
+//          Behaviors.same
+//        case Spawn =>
+//          context.system.receptionist ! Receptionist.Find(ViewActor.viewServiceKey, listingResponseAdapter)
+//          Behaviors.same
+//      }
+//    }
 
 
 
@@ -73,5 +74,5 @@ object StartSystem2:
   val tl = TrafficLight("TrafficLight-1",TrafficLightPositionInfo(Point2D(0,0), 0), TrafficLightTimingSetup(0,0,0), TrafficLightState.RED)
 
   val sys = ActorSystem(StartSystem(), "root")
-  sys ! StartSystem.Spawn
+//  sys ! StartSystem.Spawn
   println("ASS03")

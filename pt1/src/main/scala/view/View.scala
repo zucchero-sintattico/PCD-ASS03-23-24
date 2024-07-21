@@ -27,6 +27,7 @@ object ViewActor:
           for view <- view.views do view.notifyInit(t, agents.asJava)
           Behaviors.same
         case StepDone(t, roads, agents, trafficLights) =>
+          println("[VIEW] recieve")
           for view <- view.views do view.notifyStepDone(t, roads.asJava, agents.asJava, trafficLights.asJava)
           Behaviors.same
         case SimulationEnded() =>
@@ -44,8 +45,8 @@ enum Test:
 object View:
   def apply(viewConstructors: List[() => SimulationListener]): View =
     new View(viewConstructors.map(_()))
-    
+
 private class View (val views: List[SimulationListener])
-  
+
 
 // Define the behavior of the ViewActor here
