@@ -8,8 +8,8 @@ object CarActor:
 
   sealed trait Command
   final case class RequestCarRecord(replyTo: ActorRef[RoadActor.CarRecord]) extends Command
-  final case class DecideAction(dt: Int, carPerception: CarPerception, replyTo: ActorRef[RoadActor.CarAction]) extends Command
-  final case class UpdatePosition(position: Double) extends Command
+  final case class DecideAction(dt: Int, carPerception: CarPerception, replyTo: ActorRef[RoadActor.CarRecord]) extends Command
+  final case class UpdateCarRecord(carRecord: CarRecord, replyTo: ActorRef[RoadActor.CarStepDone.type]) extends Command
   
   def apply(car: Car): Behavior[Command] =
     Behaviors.receive { (context, message) => message match
@@ -36,6 +36,7 @@ trait Car:
   val configuration: CarAgentConfiguration
   val selectedAction: Option[Action]
   def decide(dt: Int, carPerception: CarPerception): Car
-
+  def updatePosition(newPosition: Double): Car
 case class BaseCarAgent(agentID: String, position: Double, road: Road, configuration: CarAgentConfiguration, selectedAction: Option[Action] = None) extends Car:
   override def decide(dt: Int, carPerception: CarPerception): Car = this.copy(selectedAction = Some(MoveForward(1.0))) //TODO improve
+  override def updatePosition(newPosition: Double): Car = this.copy(position = newPosition)
