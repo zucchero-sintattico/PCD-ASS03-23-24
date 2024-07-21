@@ -6,6 +6,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import logic.{Car, Road, SimulationActor, TrafficLight}
 import view.ViewActor.Command
 
+import scala.annotation.targetName
 import scala.jdk.CollectionConverters.*
 
 object ViewActor:
@@ -18,28 +19,33 @@ object ViewActor:
   case class SimulationEnded() extends Command
   case class Stat(averageSpeed: Double) extends Command
 
-  def apply(view: RoadSimView, simulation: ActorRef[SimulationActor.Command]): Behavior[Command] =
+  def apply(view: View, simulation: ActorRef[SimulationActor.Command]): Behavior[Command] =
     Behaviors.setup { context =>
       context.system.receptionist ! Receptionist.Register(viewServiceKey, context.self)
       Behaviors.receiveMessage {
         case Init(t, agents) =>
-          view.notifyInit(t, agents.asJava)
+          for view <- view.views do view.notifyInit(t, agents.asJava)
           Behaviors.same
         case StepDone(t, roads, agents, trafficLights) =>
-          view.notifyStepDone(t, roads.asJava, agents.asJava, trafficLights.asJava)
+          for view <- view.views do view.notifyStepDone(t, roads.asJava, agents.asJava, trafficLights.asJava)
           Behaviors.same
         case SimulationEnded() =>
-          view.notifySimulationEnded()
+          for view <- view.views do view.notifySimulationEnded()
           Behaviors.same
         case Stat(averageSpeed) =>
-          view.notifyStat(averageSpeed)
+          for view <- view.views do view.notifyStat(averageSpeed)
           Behaviors.same
       }
     }
 
 enum Test:
   case A,B
-//trait ViewActorNotifier:
+
+object View:
+  def apply(viewConstructors: List[() => SimulationListener]): View =
+    new View(viewConstructors.map(_()))
+    
+private class View (val views: List[SimulationListener])
   
 
 // Define the behavior of the ViewActor here
