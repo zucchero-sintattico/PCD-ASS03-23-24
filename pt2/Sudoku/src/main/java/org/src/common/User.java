@@ -1,2 +1,8 @@
-package org.src.common;public interface User {
+package org.src.common;
+
+import java.awt.*;
+
+public interface User {
+    String getName();
+    Color getColor();
 }
