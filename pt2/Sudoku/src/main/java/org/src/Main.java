@@ -6,7 +6,10 @@ import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
 import org.src.common.Cell;
 import org.src.common.Grid;
+import org.src.common.User;
+import org.src.model.CellImpl;
 import org.src.model.GridImpl;
+import org.src.model.UserImpl;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -20,6 +23,11 @@ public class Main {
     private static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) throws IOException, TimeoutException {
+        System.out.println("Enter your username: ");
+        String username = scanner.nextLine();
+        User user = new UserImpl(username);
+
+
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
 
@@ -61,7 +69,7 @@ public class Main {
                 }
 
                 //-----make a move------/
-                makeMove(grid);
+                makeMove(grid, user, channel);
             }
         }
     }
@@ -79,20 +87,36 @@ public class Main {
         System.out.println(grid);
     }
 
-    private static void makeMove(Grid grid) {
-        System.out.println("Enter a position: formatted as x y");
+
+    private static void makeMove(Grid grid, User user,  Channel channel) throws IOException {
+        List<Cell> newCellList= new ArrayList<>();
+        System.out.println("Select a position: formatted as x y");
         String position = scanner.nextLine();
         String[] split = position.split(" ");
         int x = Integer.parseInt(split[0]);
         int y = Integer.parseInt(split[1]);
-        System.out.println("Enter a number: ");
-        int number = Integer.parseInt(scanner.nextLine());
-        List<Cell> newCellList= new ArrayList<>();
+
         for (Cell cell : grid.getCells()) {
             if(cell.getPosition().x() == x && cell.getPosition().y() == y){
-                cell.setNumber(number);
+                cell.selectCell(user);
             }
             newCellList.add(cell);
+        }
+        grid.updateGrid(newCellList);
+        sendMessageToServer(grid, channel);
+
+        newCellList= new ArrayList<>();
+        System.out.println("Enter a number: ");
+        int number = Integer.parseInt(scanner.nextLine());
+        for (Cell cell : grid.getCells()) {
+            Cell newCell = new CellImpl(cell.getPosition());
+            if (cell.getNumber().isPresent()){
+                newCell.setNumber(cell.getNumber().get())   ;
+            }
+            if(cell.getPosition().x() == x && cell.getPosition().y() == y){
+                newCell.setNumber(number);
+            }
+            newCellList.add(newCell);
         }
         grid.updateGrid(newCellList);
     }
