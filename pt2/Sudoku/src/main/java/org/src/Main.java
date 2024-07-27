@@ -116,6 +116,9 @@ public class Main {
             if(cell.getPosition().x() == x && cell.getPosition().y() == y){
                 newCell.setNumber(number);
             }
+            if (cell.isSelected().isPresent() && !cell.isSelected().get().getName().equals(user.getName())){
+                newCell.selectCell(cell.isSelected().get());
+            }
             newCellList.add(newCell);
         }
         grid.updateGrid(newCellList);
