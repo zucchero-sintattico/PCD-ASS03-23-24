@@ -38,14 +38,15 @@ public class GridImpl implements Grid {
         StringBuilder s = new StringBuilder();
 
         cells.forEach(e -> {
-            if ( e.getPosition().y() % GRID_SIZE == 0) {
+            if (e.getNumber().isPresent()) {
+                s.append(e.getNumber().get());
+            } else {
+                s.append("-");
+            }
+            s.append("   ");
+            if (e.getPosition().y() == GRID_SIZE - 1) {
                 s.append("\n");
-            }else
-                if(e.getNumber().isPresent()){
-                    s.append(e.getNumber().get()).append("   ");
-                }else{
-                    s.append("-   ");
-                }
+            }
 
         });
 

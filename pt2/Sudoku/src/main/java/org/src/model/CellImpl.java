@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public class CellImpl implements Cell {
 
-    private Point2d position;
+    private final Point2d position;
     User userHowSelected = null;
     private Integer number;
 
