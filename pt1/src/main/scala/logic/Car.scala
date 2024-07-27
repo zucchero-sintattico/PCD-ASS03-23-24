@@ -71,6 +71,6 @@ case class BaseCarAgent(agentID: String, position: Double, road: Road, configura
         then car = car.copy(state = ACCELERATING)
         else car = car.copy(waitingTime = newWaitingTime)
       case BaseCarAgentState.MOVING_CONSTANT_SPEED => if detectedNearCar then car.copy(state = DECELERATING_BECAUSE_OF_A_CAR)
-    println(car.speed)
+//    println(car.speed)
     if car.speed > 0 then car.copy(selectedAction = Option(MoveForward(car.speed * dt))) else car
   override def updatePositionAndRemoveAction(newPosition: Double): Car = this.copy(position = newPosition, selectedAction = Option.empty)

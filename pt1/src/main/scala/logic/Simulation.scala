@@ -37,11 +37,12 @@ case class SimulationActor(roadActors: List[ActorRef[RoadActor.Command]]):
         case Step(dt, viewMsgOpt) =>
           println("[SIMULATION]: Step "+step)
           for viewMsg <- viewMsgOpt do context.system.receptionist ! Receptionist.Find(ViewActor.viewServiceKey, listingResponseAdapter(viewMsg))
+          println("[SIMULATION]: VIEW UPDATED")
           if step <= 0 then
-            println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaahjHADSJLDHDKJHASKDHASKJH DACS")
+//            println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaahjHADSJLDHDKJHASKDHASKJH DACS")
             endSimulation
           else {
-          println("SPAWNNNNNN")
+//          println("SPAWNNNNNN")
           context.spawnAnonymous(
             Aggregator[RoadStepDone, Step](
               sendRequests = replyTo => roadActors.foreach(_ ! RoadActor.Step(dt, replyTo)),
@@ -66,7 +67,7 @@ case class SimulationActor(roadActors: List[ActorRef[RoadActor.Command]]):
         case ListingResponse(viewMessage, listing) =>
           println("receptionistOK")
           listing.allServiceInstances(ViewActor.viewServiceKey).foreach { viewActorRef =>
-            println("sending")
+//            println("sending")
             viewActorRef ! viewMessage
         }
         Behaviors.same
@@ -78,11 +79,11 @@ case class SimulationActor(roadActors: List[ActorRef[RoadActor.Command]]):
       Behaviors.receiveMessagePartial {
 
         case Step(dt, viewMsg) =>
-          println("AAAAAAAAAAAAAAAAAa")
+//          println("AAAAAAAAAAAAAAAAAa")
           Behaviors.same
 
         case ListingResponse(viewMessage, listing) =>
-          println("receptionistOK")
+//          println("receptionistOK")
           listing.allServiceInstances(ViewActor.viewServiceKey).foreach { viewActorRef =>
             viewActorRef ! viewMessage
           }

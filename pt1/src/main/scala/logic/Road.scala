@@ -108,12 +108,13 @@ case class RoadActor(road: Road, trafficLightActors: List[ActorRef[TrafficLightA
         case p: ProcessStep =>
           context.spawnAnonymous(
             Aggregator[CarStepDone, SimulationActor.RoadStepDone](
-              sendRequests = replyTo => for cars <- p.cars do
-                println(cars)
-                var updatedCars = cars
-                cars.foreach(car => updatedCars ::= Road.doAction(car, updatedCars)) //Todo evaluate correctness
-                println(updatedCars)
-                updatedCars.foreach(carRecord => carRecord.carRef ! CarActor.UpdateCarRecord(carRecord.carRecord, replyTo)),
+              sendRequests =
+                {replyTo => for cars <- p.cars do {
+//                  println(cars)
+                  var updatedCars = List[CarRecord]()//cars
+                  cars.foreach(car => updatedCars ::= Road.doAction(car, updatedCars)) //Todo evaluate correctness
+//                  println(updatedCars)
+                  updatedCars.foreach(carRecord => carRecord.carRef ! CarActor.UpdateCarRecord(carRecord.carRecord, replyTo))}},
               expectedReplies = carActors.size,
               replyTo = p.replyTo,
               aggregateReplies = replies => SimulationActor.RoadStepDone(road, replies.map(_.car).sortBy(_.agentID).toList, p.trafficLights.get.map(_.trafficLightRecord)),
