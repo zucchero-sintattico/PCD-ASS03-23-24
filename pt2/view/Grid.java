@@ -2,6 +2,7 @@ package pt2.view;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Random;
 import java.util.stream.IntStream;
 
 class Grid extends JFrame{
@@ -28,7 +29,7 @@ class Grid extends JFrame{
 
     private void build(){
         this.container = new JPanel(new GridLayout(GRID_SIZE, GRID_SIZE));
-        this.logics = new LogicsImpl();
+        this.logics = new LogicsImpl(40);
 
         //Build grid
         IntStream.range(0, GRID_SIZE).forEach(row -> IntStream.range(0, GRID_SIZE).forEach(column -> {

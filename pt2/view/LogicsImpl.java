@@ -1,121 +1,196 @@
 package pt2.view;
 
+
 import java.util.Random;
-import java.util.stream.IntStream;
 
-public class LogicsImpl implements Logics{
-
-    private static final int GRID_SIZE = 9;
+public class LogicsImpl implements Logics {
+    private int[][] solution; // La soluzione completa del Sudoku
+    private int[][] partialSolution; // La griglia parzialmente riempita mostrata all'utente
+    private int[][] board; // La griglia attuale del Sudoku su cui l'utente gioca
+    private static final int SIZE = 9;
     private static final int SUBGRID_SIZE = 3;
-    private int[][] grid;
 
-    public LogicsImpl(){
-        this.grid = new int[GRID_SIZE][GRID_SIZE];
-        this.generateSudoku();
+    public LogicsImpl(int emptyCells) {
+        this.solution = new int[SIZE][SIZE];
+        this.partialSolution = new int[SIZE][SIZE];
+        this.board = new int[SIZE][SIZE];
+        this.genSolution();
+        this.genPartialSolution(emptyCells);
     }
 
-    public int[][] generateSudoku() {
-        fillGrid();
-        return grid;
-    }
-
-    private void fillGrid() {
-        fillDiagonal();
-        fillRemaining(0, SUBGRID_SIZE);
-    }
-
-    private void fillDiagonal() {
-        IntStream.iterate(0, i -> i + SUBGRID_SIZE).limit(GRID_SIZE / SUBGRID_SIZE).forEach(this::fillBox);
-    }
-
-    private boolean fillRemaining(int i, int j) {
-        if (j >= GRID_SIZE && i < GRID_SIZE - 1) {
-            i++;
-            j = 0;
-        }
-        if (i >= GRID_SIZE && j >= GRID_SIZE) {
+    @Override
+    public boolean hit(int row, int col, int number) {
+        if (this.solution[row][col] == number) {
+            this.board[row][col] = number;
             return true;
-        }
-        if (i < SUBGRID_SIZE) {
-            if (j < SUBGRID_SIZE) {
-                j = SUBGRID_SIZE;
-            }
-        } else if (i < GRID_SIZE - SUBGRID_SIZE) {
-            if (j == (i / SUBGRID_SIZE) * SUBGRID_SIZE) {
-                j += SUBGRID_SIZE;
-            }
         } else {
-            if (j == GRID_SIZE - SUBGRID_SIZE) {
-                i++;
-                j = 0;
-                if (i >= GRID_SIZE) {
-                    return true;
+            return false;
+        }
+    }
+
+    @Override
+    public boolean won() {
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                if (this.board[i][j] != this.solution[i][j]) {
+                    return false;
                 }
             }
         }
-
-        int finalI = i;
-        int finalJ = j;
-        int finalI1 = i;
-        int finalJ1 = j;
-        return IntStream.rangeClosed(1, GRID_SIZE)
-                .boxed()
-                .filter(num -> isSafe(finalI, finalJ, num))
-                .anyMatch(num -> {
-                    grid[finalI1][finalJ1] = num;
-                    if (fillRemaining(finalI1, finalJ1 + 1)) {
-                        return true;
-                    }
-                    grid[finalI1][finalJ1] = 0;
-                    return false;
-                });
-    }
-
-    private void fillBox(int start) {
-        Random random = new Random();
-        IntStream.range(0, SUBGRID_SIZE).forEach(i ->
-                IntStream.range(0, SUBGRID_SIZE).forEach(j -> {
-                    int num;
-                    do {
-                        num = random.nextInt(GRID_SIZE) + 1;
-                    } while (!isSafeInBox(start, start, num));
-                    grid[start + i][start + j] = num;
-                })
-        );
-    }
-
-    private boolean isSafe(int i, int j, int num) {
-        return isSafeInRow(i, num) && isSafeInCol(j, num) && isSafeInBox(i - i % SUBGRID_SIZE, j - j % SUBGRID_SIZE, num);
-    }
-
-    private boolean isSafeInRow(int i, int num) {
-        return IntStream.range(0, GRID_SIZE).noneMatch(j -> grid[i][j] == num);
-    }
-
-    private boolean isSafeInCol(int j, int num) {
-        return IntStream.range(0, GRID_SIZE).noneMatch(i -> grid[i][j] == num);
-    }
-
-    private boolean isSafeInBox(int row, int col, int num) {
-        return IntStream.range(0, SUBGRID_SIZE)
-                .noneMatch(i -> IntStream.range(0, SUBGRID_SIZE).anyMatch(j -> grid[row + i][col + j] == num));
-    }
-
-    public static void main(String[] args) {
-        LogicsImpl generator = new LogicsImpl();
-        int[][] sudoku = generator.generateSudoku();
-        printGrid(sudoku);
-    }
-
-    private static void printGrid(int[][] grid) {
-        IntStream.range(0, GRID_SIZE).forEach(i -> {
-            IntStream.range(0, GRID_SIZE).forEach(j -> System.out.print(grid[i][j] + " "));
-            System.out.println();
-        });
+        return true;
     }
 
     @Override
     public int getNumber(int row, int col) {
-        return this.grid[row][col];
+        return this.partialSolution[row][col];
+    }
+
+    @Override
+    public void resetGame(int emptyCells) {
+        this.solution = new int[SIZE][SIZE];
+        this.partialSolution = new int[SIZE][SIZE];
+        this.board = new int[SIZE][SIZE];
+        this.genSolution();
+        this.genPartialSolution(emptyCells);
+    }
+
+    private void genSolution() {
+        this.fillGrid(this.solution);
+    }
+
+    private boolean fillGrid(int[][] grid) {
+        Random random = new Random();
+        for (int row = 0; row < SIZE; row++) {
+            for (int col = 0; col < SIZE; col++) {
+                if (grid[row][col] == 0) {
+                    int[] numbers = this.randomizeNumbers();
+                    for (int number : numbers) {
+                        if (this.isValid(grid, row, col, number)) {
+                            grid[row][col] = number;
+                            if (this.fillGrid(grid)) {
+                                return true;
+                            }
+                            grid[row][col] = 0;
+                        }
+                    }
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private int[] randomizeNumbers() {
+        Random random = new Random();
+        int[] numbers = new int[SIZE];
+        for (int i = 0; i < SIZE; i++) {
+            numbers[i] = i + 1;
+        }
+        for (int i = 0; i < SIZE; i++) {
+            int randomIndex = random.nextInt(SIZE);
+            int temp = numbers[i];
+            numbers[i] = numbers[randomIndex];
+            numbers[randomIndex] = temp;
+        }
+        return numbers;
+    }
+
+    private boolean isValid(int[][] grid, int row, int col, int number) {
+        return !this.isInRow(grid, row, number) &&
+                !this.isInCol(grid, col, number) &&
+                !this.isInBox(grid, row, col, number);
+    }
+
+    private boolean isInRow(int[][] grid, int row, int number) {
+        for (int col = 0; col < SIZE; col++) {
+            if (grid[row][col] == number) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isInCol(int[][] grid, int col, int number) {
+        for (int row = 0; row < SIZE; row++) {
+            if (grid[row][col] == number) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isInBox(int[][] grid, int row, int col, int number) {
+        int boxRowStart = row - row % SUBGRID_SIZE;
+        int boxColStart = col - col % SUBGRID_SIZE;
+        for (int r = 0; r < SUBGRID_SIZE; r++) {
+            for (int c = 0; c < SUBGRID_SIZE; c++) {
+                if (grid[boxRowStart + r][boxColStart + c] == number) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private void genPartialSolution(int emptyCells) {
+        // Copia la soluzione completa nella griglia parziale
+        for (int row = 0; row < SIZE; row++) {
+            for (int col = 0; col < SIZE; col++) {
+                this.partialSolution[row][col] = this.solution[row][col];
+            }
+        }
+
+        // Rimuove casualmente il numero specificato di celle
+        Random random = new Random();
+        while (emptyCells > 0) {
+            int row = random.nextInt(SIZE);
+            int col = random.nextInt(SIZE);
+            if (this.partialSolution[row][col] != 0) {
+                this.partialSolution[row][col] = 0;
+                emptyCells--;
+            }
+        }
+
+        // Inizializza la board con la partialSolution
+        for (int row = 0; row < SIZE; row++) {
+            for (int col = 0; col < SIZE; col++) {
+                this.board[row][col] = this.partialSolution[row][col];
+            }
+        }
+    }
+
+    public void printGrid(int[][] grid) {
+        for (int row = 0; row < SIZE; row++) {
+            for (int col = 0; col < SIZE; col++) {
+                System.out.print(grid[row][col] + " ");
+            }
+            System.out.println();
+        }
+    }
+
+    public static void main(String[] args) {
+        int emptyCells = 40; // Numero di celle vuote da generare
+        LogicsImpl game = new LogicsImpl(emptyCells);
+
+        System.out.println("Generated Sudoku Solution:");
+        game.printGrid(game.solution);
+
+        System.out.println("\nInitial Partial Solution (what user sees):");
+        game.printGrid(game.partialSolution);
+
+        // Example of how to play the game
+        System.out.println("\nHit (0, 0, 5): " + game.hit(0, 0, 5));
+        System.out.println("Won: " + game.won());
+
+        // Example of getNumber
+        System.out.println("\nNumber at (0, 0): " + game.getNumber(0, 0));
+
+        // Resetting the game
+        game.resetGame(emptyCells);
+        System.out.println("\nNew Generated Sudoku Solution:");
+        game.printGrid(game.solution);
+
+        System.out.println("\nNew Initial Partial Solution (what user sees):");
+        game.printGrid(game.partialSolution);
     }
 }
