@@ -7,11 +7,10 @@ import javax.swing.border.Border;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
-public class GUI {
-    private JFrame frame;
-    private JTextField[][] cells;
-    private LogicsImpl logics;
-    private JLabel usernameLabel;
+public class GUI extends JFrame {
+    private final JTextField[][] cells;
+    private final LogicsImpl logics;
+    private final JLabel usernameLabel;
 
     public GUI(int emptyCells, String username) {
         this.logics = new LogicsImpl(emptyCells);
@@ -21,9 +20,8 @@ public class GUI {
     }
 
     public void build() {
-        this.frame = new JFrame("Sudoku");
-        this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.frame.setLayout(new BorderLayout());
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setLayout(new BorderLayout());
 
         // Top panel for username
         JPanel topPanel = new JPanel();
@@ -31,14 +29,11 @@ public class GUI {
 
         topPanel.add(this.usernameLabel);
 
-        this.frame.add(topPanel, BorderLayout.NORTH);
+        this.add(topPanel, BorderLayout.NORTH);
 
         // Center panel for Sudoku grid
         JPanel gridPanel = new JPanel();
         gridPanel.setLayout(new GridLayout(9, 9));
-
-        Border thickBorder = BorderFactory.createMatteBorder(2, 2, 2, 2, Color.BLACK);
-        Border thinBorder = BorderFactory.createMatteBorder(1, 1, 1, 1, Color.GRAY);
 
         for (int row = 0; row < 9; row++) {
             for (int col = 0; col < 9; col++) {
@@ -100,15 +95,13 @@ public class GUI {
             }
         }
 
-        this.frame.add(gridPanel, BorderLayout.CENTER);
+        this.add(gridPanel, BorderLayout.CENTER);
 
-        this.frame.setSize(600, 600);
-        this.frame.setVisible(true);
+        this.setSize(600, 600);
+        this.setVisible(true);
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-                new GUI(1, "User");
-        });
+        SwingUtilities.invokeLater(() -> new GUI(40, "Alecs00"));
     }
 }
