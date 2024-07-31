@@ -29,9 +29,6 @@ public class CellImpl implements Cell {
 
     @Override
     public void selectCell(User user) {
-        if (isSelected().isPresent()){
-            throw new IllegalStateException("Cell is already selected");
-        }
         userHowSelected = user;
     }
 

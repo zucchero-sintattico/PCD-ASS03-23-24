@@ -119,4 +119,3 @@ public class GridImpl implements Grid {
         return cells.stream().noneMatch(e -> e.getNumber().isPresent()) && cells.stream().noneMatch(e -> e.isSelected().isPresent());
     }
 }
-
