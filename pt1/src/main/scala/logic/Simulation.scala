@@ -4,16 +4,16 @@ import akka.actor.typed.receptionist.Receptionist
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import logic.SimulationActor.{Command, ListingResponse, RoadStepDone, Step}
-import view.ViewActor
+import view.ViewListenerRelayActor
 
 import scala.concurrent.duration.DurationInt
 
 object SimulationActor:
   sealed trait Command
   case object Start extends Command
-  private case class Step(dt: Int, viewMsg: Option[ViewActor.Command] = Option.empty) extends Command
+  private case class Step(dt: Int, viewMsg: Option[ViewListenerRelayActor.Command] = Option.empty) extends Command
   final case class RoadStepDone(road: Road, cars: List[Car], trafficLights: List[TrafficLight]) extends Command
-  private case class ListingResponse(viewMessage: ViewActor.Command, listing: Receptionist.Listing) extends Command
+  private case class ListingResponse(viewMessage: ViewListenerRelayActor.Command, listing: Receptionist.Listing) extends Command
 
 
 
@@ -32,11 +32,11 @@ case class SimulationActor(roadActors: List[ActorRef[RoadActor.Command]]):
   private def run(step: Int): Behavior[Command] =
     Behaviors.setup { context =>
 
-      val listingResponseAdapter = (msg: ViewActor.Command) => context.messageAdapter[Receptionist.Listing](ListingResponse(msg, _))
+      val listingResponseAdapter = (msg: ViewListenerRelayActor.Command) => context.messageAdapter[Receptionist.Listing](ListingResponse(msg, _))
       Behaviors.receiveMessage {
         case Step(dt, viewMsgOpt) =>
           println("[SIMULATION]: Step "+step)
-          for viewMsg <- viewMsgOpt do context.system.receptionist ! Receptionist.Find(ViewActor.viewServiceKey, listingResponseAdapter(viewMsg))
+          for viewMsg <- viewMsgOpt do context.system.receptionist ! Receptionist.Find(ViewListenerRelayActor.viewServiceKey, listingResponseAdapter(viewMsg))
           println("[SIMULATION]: VIEW UPDATED")
           if step <= 0 then
 //            println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaahjHADSJLDHDKJHASKDHASKJH DACS")
@@ -59,15 +59,15 @@ case class SimulationActor(roadActors: List[ActorRef[RoadActor.Command]]):
                 )
 //                context.system.receptionist ! Receptionist.Find(ViewActor.viewServiceKey, listingResponseAdapter())
                 println(totalCars(1).position)
-                Step(dt, Option(ViewActor.StepDone(step, totalRoads, totalCars, totalTrafficLights))),
+                Step(dt, Option(ViewListenerRelayActor.StepDone(step, totalRoads, totalCars, totalTrafficLights))),
               timeout = 5.seconds
             )
           )
           run(step-1)}
         case ListingResponse(viewMessage, listing) =>
           println("receptionistOK")
-          listing.allServiceInstances(ViewActor.viewServiceKey).foreach { viewActorRef =>
-//            println("sending")
+          listing.allServiceInstances(ViewListenerRelayActor.viewServiceKey).foreach { viewActorRef =>
+            println("sending")
             viewActorRef ! viewMessage
         }
         Behaviors.same
@@ -84,12 +84,30 @@ case class SimulationActor(roadActors: List[ActorRef[RoadActor.Command]]):
 
         case ListingResponse(viewMessage, listing) =>
 //          println("receptionistOK")
-          listing.allServiceInstances(ViewActor.viewServiceKey).foreach { viewActorRef =>
+          listing.allServiceInstances(ViewListenerRelayActor.viewServiceKey).foreach { viewActorRef =>
             viewActorRef ! viewMessage
           }
           Behaviors.same
       }
     }
 
+
+enum SimulationType extends java.lang.Enum[SimulationType]{// extends Enumeration {
+//  type SimulationType = Value
+  case SINGLE_ROAD_TWO_CAR,
+  SINGLE_ROAD_SEVERAL_CARS,
+  SINGLE_ROAD_WITH_TRAFFIC_TWO_CAR,
+  CROSS_ROADS,
+  MASSIVE_SIMULATION;
+
+  def getSimulation(simulationType: SimulationType): SimulationActor = ???
+
+}
+
+trait SimulationListener:
+  def notifyInit(t: Int, agents: List[Car]): Unit
+  def notifyStepDone(t: Int, roads: List[Road], agents: List[Car], trafficLights: List[TrafficLight]): Unit
+  def notifySimulationEnded(simulationDuration: Int): Unit
+  def notifyStat(averageSpeed: Double): Unit
 
 

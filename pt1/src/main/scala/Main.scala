@@ -4,7 +4,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorSystem, Behavior}
 import logic.{BaseCarAgent, CarAgentConfiguration, Road, RoadBuildData, SimulationActor, TrafficLight, TrafficLightActor, TrafficLightPositionInfo, TrafficLightState, TrafficLightTimingSetup}
 import utils.Point2D
-import view.{RoadSimView, View, ViewActor}
+import view.{RoadSimView, View, ViewListenerRelayActor, StatisticalView}
 
 object StartSystem:
 //  sealed trait Command
@@ -18,8 +18,9 @@ object StartSystem:
       val car1 = BaseCarAgent("car-1", 0, road, CarAgentConfiguration(0.1,0.2,8))
       val car2 = BaseCarAgent("car-2", 100, road, CarAgentConfiguration(0.1,0.1,7))
       val roadConfig = RoadBuildData(road, List.empty, List(car1, car2))
-      val sim = context.spawn(SimulationActor(1,1000,List(roadConfig)), "actor-sim")
-      context.spawnAnonymous(ViewActor(View(List(() => RoadSimView())), sim))
+//      val sim = context.spawn(SimulationActor(1,10,List(roadConfig)), "actor-sim")
+      context.spawnAnonymous(ViewListenerRelayActor(View(List(() => RoadSimView()))))
+      val sim = context.spawn(SimulationActor(1,100,List(roadConfig)), "actor-sim")
       sim ! SimulationActor.Start
       Behaviors.same
 //      val listingResponseAdapter = context.messageAdapter[Receptionist.Listing](ListingResponse.apply)
@@ -76,3 +77,4 @@ object StartSystem:
   val sys = ActorSystem(StartSystem(), "root")
 //  sys ! StartSystem.Spawn
   println("ASS03")
+

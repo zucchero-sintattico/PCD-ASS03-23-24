@@ -379,3 +379,11 @@ project/*
 target
 
 target/*
+
+.metals/
+
+metals/*
+
+metals/
+
+.metals/*
