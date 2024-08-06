@@ -387,3 +387,5 @@ metals/*
 metals/
 
 .metals/*
+
+log.txt
