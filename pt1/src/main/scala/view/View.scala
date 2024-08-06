@@ -10,9 +10,6 @@ import scala.annotation.targetName
 import scala.jdk.CollectionConverters.*
 
 object ViewListenerRelayActor:
-
-  val viewServiceKey: ServiceKey[Command] = ServiceKey[Command]("View")
-
   sealed trait Command
   final case class Add(simulationListener: SimulationListener) extends Command
   final case class Remove(simulationListener: SimulationListener) extends Command
@@ -23,29 +20,27 @@ object ViewListenerRelayActor:
   def apply(): Behavior[Command] = ViewListenerRelayActor(List())
   //todo handle better add and remove to notify correctly statisticalView
   def apply(views: List[SimulationListener]): Behavior[Command] =
-    Behaviors.setup { context =>
-      context.system.receptionist ! Receptionist.Register(viewServiceKey, context.self)
-      Behaviors.receiveMessage {
-        case Add(sl) =>
-          ViewListenerRelayActor(sl :: views)
-        case Remove(sl) =>
-          sl.simulationStopped()
-          ViewListenerRelayActor(views.filter(_ == sl))
-        case Init(t, agents) =>
-          for view <- views do view.notifyInit(t, agents)
-          Behaviors.same
-        case StepDone(t, roads, agents, trafficLights) =>
-          println("[VIEW] recieve")
-          for view <- views do view.notifyStepDone(t, roads, agents, trafficLights)
-          Behaviors.same
-        case SimulationEnded(simulationDuration) =>
-          for view <- views do view.notifySimulationEnded(simulationDuration)
-          Behaviors.same
-        case Stat(averageSpeed) =>
-          for view <- views do view.notifyStat(averageSpeed)
-          Behaviors.same
-      }
+    Behaviors.receiveMessage {
+      case Add(sl) =>
+        ViewListenerRelayActor(sl :: views)
+      case Remove(sl) =>
+        sl.simulationStopped()
+        ViewListenerRelayActor(views.filter(_ == sl))
+      case Init(t, agents) =>
+        for view <- views do view.notifyInit(t, agents)
+        Behaviors.same
+      case StepDone(t, roads, agents, trafficLights) =>
+        println("[VIEW] recieve")
+        for view <- views do view.notifyStepDone(t, roads, agents, trafficLights)
+        Behaviors.same
+      case SimulationEnded(simulationDuration) =>
+        for view <- views do view.notifySimulationEnded(simulationDuration)
+        Behaviors.same
+      case Stat(averageSpeed) =>
+        for view <- views do view.notifyStat(averageSpeed)
+        Behaviors.same
     }
+
 
 // Define the behavior of the ViewActor here
 trait Clickable:

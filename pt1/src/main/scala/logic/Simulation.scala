@@ -15,30 +15,28 @@ object SimulationActor:
   case object Stop extends Command
   private case class Step(dt: Int, viewMsg: Option[ViewListenerRelayActor.Command] = Option.empty) extends Command
   final case class RoadStepDone(road: Road, cars: List[Car], trafficLights: List[TrafficLight]) extends Command
-  private case class ListingResponse(viewMessage: ViewListenerRelayActor.Command, listing: Receptionist.Listing) extends Command
+
 
 
 
   def apply(dt: Int, numStep: Int, roadsBuildData: List[RoadBuildData], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command]): Behavior[Command] =
     Behaviors.setup { context =>
       val roadActors = roadsBuildData.map(rbd => context.spawn(RoadActor(rbd.road, rbd.trafficLights, rbd.cars), rbd.road.agentID))
-      Behaviors.receiveMessage{
+      Behaviors.receiveMessagePartial{
         case Start =>
           context.self ! Step(dt)
-          SimulationActor(roadActors).run(numStep)
+          SimulationActor(roadActors, viewListenerRelayActor).run(numStep)
       }
 
     }
 
-case class SimulationActor(roadActors: List[ActorRef[RoadActor.Command]]):
+case class SimulationActor(roadActors: List[ActorRef[RoadActor.Command]], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command]):
   private def run(step: Int): Behavior[Command] =
     Behaviors.setup { context =>
-
-      val listingResponseAdapter = (msg: ViewListenerRelayActor.Command) => context.messageAdapter[Receptionist.Listing](ListingResponse(msg, _))
       Behaviors.receiveMessage {
         case Step(dt, viewMsgOpt) =>
           println("[SIMULATION]: Step "+step)
-          for viewMsg <- viewMsgOpt do context.system.receptionist ! Receptionist.Find(ViewListenerRelayActor.viewServiceKey, listingResponseAdapter(viewMsg))
+          for viewMsg <- viewMsgOpt do viewListenerRelayActor ! viewMsg
           println("[SIMULATION]: VIEW UPDATED")
           if step <= 0 then
 //            println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaahjHADSJLDHDKJHASKDHASKJH DACS")
@@ -66,13 +64,7 @@ case class SimulationActor(roadActors: List[ActorRef[RoadActor.Command]]):
             )
           )
           run(step-1)}
-        case ListingResponse(viewMessage, listing) =>
-          println("receptionistOK")
-          listing.allServiceInstances(ViewListenerRelayActor.viewServiceKey).foreach { viewActorRef =>
-            println("sending")
-            viewActorRef ! viewMessage
-        }
-        Behaviors.same
+
       }
 
     }
@@ -81,18 +73,12 @@ case class SimulationActor(roadActors: List[ActorRef[RoadActor.Command]]):
       Behaviors.receiveMessagePartial {
 
         case Step(dt, viewMsg) =>
-//          println("AAAAAAAAAAAAAAAAAa")
+          //          println("AAAAAAAAAAAAAAAAAa")
           Behaviors.same
 
-        case ListingResponse(viewMessage, listing) =>
-//          println("receptionistOK")
-          listing.allServiceInstances(ViewListenerRelayActor.viewServiceKey).foreach { viewActorRef =>
-            viewActorRef ! viewMessage
-          }
-          Behaviors.same
+
       }
     }
-
 
 enum SimulationType:
   case SINGLE_ROAD_TWO_CAR,
