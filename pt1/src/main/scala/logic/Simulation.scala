@@ -116,6 +116,6 @@ object SimulationExample:
   def trafficSimulationMassiveTest: List[RoadBuildData] =
     val road = Road("road-1", Point2D(0,300), Point2D(15000, 300))
     var cars = List[Car]()
-    for i <- 0 to 5000 do
-      cars = cars :+ BaseCarAgent("car-"+i, i*10, road, CarAgentConfiguration(1,0.3,7))
+    for i <- 0 until 5000 do
+      cars = cars :+ BaseCarAgent("car-"+i, i*10, road, CarAgentConfiguration(1.0,0.3,7.0))
     List(RoadBuildData(road, List.empty, cars))

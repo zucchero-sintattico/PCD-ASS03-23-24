@@ -61,17 +61,18 @@ case class BaseCarAgent(agentID: String, position: Double, road: Road, configura
         else
           val newSpeed = speed + configuration.acceleration * dt
           val newState = if newSpeed >= configuration.maxSpeed then MOVING_CONSTANT_SPEED else ACCELERATING
-          car = car.copy(speed = newSpeed, state = state)
+          car = car.copy(speed = newSpeed, state = newState)
       case BaseCarAgentState.DECELERATING_BECAUSE_OF_A_CAR =>
         val newSpeed = speed - configuration.deceleration * dt
-        if newSpeed < 0 then car = car.copy(speed = newSpeed, state = STOPPED)
-        else if carFarEnough then car = car.copy(speed = newSpeed, state = WAIT_A_BIT)
+        car = car.copy(speed = newSpeed)
+        if newSpeed <= 0 then car = car.copy(state = STOPPED)
+        else if carFarEnough then car = car.copy(waitingTime = 0, state = WAIT_A_BIT)
       case BaseCarAgentState.WAIT_A_BIT =>
         val newWaitingTime = waitingTime + dt
         if newWaitingTime >= maxWaitingTime
         then car = car.copy(state = ACCELERATING)
         else car = car.copy(waitingTime = newWaitingTime)
       case BaseCarAgentState.MOVING_CONSTANT_SPEED => if detectedNearCar then car.copy(state = DECELERATING_BECAUSE_OF_A_CAR)
-//    println(car.speed)
+    println(car.agentID+" "+  car.state+" "+car.position+" "+car.speed)
     if car.speed > 0 then car.copy(selectedAction = Option(MoveForward(car.speed * dt))) else car
   override def updatePositionAndRemoveAction(newPosition: Double): Car = this.copy(position = newPosition, selectedAction = Option.empty)

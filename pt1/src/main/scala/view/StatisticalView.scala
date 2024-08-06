@@ -29,7 +29,7 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
   val bigFont = new Font(getName, Font.PLAIN, 16)
   val smallFont = new Font(getName, Font.PLAIN, 14)
   private val labelNumberOfSteps = new JLabel("Number of steps")
-  private val fieldNumberOfSteps = new JTextField("200", 1)
+  private val fieldNumberOfSteps = new JTextField("100", 1)
   private val labelNumberOfThreads = new JLabel("Number of threads")
   private val fieldNumberOfThreads = new JTextField("not-used", 1)
   private val labelConsoleLog = new JLabel("Console log")
