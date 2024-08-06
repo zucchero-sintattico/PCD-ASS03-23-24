@@ -14,39 +14,38 @@ object ViewListenerRelayActor:
   val viewServiceKey: ServiceKey[Command] = ServiceKey[Command]("View")
 
   sealed trait Command
-  case class Init(t: Int, agents: List[Car]) extends Command
-  case class StepDone(t: Int, roads: List[Road], agents: List[Car], trafficLights: List[TrafficLight]) extends Command
-  case class SimulationEnded(simulationDuration: Int) extends Command
-  case class Stat(averageSpeed: Double) extends Command
-  def apply(): Behavior[Command] = ViewListenerRelayActor(View(List()))
-  def apply(view: View): Behavior[Command] =
+  final case class Add(simulationListener: SimulationListener) extends Command
+  final case class Remove(simulationListener: SimulationListener) extends Command
+  final case class Init(t: Int, agents: List[Car]) extends Command
+  final case class StepDone(t: Int, roads: List[Road], agents: List[Car], trafficLights: List[TrafficLight]) extends Command
+  final case class SimulationEnded(simulationDuration: Int) extends Command
+  final case class Stat(averageSpeed: Double) extends Command
+  def apply(): Behavior[Command] = ViewListenerRelayActor(List())
+  //todo handle better add and remove to notify correctly statisticalView
+  def apply(views: List[SimulationListener]): Behavior[Command] =
     Behaviors.setup { context =>
       context.system.receptionist ! Receptionist.Register(viewServiceKey, context.self)
       Behaviors.receiveMessage {
+        case Add(sl) =>
+          ViewListenerRelayActor(sl :: views)
+        case Remove(sl) =>
+          sl.simulationStopped()
+          ViewListenerRelayActor(views.filter(_ == sl))
         case Init(t, agents) =>
-          for view <- view.views do view.notifyInit(t, agents)
+          for view <- views do view.notifyInit(t, agents)
           Behaviors.same
         case StepDone(t, roads, agents, trafficLights) =>
           println("[VIEW] recieve")
-          for view <- view.views do view.notifyStepDone(t, roads, agents, trafficLights)
+          for view <- views do view.notifyStepDone(t, roads, agents, trafficLights)
           Behaviors.same
         case SimulationEnded(simulationDuration) =>
-          for view <- view.views do view.notifySimulationEnded(simulationDuration)
+          for view <- views do view.notifySimulationEnded(simulationDuration)
           Behaviors.same
         case Stat(averageSpeed) =>
-          for view <- view.views do view.notifyStat(averageSpeed)
+          for view <- views do view.notifyStat(averageSpeed)
           Behaviors.same
       }
     }
-
-
-
-object View:
-  def apply(viewConstructors: List[() => SimulationListener]): View =
-    new View(viewConstructors.map(_()))
-
-private class View (val views: List[SimulationListener])
-
 
 // Define the behavior of the ViewActor here
 trait Clickable:
@@ -69,8 +68,7 @@ object ViewClickRelayActor:
           simulationHandlerActor ! SimulationHandlerActor.StopSimulation
           Behaviors.same
         case SetupSimulation(simulationType, numSteps, showView) =>
-          //todo handle show view
-          simulationHandlerActor ! SimulationHandlerActor.SetupSimulation(simulationType, numSteps)
+          simulationHandlerActor ! SimulationHandlerActor.SetupSimulation(simulationType, numSteps, showView)
           Behaviors.same
       }
     }

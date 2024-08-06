@@ -12,13 +12,14 @@ import scala.concurrent.duration.DurationInt
 object SimulationActor:
   sealed trait Command
   case object Start extends Command
+  case object Stop extends Command
   private case class Step(dt: Int, viewMsg: Option[ViewListenerRelayActor.Command] = Option.empty) extends Command
   final case class RoadStepDone(road: Road, cars: List[Car], trafficLights: List[TrafficLight]) extends Command
   private case class ListingResponse(viewMessage: ViewListenerRelayActor.Command, listing: Receptionist.Listing) extends Command
 
 
 
-  def apply(dt: Int, numStep: Int, roadsBuildData: List[RoadBuildData]): Behavior[Command] =
+  def apply(dt: Int, numStep: Int, roadsBuildData: List[RoadBuildData], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command]): Behavior[Command] =
     Behaviors.setup { context =>
       val roadActors = roadsBuildData.map(rbd => context.spawn(RoadActor(rbd.road, rbd.trafficLights, rbd.cars), rbd.road.agentID))
       Behaviors.receiveMessage{
@@ -113,6 +114,7 @@ trait SimulationListener:
   def notifyStepDone(t: Int, roads: List[Road], agents: List[Car], trafficLights: List[TrafficLight]): Unit
   def notifySimulationEnded(simulationDuration: Int): Unit
   def notifyStat(averageSpeed: Double): Unit
+  def simulationStopped(): Unit
 
 object SimulationExample:
   def trafficSimulationSingleRoadTwoCars: List[RoadBuildData] =

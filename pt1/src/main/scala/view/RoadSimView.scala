@@ -100,4 +100,6 @@ class RoadSimView extends JFrame("RoadSim View") with SimulationListener:
   override def notifySimulationEnded(simulationDuration: Int): Unit = {}
 
   override def notifyStat(averageSpeed: Double): Unit = {}
+  
+  override def simulationStopped(): Unit = dispose()
 

@@ -232,5 +232,5 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
   override def notifyStat(averageSpeed: Double): Unit =
     SwingUtilities.invokeLater(() => updateView("[STAT]: average speed: " + averageSpeed))
 
-
+  override def simulationStopped(): Unit = {}
 
