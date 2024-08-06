@@ -18,7 +18,7 @@ object ViewListenerRelayActor:
   case class StepDone(t: Int, roads: List[Road], agents: List[Car], trafficLights: List[TrafficLight]) extends Command
   case class SimulationEnded(simulationDuration: Int) extends Command
   case class Stat(averageSpeed: Double) extends Command
-
+  def apply(): Behavior[Command] = ViewListenerRelayActor(View(List()))
   def apply(view: View): Behavior[Command] =
     Behaviors.setup { context =>
       context.system.receptionist ! Receptionist.Register(viewServiceKey, context.self)
@@ -55,10 +55,9 @@ trait Clickable:
 
 object ViewClickRelayActor:
   trait Command
-  private case object StartSimulation extends Command
-  private case object StopSimulation extends Command
-  private final case class SetupSimulation(simulationType: SimulationType, numSteps: Int, showView: Boolean) extends Command
-
+  case object StartSimulation extends Command
+  case object StopSimulation extends Command
+  final case class SetupSimulation(simulationType: SimulationType, numSteps: Int, showView: Boolean) extends Command
   def apply(view: Clickable, simulationHandlerActor: ActorRef[SimulationHandlerActor.Command]): Behavior[Command] =
     Behaviors.setup { context =>
       view.whenClicked(context.self ! _)

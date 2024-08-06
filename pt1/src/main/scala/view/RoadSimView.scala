@@ -6,13 +6,12 @@ import utils.Vector2D
 
 import java.awt.{BorderLayout, Color, Graphics, Graphics2D, RenderingHints}
 import javax.swing.*
-import java.util
 
-object RoadSimView {
-  private val CAR_DRAW_SIZE = 10
-}
+object RoadSimView:
+  val carDrawSize = 10
 
-class RoadSimView extends JFrame("RoadSim View") with SimulationListener {
+class RoadSimView extends JFrame("RoadSim View") with SimulationListener:
+
   private val panel: RoadSimViewPanel = new RoadSimViewPanel(1500, 600)
   setSize(1500, 600)
   panel.setSize(1500, 600)
@@ -27,16 +26,16 @@ class RoadSimView extends JFrame("RoadSim View") with SimulationListener {
   def display(): Unit = {
     SwingUtilities.invokeLater(() => {
       this.setVisible(true)
-
     })
   }
 
-  def notifyInit(t: Int, agents: List[Car]): Unit = {
-  }
+  override def notifyInit(t: Int, agents: List[Car]): Unit = {}
 
-  def notifyStepDone(t: Int, roads: List[Road], cars: List[Car], tl: List[TrafficLight]): Unit = {
-    System.out.println("NOTIFY STEP DONE" + cars(1).position)
-    panel.update(roads, cars, tl)
+  override def notifyStepDone(t: Int, roads: List[Road], cars: List[Car], tl: List[TrafficLight]): Unit = {
+    SwingUtilities.invokeLater(() => {
+      System.out.println("NOTIFY STEP DONE" + cars(1).position)
+      panel.update(roads, cars, tl)
+    })
   }
 
   private[view] class RoadSimViewPanel(w: Int, h: Int) extends JPanel {
@@ -85,7 +84,7 @@ class RoadSimView extends JFrame("RoadSim View") with SimulationListener {
             //                        g.setColor(c1);
             i += 1
           }
-          g2.fillOval((r.startPoint.x + dir.x - RoadSimView.CAR_DRAW_SIZE / 2).toInt, (r.startPoint.y + dir.y - RoadSimView.CAR_DRAW_SIZE / 2).toInt, RoadSimView.CAR_DRAW_SIZE, RoadSimView.CAR_DRAW_SIZE)
+          g2.fillOval((r.startPoint.x + dir.x - RoadSimView.carDrawSize / 2).toInt, (r.startPoint.y + dir.y - RoadSimView.carDrawSize / 2).toInt, RoadSimView.carDrawSize, RoadSimView.carDrawSize)
         }
       }
     }
@@ -98,9 +97,7 @@ class RoadSimView extends JFrame("RoadSim View") with SimulationListener {
     }
   }
 
-  def notifySimulationEnded(simulationDuration: Int): Unit = {
-  }
+  override def notifySimulationEnded(simulationDuration: Int): Unit = {}
 
-  def notifyStat(averageSpeed: Double): Unit = {
-  }
-}
+  override def notifyStat(averageSpeed: Double): Unit = {}
+

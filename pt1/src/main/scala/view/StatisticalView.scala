@@ -4,14 +4,11 @@ import javax.swing.WindowConstants
 import java.awt.GridBagLayout
 import java.awt.GridLayout
 import java.awt.Insets
-import java.awt.event.ActionEvent
-import java.awt.event.ActionListener
 import java.awt.GridBagConstraints
 import java.awt.FlowLayout
 import java.awt.Font
 import java.util
 import java.util.Optional
-import java.util.function.Consumer
 import javax.swing.JButton
 import javax.swing.JComboBox
 import javax.swing.JFrame
@@ -25,293 +22,215 @@ import javax.swing.JCheckBox
 import javax.swing.ScrollPaneConstants
 import javax.swing.SwingUtilities
 import logic._
-import utils.Vector2D
 import logic.SimulationType
 
-
-object StatisticalView {
-  private val DEFAULT_SIZE = 1000
-}
-
-class StatisticalView extends JFrame with SimulationListener with Clickable  {
+case class StatisticalView() extends JFrame with SimulationListener with Clickable:
+  val defaultSize = 1000
+  val bigFont = new Font(getName, Font.PLAIN, 16)
+  val smallFont = new Font(getName, Font.PLAIN, 14)
+  private val labelNumberOfSteps = new JLabel("Number of steps")
+  private val fieldNumberOfSteps = new JTextField("200", 1)
+  private val labelNumberOfThreads = new JLabel("Number of threads")
+  private val fieldNumberOfThreads = new JTextField("not-used", 1)
+  private val labelConsoleLog = new JLabel("Console log")
+  private val areaConsoleLog = new JTextArea("Console log")
+  private val buttonStart = new JButton("Start simulation")
+  private val buttonReset = new JButton("Reset simulation")
+  private val buttonStop = new JButton("Stop simulation")
+  private val scroll = new JScrollPane(areaConsoleLog)
+  private val labelBox = new JLabel("Choise simulation")
+  private val comboBox = new JComboBox[SimulationType]
+  private val checkBox = new JCheckBox("Display simulation view")
+  private val checkBoxAvailableProcessor = new JCheckBox("Use available processor (max: ???)")
+  private val inputContainer = new JPanel(new GridLayout(2, 2, 10, 10))
+  private val buttonContainer = new JPanel(new FlowLayout)
+  
+  private var simulationStarted = false
+  
   setFrameProperties()
-  // Set controller
-  //        this.controller = new Controller();
   // Create components
   setViewComponents()
   // Add components on panel
   addAllComponentsIntoFrame()
   // Add properties
   editAllComponentsProperties()
-  this.pack()
-
+  pack()
   // Create frame
-  private var labelNumberOfSteps: JLabel = new JLabel("Number of steps")
-  private var fieldNumberOfSteps: JTextField = null
-  private var labelNumberOfThreads: JLabel = null
-  private var fieldNumberOfThreads: JTextField = null
-  private var labelConsoleLog: JLabel = null
-  private var areaConsoleLog: JTextArea = null
-  private var buttonStart: JButton = null
-  private var buttonReset: JButton = null
-  private var buttonStop: JButton = null
-  private var labelBox: JLabel = null
-  private var comboBox: JComboBox[SimulationType] = null
-  private var checkBox: JCheckBox = null
-  private var checkBoxAvaiableProcessor: JCheckBox = null
-  private var scroll: JScrollPane = null
-  private var inputContainer: JPanel = null
-  private var buttonContainer: JPanel = null
-  //    private Controller controller;
-  private var isStartedSimulation = false
 
-  private def setFrameProperties(): Unit = {
-    this.setLayout(new GridBagLayout)
-    this.setTitle("Car simulator")
-    this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
-//    this.setDefaultCloseOperation(WindowConstant.EXIT_ON_CLOSE)
-    this.setSize(StatisticalView.DEFAULT_SIZE, StatisticalView.DEFAULT_SIZE)
-    this.setLocationRelativeTo(null)
-    this.setResizable(false)
-    display()
-  }
 
-  private def editAllComponentsProperties(): Unit = {
-    this.areaConsoleLog.setMargin(new Insets(10, 10, 10, 10))
-    this.areaConsoleLog.setEditable(false)
-    this.populateComboBox()
-    this.buttonStop.setEnabled(false)
-    // this.buttonStart.addActionListener(this);
-    // this.buttonStop.addActionListener(this);
-    // this.buttonReset.addActionListener(this);
-    // this.checkBoxAvaiableProcessor.addActionListener(this);
-    this.checkBoxAvaiableProcessor.setSelected(true)
-    this.labelNumberOfSteps.setFont(new Font(getName, Font.PLAIN, 16))
-    this.labelNumberOfThreads.setFont(new Font(getName, Font.PLAIN, 16))
-    this.labelConsoleLog.setFont(new Font(getName, Font.PLAIN, 16))
-    this.labelBox.setFont(new Font(getName, Font.PLAIN, 16))
-    this.fieldNumberOfSteps.setFont(new Font(getName, Font.PLAIN, 14))
-    this.fieldNumberOfThreads.setFont(new Font(getName, Font.PLAIN, 14))
-    this.checkBox.setFont(new Font(getName, Font.PLAIN, 14))
-    this.checkBoxAvaiableProcessor.setFont(new Font(getName, Font.PLAIN, 14))
-    this.buttonStart.setFont(new Font(getName, Font.PLAIN, 14))
-    this.buttonStop.setFont(new Font(getName, Font.PLAIN, 14))
-    this.buttonReset.setFont(new Font(getName, Font.PLAIN, 14))
-    this.areaConsoleLog.setFont(new Font(getName, Font.PLAIN, 14))
-  }
+  private def setFrameProperties(): Unit = 
+    setLayout(new GridBagLayout)
+    setTitle("Car simulator")
+    setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
+    setSize(defaultSize, defaultSize)
+    setLocationRelativeTo(null)
+    setResizable(false)
+    setVisible(true)
 
-  private def addAllComponentsIntoFrame(): Unit = {
+  private def editAllComponentsProperties(): Unit =
+    areaConsoleLog.setMargin(Insets(10, 10, 10, 10))
+    areaConsoleLog.setEditable(false)
+    populateComboBox()
+    buttonStop.setEnabled(false)
+    checkBoxAvailableProcessor.setSelected(true)
+    labelNumberOfSteps.setFont(bigFont)
+    labelNumberOfThreads.setFont(bigFont)
+    labelConsoleLog.setFont(bigFont)
+    labelBox.setFont(bigFont)
+    fieldNumberOfSteps.setFont(smallFont)
+    fieldNumberOfThreads.setFont(smallFont)
+    checkBox.setFont(smallFont)
+    checkBoxAvailableProcessor.setFont(smallFont)
+    buttonStart.setFont(smallFont)
+    buttonStop.setFont(smallFont)
+    buttonReset.setFont(smallFont)
+    areaConsoleLog.setFont(smallFont)
+
+  private def addAllComponentsIntoFrame(): Unit =
     val constraints = new GridBagConstraints
     constraints.gridx = 0
     constraints.gridy = 0
-    constraints.insets = new Insets(30, 16, 0, 16)
+    constraints.insets = Insets(30, 16, 0, 16)
     constraints.anchor = GridBagConstraints.LINE_START
     constraints.fill = GridBagConstraints.HORIZONTAL
-    this.add(this.inputContainer, constraints)
+    add(inputContainer, constraints)
     constraints.gridx = 0
     constraints.gridy = 4
-    constraints.insets = new Insets(16, 16, 0, 16)
+    constraints.insets = Insets(16, 16, 0, 16)
     constraints.fill = GridBagConstraints.NONE
     constraints.fill = GridBagConstraints.NONE
-    this.add(this.checkBoxAvaiableProcessor, constraints)
+    add(checkBoxAvailableProcessor, constraints)
     constraints.gridx = 0
     constraints.gridy = 5
-    constraints.insets = new Insets(16, 16, 0, 16)
+    constraints.insets = Insets(16, 16, 0, 16)
     constraints.fill = GridBagConstraints.NONE
     constraints.fill = GridBagConstraints.NONE
-    this.add(this.labelBox, constraints)
+    add(labelBox, constraints)
     constraints.gridx = 0
     constraints.gridy = 6
     constraints.ipadx = 500
     constraints.fill = GridBagConstraints.NONE
-    this.add(this.comboBox, constraints)
+    add(comboBox, constraints)
     constraints.gridx = 0
     constraints.gridy = 7
     constraints.ipadx = 0
     constraints.fill = GridBagConstraints.NONE
-    this.add(this.checkBox, constraints)
+    add(checkBox, constraints)
     constraints.gridx = 0
     constraints.gridy = 8
     constraints.ipadx = 0
     constraints.fill = GridBagConstraints.NONE
-    this.add(this.labelConsoleLog, constraints)
+    add(labelConsoleLog, constraints)
     constraints.gridx = 0
     constraints.gridy = 9
     constraints.ipady = 200
     constraints.ipadx = 500
     constraints.fill = GridBagConstraints.HORIZONTAL
-    this.add(this.scroll, constraints)
+    add(scroll, constraints)
     constraints.gridx = 0
     constraints.gridy = 10
     constraints.ipady = 10
     constraints.ipadx = 10
     constraints.fill = GridBagConstraints.HORIZONTAL
-    this.add(this.buttonContainer, constraints)
-  }
+    add(buttonContainer, constraints)
 
-  private def setViewComponents(): Unit = {
-//    this.labelNumberOfSteps =
-    this.fieldNumberOfSteps = new JTextField("200", 1)
-    this.labelNumberOfThreads = new JLabel("Number of threads")
-    this.fieldNumberOfThreads = new JTextField(this.getProcessor, 1)
-    this.labelConsoleLog = new JLabel("Console log")
-    this.areaConsoleLog = new JTextArea("Console log")
-    this.buttonStart = new JButton("Start simulation")
-    this.buttonReset = new JButton("Reset simulation")
-    this.buttonStop = new JButton("Stop simulation")
-    this.scroll = new JScrollPane(this.areaConsoleLog)
-    this.scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS)
-    this.labelBox = new JLabel("Choise simulation")
-    this.comboBox = new JComboBox[SimulationType]
-    this.checkBox = new JCheckBox("Display simulation view")
-    this.fieldNumberOfThreads.setEnabled(false)
-    this.checkBoxAvaiableProcessor = new JCheckBox("Use avaiable processor (max: " + getProcessor + ")")
-    this.inputContainer = new JPanel(new GridLayout(2, 2, 10, 10))
-    this.inputContainer.add(this.labelNumberOfSteps)
-    this.inputContainer.add(this.labelNumberOfThreads)
-    this.inputContainer.add(this.fieldNumberOfSteps)
-    this.inputContainer.add(this.fieldNumberOfThreads)
-    this.buttonContainer = new JPanel(new FlowLayout)
-    this.buttonContainer.add(this.buttonStart)
-    this.buttonContainer.add(this.buttonStop)
-    this.buttonContainer.add(this.buttonReset)
-  }
+  private def setViewComponents(): Unit = 
+    scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS)
+    fieldNumberOfThreads.setEnabled(false)
+    inputContainer.add(labelNumberOfSteps)
+    inputContainer.add(labelNumberOfThreads)
+    inputContainer.add(fieldNumberOfSteps)
+    inputContainer.add(fieldNumberOfThreads)
+    buttonContainer.add(buttonStart)
+    buttonContainer.add(buttonStop)
+    buttonContainer.add(buttonReset)
 
-  private def getProcessor = {
-    //return String.valueOf(this.controller.getAvailableProcessor());
-    "not-used"
-  }
+  private def updateView(message: String): Unit =
+    areaConsoleLog.append(message + "\n")
+    areaConsoleLog.setCaretPosition(areaConsoleLog.getDocument.getLength)
 
-  def display(): Unit = {
-    SwingUtilities.invokeLater(() => this.setVisible(true))
-  }
+  private def numberOfSteps: Option[Int] =
+    fieldNumberOfSteps.getText.toIntOption
 
-  def updateView(message: String): Unit = {
-    this.areaConsoleLog.append(message + "\n")
-    this.areaConsoleLog.setCaretPosition(this.areaConsoleLog.getDocument.getLength)
-  }
+  private def getNumberOfThreads: Option[Int] =
+    fieldNumberOfThreads.getText.toIntOption
 
-  def getNumberOfSteps: Optional[Integer] = try Optional.of(Integer.valueOf(this.fieldNumberOfSteps.getText))
-  catch {
-    case e: Exception =>
-      Optional.empty
-  }
+  private def validateInput: Boolean = (numberOfSteps, getNumberOfThreads) match
+    case(None, _) => displayMessageDialog("Number of steps isn't an integer"); false
+    case(_, None) => displayMessageDialog("Number of threads isn't an integer"); false
+    case _ => true
 
-  def getNumberOfThreads: Optional[Integer] = try Optional.of(Integer.valueOf(this.fieldNumberOfThreads.getText))
-  catch {
-    case e: Exception =>
-      Optional.empty
-  }
-
-  def validateInput: Boolean = if (this.getNumberOfSteps.isEmpty) {
-    displayMessageDialog("Number of steps isn't an integer")
-    false
-  }
-  else if (this.getNumberOfThreads.isEmpty) {
-    displayMessageDialog("Number of threads isn't an integer")
-    false
-  }
-  else true
-
-  private def displayMessageDialog(message: String): Unit = {
+  private def displayMessageDialog(message: String): Unit =
     JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE)
-  }
 
-  def clearTextArea(): Unit = {
-    this.areaConsoleLog.setText("")
-  }
+  private def clearTextArea(): Unit =
+    areaConsoleLog.setText("")
 
-  def populateComboBox(): Unit = {
-    this.comboBox.addItem(SimulationType.SINGLE_ROAD_TWO_CAR)
-    this.comboBox.addItem(SimulationType.SINGLE_ROAD_SEVERAL_CARS)
-    this.comboBox.addItem(SimulationType.SINGLE_ROAD_WITH_TRAFFIC_TWO_CAR)
-    this.comboBox.addItem(SimulationType.CROSS_ROADS)
-    this.comboBox.addItem(SimulationType.MASSIVE_SIMULATION)
-  }
+  private def populateComboBox(): Unit =
+    for st <- SimulationType.values do comboBox.addItem(st)
 
-  def getSimulationType: SimulationType = this.comboBox.getSelectedItem.asInstanceOf[SimulationType]
+  private def simulationType: SimulationType =
+    comboBox.getSelectedItem.asInstanceOf[SimulationType]
 
-  def getShowViewFlag: Boolean = this.checkBox.isSelected
+  private def showView: Boolean =
+    checkBox.isSelected
 
-  override def notifyInit(t: Int, agents: List[Car]): Unit = {
-    this.updateView("[Simulation]: START simulation")
-  }
+  override def notifyInit(t: Int, agents: List[Car]): Unit =
+    SwingUtilities.invokeLater(() => updateView("[Simulation]: START simulation"))
 
-  override def notifyStepDone(t: Int, roads: List[Road], agents: List[Car], trafficLights: List[TrafficLight]): Unit = {
-    this.updateView("[STAT] Steps: " + t)
-  }
+  override def notifyStepDone(t: Int, roads: List[Road], agents: List[Car], trafficLights: List[TrafficLight]): Unit =
+    SwingUtilities.invokeLater(() => updateView("[STAT] Steps: " + t))
 
-  override def whenClicked(clickMessage: ViewClickRelayActor.Command => Unit): Unit = {
 
-    //         this.buttonStart.addActionListener(e -> {
-    //             if (!this.isStartedSimulation) {
-    //                 SwingUtilities.invokeLater(() -> {
-    //                     if(validateInput()){
-    //                         updateViewWhenSimulationStart();
-    //                         this.clearTextArea();
-    //                         clickMessage.accept(ViewClickRelayActor.Command.SetupSimulation(this.getSimulationType(), this.getNumberOfSteps().get(), this.getShowViewFlag()))
-    //                         clickMessage.accept(ViewClickRelayActor.Command.StartSimulation);
-    // //                        this.controller.setupSimulation(this.getSimulationType(), this.getNumberOfSteps().get(), this.getNumberOfThreads().get());
-    // //                        if(this.getShowViewFlag()){
-    // //                            this.controller.showView();
-    // //                        }
-    // //                        this.controller.attachListener(this);
-    // //                        this.controller.startSimulation();
-    //                     }
-    //                 });
-    //             } else {
-    //                 SwingUtilities.invokeLater(() -> {
-    //                     updateViewWhenSimulationStart();
-    //                     clickMessage.accept(ViewClickRelayActor.Command.StartSimulation);
-    // //                    this.controller.startSimulation();
-    //                 });
-    //             }
-    //         });
-    //         this.buttonReset.addActionListener(e -> {
-    //             SwingUtilities.invokeLater(() -> {
-    //                 if(validateInput()){
-    //                     this.clearTextArea();
-    //                     this.areaConsoleLog.setText("Console log");
-    //                     this.resetView();
-    //                     clickMessage.accept(ViewClickRelayActor.Command.SetupSimulation(this.getSimulationType(), this.getNumberOfSteps().get(), this.getShowViewFlag()))
-    // //                    this.controller.setupSimulation(this.getSimulationType(), this.getNumberOfSteps().get(), this.getNumberOfThreads().get());
-    //                 }
-    //             });
-    //         }
-    //         this.buttonStop.addActionListener(e -> {
-    //             SwingUtilities.invokeLater(() -> {
-    //                 this.buttonStart.setEnabled(true);
-    //                 this.buttonStop.setEnabled(false);
-    //                 this.buttonReset.setEnabled(true);
-    //                 clickMessage.accept(ViewClickRelayActor.Command.StopSimulation);
-    // //                this.controller.stopSimulation();
-    //             });
-    //         });
-  }
+  override def whenClicked(clickMessage: ViewClickRelayActor.Command => Unit): Unit = 
+    SwingUtilities.invokeLater(() => {
+      buttonStart.addActionListener(_ => {
+        if !simulationStarted then if validateInput then
+          updateViewWhenSimulationStart()
+          clearTextArea()
+          clickMessage(ViewClickRelayActor.SetupSimulation(simulationType, numberOfSteps.get, showView))
+          clickMessage(ViewClickRelayActor.StartSimulation)
+        else
+          updateViewWhenSimulationStart()
+          clickMessage(ViewClickRelayActor.StartSimulation)
+      })
+      buttonReset.addActionListener(_ => {
+        if validateInput then
+          clearTextArea()
+          areaConsoleLog.setText("Console log")
+          resetView()
+          clickMessage(ViewClickRelayActor.SetupSimulation(simulationType, numberOfSteps.get, showView))
+      })
+      buttonStop.addActionListener(_ => {
+        buttonStart.setEnabled(true) 
+        buttonStop.setEnabled(false)
+        buttonReset.setEnabled(true);
+        clickMessage(ViewClickRelayActor.StopSimulation);
+      })
+    })
+  
+  private def updateViewWhenSimulationStart(): Unit =
+    buttonStart.setEnabled(false)
+    buttonStop.setEnabled(true)
+    buttonReset.setEnabled(false)
+    buttonStart.setText("Restart Simulation")
+    simulationStarted = true
 
-  private def updateViewWhenSimulationStart(): Unit = {
-    this.buttonStart.setEnabled(false)
-    this.buttonStop.setEnabled(true)
-    this.buttonReset.setEnabled(false)
-    this.buttonStart.setText("Restart Simulation")
-    this.isStartedSimulation = true
-  }
+  override def notifySimulationEnded(simulationDuration: Int): Unit =
+    SwingUtilities.invokeLater(() =>
+      resetView()
+      updateView("[SIMULATION] Time: " + simulationDuration + " ms")
+    )
 
-  override def notifySimulationEnded(simulationDuration: Int): Unit = {
-    resetView()
-    this.updateView("[SIMULATION] Time: " + simulationDuration + " ms")
-  }
+  private def resetView(): Unit =
+    buttonStart.setEnabled(true)
+    buttonStop.setEnabled(false)
+    buttonReset.setEnabled(true)
+    buttonStart.setText("Start simulation")
+    simulationStarted = false
 
-  private def resetView(): Unit = {
-    this.buttonStart.setEnabled(true)
-    this.buttonStop.setEnabled(false)
-    this.buttonReset.setEnabled(true)
-    this.buttonStart.setText("Start simulation")
-    this.isStartedSimulation = false
-  }
+  override def notifyStat(averageSpeed: Double): Unit =
+    SwingUtilities.invokeLater(() => updateView("[STAT]: average speed: " + averageSpeed))
 
-  override def notifyStat(averageSpeed: Double): Unit = {
-    this.updateView("[STAT]: average speed: " + averageSpeed)
-  }
-}
+
 

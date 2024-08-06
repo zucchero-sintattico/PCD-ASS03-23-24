@@ -4,6 +4,7 @@ import akka.actor.typed.receptionist.Receptionist
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import logic.SimulationActor.{Command, ListingResponse, RoadStepDone, Step}
+import utils.Point2D
 import view.ViewListenerRelayActor
 
 import scala.concurrent.duration.DurationInt
@@ -92,17 +93,20 @@ case class SimulationActor(roadActors: List[ActorRef[RoadActor.Command]]):
     }
 
 
-enum SimulationType extends java.lang.Enum[SimulationType]{// extends Enumeration {
-//  type SimulationType = Value
+enum SimulationType:
   case SINGLE_ROAD_TWO_CAR,
   SINGLE_ROAD_SEVERAL_CARS,
   SINGLE_ROAD_WITH_TRAFFIC_TWO_CAR,
   CROSS_ROADS,
   MASSIVE_SIMULATION;
 
-  def getSimulation(simulationType: SimulationType): SimulationActor = ???
+  def getSimulation(simulationType: SimulationType): SimulationActor = simulationType match
+    case SimulationType.SINGLE_ROAD_TWO_CAR => ???
+    case SimulationType.SINGLE_ROAD_SEVERAL_CARS => ???
+    case SimulationType.SINGLE_ROAD_WITH_TRAFFIC_TWO_CAR => ???
+    case SimulationType.CROSS_ROADS => ???
+    case SimulationType.MASSIVE_SIMULATION => ???
 
-}
 
 trait SimulationListener:
   def notifyInit(t: Int, agents: List[Car]): Unit
@@ -110,4 +114,9 @@ trait SimulationListener:
   def notifySimulationEnded(simulationDuration: Int): Unit
   def notifyStat(averageSpeed: Double): Unit
 
-
+object SimulationExample:
+  def trafficSimulationSingleRoadTwoCars: List[RoadBuildData] =
+    val road = Road("road-1", Point2D(0,300), Point2D(1500, 300))
+    val car1 = BaseCarAgent("car-1", 0, road, CarAgentConfiguration(0.1,0.2,8))
+    val car2 = BaseCarAgent("car-2", 100, road, CarAgentConfiguration(0.1,0.1,7))
+    List(RoadBuildData(road, List.empty, List(car1, car2)))
