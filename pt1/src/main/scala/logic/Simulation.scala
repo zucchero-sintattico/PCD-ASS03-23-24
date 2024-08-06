@@ -3,7 +3,7 @@ package logic
 import akka.actor.typed.receptionist.Receptionist
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-import logic.SimulationActor.{Command, ListingResponse, RoadStepDone, Step}
+import logic.SimulationActor.{Command, RoadStepDone, Step}
 import utils.Point2D
 import view.ViewListenerRelayActor
 
@@ -13,11 +13,8 @@ object SimulationActor:
   sealed trait Command
   case object Start extends Command
   case object Stop extends Command
-  private case class Step(dt: Int, viewMsg: Option[ViewListenerRelayActor.Command] = Option.empty) extends Command
+  private case class Step(dt: Int, viewMsg: List[ViewListenerRelayActor.Command] = List()) extends Command
   final case class RoadStepDone(road: Road, cars: List[Car], trafficLights: List[TrafficLight]) extends Command
-
-
-
 
   def apply(dt: Int, numStep: Int, roadsBuildData: List[RoadBuildData], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command]): Behavior[Command] =
     Behaviors.setup { context =>
@@ -25,10 +22,12 @@ object SimulationActor:
       Behaviors.receiveMessagePartial{
         case Start =>
           context.self ! Step(dt)
+          viewListenerRelayActor ! ViewListenerRelayActor.Init(0, roadsBuildData.flatMap(_.cars))
           SimulationActor(roadActors, viewListenerRelayActor).run(numStep)
       }
-
     }
+
+
 
 case class SimulationActor(roadActors: List[ActorRef[RoadActor.Command]], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command]):
   private def run(step: Int): Behavior[Command] =
@@ -39,8 +38,7 @@ case class SimulationActor(roadActors: List[ActorRef[RoadActor.Command]], viewLi
           for viewMsg <- viewMsgOpt do viewListenerRelayActor ! viewMsg
           println("[SIMULATION]: VIEW UPDATED")
           if step <= 0 then
-//            println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaahjHADSJLDHDKJHASKDHASKJH DACS")
-            endSimulation
+            simulationEnded
           else {
 //          println("SPAWNNNNNN")
           context.spawnAnonymous(
@@ -57,28 +55,34 @@ case class SimulationActor(roadActors: List[ActorRef[RoadActor.Command]], viewLi
                     totalCars = totalCars.concat(reply.cars)
                     totalTrafficLights = totalTrafficLights.concat(reply.trafficLights)
                 )
+
 //                context.system.receptionist ! Receptionist.Find(ViewActor.viewServiceKey, listingResponseAdapter())
                 println(totalCars(1).position)
-                Step(dt, Option(ViewListenerRelayActor.StepDone(step, totalRoads, totalCars, totalTrafficLights))),
+                Step(dt, List(ViewListenerRelayActor.StepDone(step, totalRoads, totalCars, totalTrafficLights), ViewListenerRelayActor.Stat(computeAverageSpeed(totalCars)))),
               timeout = 5.seconds
             )
           )
           run(step-1)}
-
-      }
-
-    }
-  private def endSimulation: Behavior[Command] =
-    Behaviors.setup { context =>
-      Behaviors.receiveMessagePartial {
-
-        case Step(dt, viewMsg) =>
-          //          println("AAAAAAAAAAAAAAAAAa")
-          Behaviors.same
-
-
       }
     }
+
+  private def simulationEnded: Behavior[Command] =
+    viewListenerRelayActor ! ViewListenerRelayActor.SimulationEnded(0) //todo improve time elapsed
+    Behaviors.stopped
+
+  private def computeAverageSpeed(agents: List[Car]): Double =
+    var avSpeed = .0
+    var maxSpeed = -1.0
+    var minSpeed = Double.MaxValue
+    for (agent <- agents) {
+      val car = agent
+      val currSpeed = car.speed
+      avSpeed = avSpeed + currSpeed
+      if (currSpeed > maxSpeed) maxSpeed = currSpeed
+      else if (currSpeed < minSpeed) minSpeed = currSpeed
+    }
+    if (agents.nonEmpty) avSpeed /= agents.size
+    avSpeed
 
 enum SimulationType:
   case SINGLE_ROAD_TWO_CAR,
@@ -86,13 +90,13 @@ enum SimulationType:
   SINGLE_ROAD_WITH_TRAFFIC_TWO_CAR,
   CROSS_ROADS,
   MASSIVE_SIMULATION;
-
-  def getSimulation(simulationType: SimulationType): SimulationActor = simulationType match
-    case SimulationType.SINGLE_ROAD_TWO_CAR => ???
+object SimulationType:
+  extension (simulationType: SimulationType) def simulationSetup: List[RoadBuildData] = simulationType match
+    case SimulationType.SINGLE_ROAD_TWO_CAR => SimulationExample.trafficSimulationSingleRoadTwoCars
     case SimulationType.SINGLE_ROAD_SEVERAL_CARS => ???
     case SimulationType.SINGLE_ROAD_WITH_TRAFFIC_TWO_CAR => ???
     case SimulationType.CROSS_ROADS => ???
-    case SimulationType.MASSIVE_SIMULATION => ???
+    case SimulationType.MASSIVE_SIMULATION => SimulationExample.trafficSimulationMassiveTest
 
 
 trait SimulationListener:
@@ -108,3 +112,10 @@ object SimulationExample:
     val car1 = BaseCarAgent("car-1", 0, road, CarAgentConfiguration(0.1,0.2,8))
     val car2 = BaseCarAgent("car-2", 100, road, CarAgentConfiguration(0.1,0.1,7))
     List(RoadBuildData(road, List.empty, List(car1, car2)))
+
+  def trafficSimulationMassiveTest: List[RoadBuildData] =
+    val road = Road("road-1", Point2D(0,300), Point2D(15000, 300))
+    var cars = List[Car]()
+    for i <- 0 to 5000 do
+      cars = cars :+ BaseCarAgent("car-"+i, i*10, road, CarAgentConfiguration(1,0.3,7))
+    List(RoadBuildData(road, List.empty, cars))

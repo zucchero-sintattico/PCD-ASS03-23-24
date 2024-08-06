@@ -157,7 +157,7 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
 
   private def validateInput: Boolean = (numberOfSteps, getNumberOfThreads) match
     case(None, _) => displayMessageDialog("Number of steps isn't an integer"); false
-    case(_, None) => displayMessageDialog("Number of threads isn't an integer"); false
+//    case(_, None) => displayMessageDialog("Number of threads isn't an integer"); false
     case _ => true
 
   private def displayMessageDialog(message: String): Unit =
@@ -182,7 +182,7 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
     SwingUtilities.invokeLater(() => updateView("[STAT] Steps: " + t))
 
 
-  override def whenClicked(clickMessage: ViewClickRelayActor.Command => Unit): Unit = 
+  override def whenClicked(clickMessage: ViewClickRelayActor.Command => Unit): Unit =
     SwingUtilities.invokeLater(() => {
       buttonStart.addActionListener(_ => {
         if !simulationStarted then if validateInput then
@@ -202,13 +202,13 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
           clickMessage(ViewClickRelayActor.SetupSimulation(simulationType, numberOfSteps.get, showView))
       })
       buttonStop.addActionListener(_ => {
-        buttonStart.setEnabled(true) 
+        buttonStart.setEnabled(true)
         buttonStop.setEnabled(false)
         buttonReset.setEnabled(true);
         clickMessage(ViewClickRelayActor.StopSimulation);
       })
     })
-  
+
   private def updateViewWhenSimulationStart(): Unit =
     buttonStart.setEnabled(false)
     buttonStop.setEnabled(true)
@@ -218,6 +218,7 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
 
   override def notifySimulationEnded(simulationDuration: Int): Unit =
     SwingUtilities.invokeLater(() =>
+      println("[STATISTICAL-VIEW] simulationended!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
       resetView()
       updateView("[SIMULATION] Time: " + simulationDuration + " ms")
     )

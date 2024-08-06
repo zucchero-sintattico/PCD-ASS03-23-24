@@ -25,7 +25,7 @@ object ViewListenerRelayActor:
         ViewListenerRelayActor(sl :: views)
       case Remove(sl) =>
         sl.simulationStopped()
-        ViewListenerRelayActor(views.filter(_ == sl))
+        ViewListenerRelayActor(views.filter(_ != sl))
       case Init(t, agents) =>
         for view <- views do view.notifyInit(t, agents)
         Behaviors.same
@@ -34,6 +34,7 @@ object ViewListenerRelayActor:
         for view <- views do view.notifyStepDone(t, roads, agents, trafficLights)
         Behaviors.same
       case SimulationEnded(simulationDuration) =>
+          println("[VIEW] simulationended!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         for view <- views do view.notifySimulationEnded(simulationDuration)
         Behaviors.same
       case Stat(averageSpeed) =>

@@ -45,9 +45,10 @@ trait Car:
   val road: Road
   val configuration: CarAgentConfiguration
   val selectedAction: Option[Action]
+  val speed: Double
   def decide(dt: Int, carPerception: CarPerception): Car
   def updatePositionAndRemoveAction(newPosition: Double): Car
-case class BaseCarAgent(agentID: String, position: Double, road: Road, configuration: CarAgentConfiguration, selectedAction: Option[Action] = None, private val state: BaseCarAgentState = STOPPED, private val speed: Double = 0, private val waitingTime: Int = 0) extends Car:
+case class BaseCarAgent(agentID: String, position: Double, road: Road, configuration: CarAgentConfiguration, selectedAction: Option[Action] = None, speed: Double = 0, private val state: BaseCarAgentState = STOPPED, private val waitingTime: Int = 0) extends Car:
   override def decide(dt: Int, carPerception: CarPerception): Car =
     val detectedNearCar = carPerception.nearestCarInFront.isDefined && ((carPerception.nearestCarInFront.get.position - carPerception.roadPosition) < carNearDist)
     val carFarEnough = carPerception.nearestCarInFront.isDefined && ((carPerception.nearestCarInFront.get.position - carPerception.roadPosition) > carFarEnoughDist)
