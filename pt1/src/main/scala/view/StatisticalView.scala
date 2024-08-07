@@ -8,7 +8,6 @@ import java.awt.GridBagConstraints
 import java.awt.FlowLayout
 import java.awt.Font
 import java.util
-import java.util.Optional
 import javax.swing.JButton
 import javax.swing.JComboBox
 import javax.swing.JFrame
@@ -25,40 +24,32 @@ import logic._
 import logic.SimulationType
 
 case class StatisticalView() extends JFrame with SimulationListener with Clickable:
-  val defaultSize = 1000
-  val bigFont = new Font(getName, Font.PLAIN, 16)
-  val smallFont = new Font(getName, Font.PLAIN, 14)
+  private val defaultSize = 1000
+  private val bigFont = new Font(getName, Font.PLAIN, 16)
+  private val smallFont = new Font(getName, Font.PLAIN, 14)
   private val labelNumberOfSteps = new JLabel("Number of steps")
   private val fieldNumberOfSteps = new JTextField("100", 1)
-  private val labelNumberOfThreads = new JLabel("Number of threads")
-  private val fieldNumberOfThreads = new JTextField("not-used", 1)
   private val labelConsoleLog = new JLabel("Console log")
   private val areaConsoleLog = new JTextArea("Console log")
   private val buttonStart = new JButton("Start simulation")
   private val buttonReset = new JButton("Reset simulation")
   private val buttonStop = new JButton("Stop simulation")
   private val scroll = new JScrollPane(areaConsoleLog)
-  private val labelBox = new JLabel("Choise simulation")
+  private val labelBox = new JLabel("Choose simulation")
   private val comboBox = new JComboBox[SimulationType]
   private val checkBox = new JCheckBox("Display simulation view")
-  private val checkBoxAvailableProcessor = new JCheckBox("Use available processor (max: ???)")
   private val inputContainer = new JPanel(new GridLayout(2, 2, 10, 10))
   private val buttonContainer = new JPanel(new FlowLayout)
   
   private var simulationStarted = false
   
   setFrameProperties()
-  // Create components
   setViewComponents()
-  // Add components on panel
   addAllComponentsIntoFrame()
-  // Add properties
   editAllComponentsProperties()
   pack()
-  // Create frame
 
-
-  private def setFrameProperties(): Unit = 
+  private def setFrameProperties(): Unit =
     setLayout(new GridBagLayout)
     setTitle("Car simulator")
     setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
@@ -72,15 +63,11 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
     areaConsoleLog.setEditable(false)
     populateComboBox()
     buttonStop.setEnabled(false)
-    checkBoxAvailableProcessor.setSelected(true)
     labelNumberOfSteps.setFont(bigFont)
-    labelNumberOfThreads.setFont(bigFont)
     labelConsoleLog.setFont(bigFont)
     labelBox.setFont(bigFont)
     fieldNumberOfSteps.setFont(smallFont)
-    fieldNumberOfThreads.setFont(smallFont)
     checkBox.setFont(smallFont)
-    checkBoxAvailableProcessor.setFont(smallFont)
     buttonStart.setFont(smallFont)
     buttonStop.setFont(smallFont)
     buttonReset.setFont(smallFont)
@@ -94,12 +81,6 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
     constraints.anchor = GridBagConstraints.LINE_START
     constraints.fill = GridBagConstraints.HORIZONTAL
     add(inputContainer, constraints)
-    constraints.gridx = 0
-    constraints.gridy = 4
-    constraints.insets = Insets(16, 16, 0, 16)
-    constraints.fill = GridBagConstraints.NONE
-    constraints.fill = GridBagConstraints.NONE
-    add(checkBoxAvailableProcessor, constraints)
     constraints.gridx = 0
     constraints.gridy = 5
     constraints.insets = Insets(16, 16, 0, 16)
@@ -136,11 +117,8 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
 
   private def setViewComponents(): Unit = 
     scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS)
-    fieldNumberOfThreads.setEnabled(false)
     inputContainer.add(labelNumberOfSteps)
-    inputContainer.add(labelNumberOfThreads)
     inputContainer.add(fieldNumberOfSteps)
-    inputContainer.add(fieldNumberOfThreads)
     buttonContainer.add(buttonStart)
     buttonContainer.add(buttonStop)
     buttonContainer.add(buttonReset)
@@ -152,13 +130,10 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
   private def numberOfSteps: Option[Int] =
     fieldNumberOfSteps.getText.toIntOption
 
-  private def getNumberOfThreads: Option[Int] =
-    fieldNumberOfThreads.getText.toIntOption
-
-  private def validateInput: Boolean = (numberOfSteps, getNumberOfThreads) match
-    case(None, _) => displayMessageDialog("Number of steps isn't an integer"); false
-//    case(_, None) => displayMessageDialog("Number of threads isn't an integer"); false
-    case _ => true
+  private def validateInput: Boolean =
+    if numberOfSteps.isEmpty then
+      displayMessageDialog("Number of steps isn't an integer"); false
+    else true
 
   private def displayMessageDialog(message: String): Unit =
     JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE)
@@ -218,7 +193,6 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
 
   override def notifySimulationEnded(simulationDuration: Int): Unit =
     SwingUtilities.invokeLater(() =>
-      println("[STATISTICAL-VIEW] simulationended!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
       resetView()
       updateView("[SIMULATION] Time: " + simulationDuration + " ms")
     )
