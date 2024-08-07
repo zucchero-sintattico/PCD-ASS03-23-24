@@ -30,11 +30,9 @@ object ViewListenerRelayActor:
         for view <- views do view.notifyInit(t, agents)
         Behaviors.same
       case StepDone(t, roads, agents, trafficLights) =>
-        println("[VIEW] recieve")
         for view <- views do view.notifyStepDone(t, roads, agents, trafficLights)
         Behaviors.same
       case SimulationEnded(simulationDuration) =>
-          println("[VIEW] simulationended!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         for view <- views do view.notifySimulationEnded(simulationDuration)
         Behaviors.same
       case Stat(averageSpeed) =>

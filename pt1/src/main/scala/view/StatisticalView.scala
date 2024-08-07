@@ -49,6 +49,50 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
   editAllComponentsProperties()
   pack()
 
+  override def whenClicked(clickMessage: ViewClickRelayActor.Command => Unit): Unit =
+    SwingUtilities.invokeLater(() =>
+      buttonStart.addActionListener(_ =>
+        if !simulationStarted then if validateInput then
+          updateViewWhenSimulationStart()
+          clearTextArea()
+          clickMessage(ViewClickRelayActor.SetupSimulation(simulationType, numberOfSteps.get, showView))
+          clickMessage(ViewClickRelayActor.StartSimulation)
+        else
+          updateViewWhenSimulationStart()
+          clickMessage(ViewClickRelayActor.StartSimulation)
+      )
+      buttonReset.addActionListener(_ =>
+        if validateInput then
+          clearTextArea()
+          areaConsoleLog.setText("Console log")
+          resetView()
+          clickMessage(ViewClickRelayActor.SetupSimulation(simulationType, numberOfSteps.get, showView))
+      )
+      buttonStop.addActionListener(_ =>
+        buttonStart.setEnabled(true)
+        buttonStop.setEnabled(false)
+        buttonReset.setEnabled(true)
+        clickMessage(ViewClickRelayActor.StopSimulation)
+      )
+    )
+
+  override def notifyInit(t: Int, agents: List[Car]): Unit =
+    SwingUtilities.invokeLater(() => updateView("[Simulation]: START simulation"))
+
+  override def notifyStepDone(t: Int, roads: List[Road], agents: List[Car], trafficLights: List[TrafficLight]): Unit =
+    SwingUtilities.invokeLater(() => updateView("[STAT] Steps: " + t))
+
+  override def notifySimulationEnded(simulationDuration: Int): Unit =
+    SwingUtilities.invokeLater(() =>
+      resetView()
+      updateView("[SIMULATION] Time: " + simulationDuration + " ms")
+    )
+
+  override def notifyStat(averageSpeed: Double): Unit =
+    SwingUtilities.invokeLater(() => updateView("[STAT]: average speed: " + averageSpeed))
+
+  override def simulationStopped(): Unit = {}
+
   private def setFrameProperties(): Unit =
     setLayout(new GridBagLayout)
     setTitle("Car simulator")
@@ -150,52 +194,12 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
   private def showView: Boolean =
     checkBox.isSelected
 
-  override def notifyInit(t: Int, agents: List[Car]): Unit =
-    SwingUtilities.invokeLater(() => updateView("[Simulation]: START simulation"))
-
-  override def notifyStepDone(t: Int, roads: List[Road], agents: List[Car], trafficLights: List[TrafficLight]): Unit =
-    SwingUtilities.invokeLater(() => updateView("[STAT] Steps: " + t))
-
-
-  override def whenClicked(clickMessage: ViewClickRelayActor.Command => Unit): Unit =
-    SwingUtilities.invokeLater(() => {
-      buttonStart.addActionListener(_ => {
-        if !simulationStarted then if validateInput then
-          updateViewWhenSimulationStart()
-          clearTextArea()
-          clickMessage(ViewClickRelayActor.SetupSimulation(simulationType, numberOfSteps.get, showView))
-          clickMessage(ViewClickRelayActor.StartSimulation)
-        else
-          updateViewWhenSimulationStart()
-          clickMessage(ViewClickRelayActor.StartSimulation)
-      })
-      buttonReset.addActionListener(_ => {
-        if validateInput then
-          clearTextArea()
-          areaConsoleLog.setText("Console log")
-          resetView()
-          clickMessage(ViewClickRelayActor.SetupSimulation(simulationType, numberOfSteps.get, showView))
-      })
-      buttonStop.addActionListener(_ => {
-        buttonStart.setEnabled(true)
-        buttonStop.setEnabled(false)
-        buttonReset.setEnabled(true);
-        clickMessage(ViewClickRelayActor.StopSimulation);
-      })
-    })
-
   private def updateViewWhenSimulationStart(): Unit =
     buttonStart.setEnabled(false)
     buttonStop.setEnabled(true)
     buttonReset.setEnabled(false)
     buttonStart.setText("Restart Simulation")
     simulationStarted = true
-
-  override def notifySimulationEnded(simulationDuration: Int): Unit =
-    SwingUtilities.invokeLater(() =>
-      resetView()
-      updateView("[SIMULATION] Time: " + simulationDuration + " ms")
-    )
 
   private def resetView(): Unit =
     buttonStart.setEnabled(true)
@@ -204,8 +208,4 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
     buttonStart.setText("Start simulation")
     simulationStarted = false
 
-  override def notifyStat(averageSpeed: Double): Unit =
-    SwingUtilities.invokeLater(() => updateView("[STAT]: average speed: " + averageSpeed))
-
-  override def simulationStopped(): Unit = {}
 
