@@ -24,6 +24,7 @@ class RoadSimStatistics extends SimulationListener:
   def averageSpeed: Double = _averageSpeed
 
   private def log(msg: String): Unit =
+//    println("[RoadSimStatistics]: log step stats")
     try
       val fw = new FileWriter(path.toFile, true)
       try

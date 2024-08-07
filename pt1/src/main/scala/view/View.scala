@@ -1,13 +1,8 @@
 package view
 
-import akka.actor.typed.receptionist.{Receptionist, ServiceKey}
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
-import logic.{Car, Road, SimulationActor, SimulationHandlerActor, SimulationType, TrafficLight, SimulationListener}
-
-
-import scala.annotation.targetName
-import scala.jdk.CollectionConverters.*
+import logic.{Car, Road, SimulationHandlerActor, SimulationType, TrafficLight, SimulationListener}
 
 object ViewListenerRelayActor:
   sealed trait Command
@@ -50,7 +45,8 @@ object ViewClickRelayActor:
   trait Command
   case object StartSimulation extends Command
   case object StopSimulation extends Command
-  final case class SetupSimulation(simulationType: SimulationType, numSteps: Int, showView: Boolean) extends Command
+  case object ResetSimulation extends Command
+  final case class SetupSimulation(simulationType: SimulationType, dt: Int, numSteps: Int, showView: Boolean) extends Command
   def apply(view: Clickable, simulationHandlerActor: ActorRef[SimulationHandlerActor.Command]): Behavior[Command] =
     Behaviors.setup { context =>
       view.whenClicked(context.self ! _)
@@ -61,8 +57,11 @@ object ViewClickRelayActor:
         case StopSimulation =>
           simulationHandlerActor ! SimulationHandlerActor.StopSimulation
           Behaviors.same
-        case SetupSimulation(simulationType, numSteps, showView) =>
-          simulationHandlerActor ! SimulationHandlerActor.SetupSimulation(simulationType, numSteps, showView)
+        case ResetSimulation =>
+          simulationHandlerActor ! SimulationHandlerActor.ResetSimulation
+          Behaviors.same
+        case SetupSimulation(simulationType, dt, numSteps, showView) =>
+          simulationHandlerActor ! SimulationHandlerActor.SetupSimulation(simulationType, dt, numSteps, showView)
           Behaviors.same
       }
     }

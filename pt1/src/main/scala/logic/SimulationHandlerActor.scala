@@ -3,7 +3,7 @@ package logic
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior, Terminated}
-import logic.SimulationHandlerActor.{Command, EndSimulation, ResetSimulation, StartSimulation, StopSimulation}
+import logic.SimulationHandlerActor.{Command, EndSimulation, ResetSimulation, SetupSimulation, StartSimulation, StopSimulation}
 import view.{RoadSimView, ViewListenerRelayActor}
 
 
@@ -13,48 +13,44 @@ object SimulationHandlerActor:
   case object StopSimulation extends Command
   case object ResetSimulation extends Command
   case object EndSimulation extends Command
-  final case class SetupSimulation(simulationType: SimulationType, numSteps: Int, showView: Boolean) extends Command
-  def apply(viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command]): Behavior[Command] = //todo handle dt better
+  final case class SetupSimulation(simulationType: SimulationType, dt: Int, numSteps: Int, showView: Boolean) extends Command
+  def apply(viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command]): Behavior[Command] = SimulationHandlerActor(Option.empty, viewListenerRelayActor, Option.empty).awaitSimulationSetup
+
+
+case class SimulationHandlerActor(simulation: Option[ActorRef[SimulationActor.Command]], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command], viewToDispose: Option[SimulationListener]):
+
+  private def awaitSimulationSetup: Behavior[Command] =
     Behaviors.receivePartial((context, message) => message match
-      case SetupSimulation(simulationType, numSteps, showView) =>
+      case SetupSimulation(simulationType, dt, numSteps, showView) =>
+        for v <- viewToDispose do viewListenerRelayActor ! ViewListenerRelayActor.Remove(v)
         val view = if showView then Some(RoadSimView()) else None
         for v <- view do viewListenerRelayActor ! ViewListenerRelayActor.Add(v)
-        val simulation = context.spawnAnonymous(SimulationActor(1, numSteps, simulationType.simulationSetup, viewListenerRelayActor)) //todo check name conflict
+        val simulation = context.spawnAnonymous(SimulationActor(dt, numSteps, simulationType.simulationSetup, viewListenerRelayActor)) //todo check name conflict
         context.watchWith(simulation, EndSimulation)
-        SimulationHandlerActor(simulation, viewListenerRelayActor, view).simulationReady
+        this.copy(simulation = Option(simulation), viewToDispose = view).simulationReady
     )
 
-case class SimulationHandlerActor(simulation: ActorRef[SimulationActor.Command], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command], viewToDispose: Option[SimulationListener]):
+
   private def simulationReady: Behavior[Command] =
      Behaviors.receive((context, message) => message match
         case StartSimulation =>
-          simulation ! SimulationActor.Start
+          simulation.get ! SimulationActor.Start
           simulationRunning
         case ResetSimulation =>
-          context.stop(simulation)
+          context.stop(simulation.get)
+          for v <- viewToDispose do viewListenerRelayActor ! ViewListenerRelayActor.Remove(v)
           awaitSimulationTermination
-//        case EndSimulation =>
-//          for view <- viewToDispose do viewListenerRelayActor ! ViewListenerRelayActor.Remove(view)
-//       //        SimulationHandlerActor(viewListenerRelayActor)
-
      )
-//       case (_, Terminated(_))=>
-//         for view <- viewToDispose do viewListenerRelayActor ! ViewListenerRelayActor.Remove(view)
-//
-//     )
+
   private def awaitSimulationTermination: Behavior[Command] =
     Behaviors.receivePartial { (context, message) => message match
-      case EndSimulation => endSimulation
+      case EndSimulation => awaitSimulationSetup
     }
-
-  private def endSimulation: Behavior[Command] =
-    for view <- viewToDispose do viewListenerRelayActor ! ViewListenerRelayActor.Remove(view)
-    SimulationHandlerActor(viewListenerRelayActor)
 
   private def simulationRunning: Behavior[Command] =
     Behaviors.receivePartial((context, message) => message match
       case StopSimulation =>
-        simulation ! SimulationActor.Stop
+        simulation.get ! SimulationActor.Stop
         simulationReady
-      case EndSimulation => endSimulation
+      case EndSimulation => awaitSimulationSetup
     )

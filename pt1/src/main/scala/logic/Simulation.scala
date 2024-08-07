@@ -3,17 +3,19 @@ package logic
 import akka.actor.typed.receptionist.Receptionist
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-import logic.SimulationActor.{Command, RoadStepDone, Step}
+import logic.SimulationActor.{Command, RoadStepDone, Start, Step, Stop}
 import utils.Point2D
 import view.ViewListenerRelayActor
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
 
+given ExecutionContext = scala.concurrent.ExecutionContext.global
 object SimulationActor:
   sealed trait Command
   case object Start extends Command
   case object Stop extends Command
-  private case class Step(dt: Int, viewMsg: List[ViewListenerRelayActor.Command] = List()) extends Command
+  private case class Step(viewMsg: List[ViewListenerRelayActor.Command] = List()) extends Command
   final case class RoadStepDone(road: Road, cars: List[Car], trafficLights: List[TrafficLight]) extends Command
 
   def apply(dt: Int, numStep: Int, roadsBuildData: List[RoadBuildData], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command]): Behavior[Command] =
@@ -21,20 +23,20 @@ object SimulationActor:
       val roadActors = roadsBuildData.map(rbd => context.spawn(RoadActor(rbd.road, rbd.trafficLights, rbd.cars), rbd.road.agentID))
       Behaviors.receiveMessagePartial{
         case Start =>
-          context.self ! Step(dt)
+          context.self ! Step()
           viewListenerRelayActor ! ViewListenerRelayActor.Init(0, roadsBuildData.flatMap(_.cars))
-          SimulationActor(roadActors, viewListenerRelayActor).run(numStep)
+          SimulationActor(dt, roadActors, viewListenerRelayActor).run(numStep)
       }
     }
 
 
-
-case class SimulationActor(roadActors: List[ActorRef[RoadActor.Command]], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command]):
+case class SimulationActor(dt: Int, roadActors: List[ActorRef[RoadActor.Command]], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command]):
   private def run(step: Int): Behavior[Command] =
     Behaviors.setup { context =>
       Behaviors.receiveMessage {
-        case Step(dt, viewMsgOpt) =>
-//          println("[SIMULATION]: Step "+step)
+        case Stop =>
+          paused(step)
+        case Step(viewMsgOpt) =>
           for viewMsg <- viewMsgOpt do viewListenerRelayActor ! viewMsg
 //          println("[SIMULATION]: VIEW UPDATED")
           if step <= 0 then
@@ -42,10 +44,10 @@ case class SimulationActor(roadActors: List[ActorRef[RoadActor.Command]], viewLi
           else {
 //          println("SPAWNNNNNN")
           context.spawnAnonymous(
-            Aggregator[RoadStepDone, Step](
+            Aggregator[RoadStepDone, Any](
               sendRequests = replyTo => roadActors.foreach(_ ! RoadActor.Step(dt, replyTo)),
               expectedReplies = roadActors.size,
-              replyTo = context.self,
+              replyTo = context.system.ignoreRef,
               aggregateReplies = replies =>
                 var totalRoads = List[Road]()
                 var totalCars = List[Car]()
@@ -58,13 +60,26 @@ case class SimulationActor(roadActors: List[ActorRef[RoadActor.Command]], viewLi
 
 //                context.system.receptionist ! Receptionist.Find(ViewActor.viewServiceKey, listingResponseAdapter())
 //                println(totalCars(1).position)
-                Step(dt, List(ViewListenerRelayActor.StepDone(step, totalRoads, totalCars, totalTrafficLights), ViewListenerRelayActor.Stat(computeAverageSpeed(totalCars)))),
+                context.system.scheduler.scheduleOnce(100.milliseconds,() => context.self ! Step(List(ViewListenerRelayActor.StepDone(step, totalRoads, totalCars, totalTrafficLights), ViewListenerRelayActor.Stat(computeAverageSpeed(totalCars))))),
               timeout = 5.seconds
             )
           )
           run(step-1)}
       }
     }
+  private def paused(step: Int): Behavior[Command] =
+    Behaviors.receive { (context, msg) => msg match
+      case Start =>
+        context.self ! Step()
+        run(step)
+      case Step(viewMsgOpt) =>
+        for viewMsg <- viewMsgOpt do viewListenerRelayActor ! viewMsg
+        //          println("[SIMULATION]: VIEW UPDATED")
+        if step <= 0 then
+          simulationEnded
+        else Behaviors.same
+    }
+
 
   private def simulationEnded: Behavior[Command] =
     viewListenerRelayActor ! ViewListenerRelayActor.SimulationEnded(0) //todo improve time elapsed

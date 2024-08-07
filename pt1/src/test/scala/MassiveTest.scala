@@ -22,29 +22,25 @@ import view.ViewListenerRelayActor
 
 import java.util.concurrent.CompletableFuture
 
-
-
-
-
 class MassiveTest:
 
   @Test def massiveTest(): Unit =
     val f = CompletableFuture[Boolean]()
-    val system = ActorSystem(TestSystem(f, 100, MASSIVE_SIMULATION), "root")
+    val system = ActorSystem(TestSystem(f, 1, 100, MASSIVE_SIMULATION), "root")
     f.get()
     val sameResult = FileComparator.compareFiles("log.txt", "src/test/scala/resources/log_massive_improved.txt")
     assertTrue(sameResult)
 
   @Test def trafficLightTest(): Unit =
     val f = CompletableFuture[Boolean]()
-    val system = ActorSystem(TestSystem(f, 500, CROSS_ROADS), "root")
+    val system = ActorSystem(TestSystem(f, 1, 500, CROSS_ROADS), "root")
     f.get()
     val sameResult = FileComparator.compareFiles("log.txt", "src/test/scala/resources/log_with_trafficLights_improved.txt")
     assertTrue(sameResult)
 
 
 object TestSystem:
-  def apply(f: CompletableFuture[Boolean], step: Int, st: SimulationType): Behavior[NotUsed] =
+  def apply(f: CompletableFuture[Boolean], dt: Int, step: Int, st: SimulationType): Behavior[NotUsed] =
     Behaviors.setup { context =>
       val controlView = new SimulationListener():
         override def notifyInit(t: Int, agents: List[Car]): Unit = {}
@@ -57,7 +53,7 @@ object TestSystem:
       val logView = RoadSimStatistics()
       val viewListenerRelayActor = context.spawn(ViewListenerRelayActor(List(controlView, logView)), "viewListenerRelayActor")
       val simulationHandlerActor = context.spawn(SimulationHandlerActor(viewListenerRelayActor), "simulationHandlerActor")
-      simulationHandlerActor ! SimulationHandlerActor.SetupSimulation(st, step, false)
+      simulationHandlerActor ! SimulationHandlerActor.SetupSimulation(st, dt, step, false)
       simulationHandlerActor ! SimulationHandlerActor.StartSimulation
       Behaviors.same
     }

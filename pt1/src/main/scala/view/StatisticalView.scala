@@ -20,11 +20,14 @@ import javax.swing.JTextField
 import javax.swing.JCheckBox
 import javax.swing.ScrollPaneConstants
 import javax.swing.SwingUtilities
-import logic._
+import logic.*
 import logic.SimulationType
+
+import java.awt.event.{WindowAdapter, WindowEvent}
 
 case class StatisticalView() extends JFrame with SimulationListener with Clickable:
   private val defaultSize = 1000
+  private val simulationDelta = 1
   private val bigFont = new Font(getName, Font.PLAIN, 16)
   private val smallFont = new Font(getName, Font.PLAIN, 14)
   private val labelNumberOfSteps = new JLabel("Number of steps")
@@ -40,7 +43,7 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
   private val checkBox = new JCheckBox("Display simulation view")
   private val inputContainer = new JPanel(new GridLayout(2, 2, 10, 10))
   private val buttonContainer = new JPanel(new FlowLayout)
-  
+
   private var simulationStarted = false
   
   setFrameProperties()
@@ -52,23 +55,28 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
   override def whenClicked(clickMessage: ViewClickRelayActor.Command => Unit): Unit =
     SwingUtilities.invokeLater(() =>
       buttonStart.addActionListener(_ =>
-        if !simulationStarted then if validateInput then
-          updateViewWhenSimulationStart()
-          clearTextArea()
-          clickMessage(ViewClickRelayActor.SetupSimulation(simulationType, numberOfSteps.get, showView))
-          clickMessage(ViewClickRelayActor.StartSimulation)
+        if !simulationStarted then
+          if validateInput then
+            println("[Statistical View]: StartSimulation")
+            updateViewWhenSimulationStart()
+            clearTextArea()
+            clickMessage(ViewClickRelayActor.SetupSimulation(simulationType, simulationDelta, numberOfSteps.get, showView))
+            clickMessage(ViewClickRelayActor.StartSimulation)
         else
+          println("[Statistical View]: ResumeSimulation")
           updateViewWhenSimulationStart()
           clickMessage(ViewClickRelayActor.StartSimulation)
       )
       buttonReset.addActionListener(_ =>
         if validateInput then
+          println("[Statistical View]: ResetSimulation")
           clearTextArea()
           areaConsoleLog.setText("Console log")
           resetView()
-          clickMessage(ViewClickRelayActor.SetupSimulation(simulationType, numberOfSteps.get, showView))
+          clickMessage(ViewClickRelayActor.ResetSimulation)
       )
       buttonStop.addActionListener(_ =>
+        println("[Statistical View]: StopSimulation")
         buttonStart.setEnabled(true)
         buttonStop.setEnabled(false)
         buttonReset.setEnabled(true)
