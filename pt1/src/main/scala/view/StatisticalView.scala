@@ -22,12 +22,14 @@ import javax.swing.ScrollPaneConstants
 import javax.swing.SwingUtilities
 import logic.*
 import logic.SimulationType
+import scala.concurrent.duration.DurationInt
 
 import java.awt.event.{WindowAdapter, WindowEvent}
 
 case class StatisticalView() extends JFrame with SimulationListener with Clickable:
   private val defaultSize = 1000
   private val simulationDelta = 1
+  private val delay = 100.milliseconds
   private val bigFont = new Font(getName, Font.PLAIN, 16)
   private val smallFont = new Font(getName, Font.PLAIN, 14)
   private val labelNumberOfSteps = new JLabel("Number of steps")
@@ -60,7 +62,7 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
             println("[Statistical View]: StartSimulation")
             updateViewWhenSimulationStart()
             clearTextArea()
-            clickMessage(ViewClickRelayActor.SetupSimulation(simulationType, simulationDelta, numberOfSteps.get, showView))
+            clickMessage(ViewClickRelayActor.SetupSimulation(simulationType, simulationDelta, numberOfSteps.get, showView, delay))
             clickMessage(ViewClickRelayActor.StartSimulation)
         else
           println("[Statistical View]: ResumeSimulation")

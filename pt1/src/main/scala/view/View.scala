@@ -2,7 +2,9 @@ package view
 
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
-import logic.{Car, Road, SimulationHandlerActor, SimulationType, TrafficLight, SimulationListener}
+import logic.{Car, Road, SimulationHandlerActor, SimulationListener, SimulationType, TrafficLight}
+
+import scala.concurrent.duration.FiniteDuration
 
 object ViewListenerRelayActor:
   sealed trait Command
@@ -46,7 +48,7 @@ object ViewClickRelayActor:
   case object StartSimulation extends Command
   case object StopSimulation extends Command
   case object ResetSimulation extends Command
-  final case class SetupSimulation(simulationType: SimulationType, dt: Int, numSteps: Int, showView: Boolean) extends Command
+  final case class SetupSimulation(simulationType: SimulationType, dt: Int, numSteps: Int, showView: Boolean, delay: FiniteDuration) extends Command
   def apply(view: Clickable, simulationHandlerActor: ActorRef[SimulationHandlerActor.Command]): Behavior[Command] =
     Behaviors.setup { context =>
       view.whenClicked(context.self ! _)
@@ -60,8 +62,8 @@ object ViewClickRelayActor:
         case ResetSimulation =>
           simulationHandlerActor ! SimulationHandlerActor.ResetSimulation
           Behaviors.same
-        case SetupSimulation(simulationType, dt, numSteps, showView) =>
-          simulationHandlerActor ! SimulationHandlerActor.SetupSimulation(simulationType, dt, numSteps, showView)
+        case SetupSimulation(simulationType, dt, numSteps, showView, delay) =>
+          simulationHandlerActor ! SimulationHandlerActor.SetupSimulation(simulationType, dt, numSteps, showView, Option(delay))
           Behaviors.same
       }
     }
