@@ -34,9 +34,9 @@ case class SimulationActor(roadActors: List[ActorRef[RoadActor.Command]], viewLi
     Behaviors.setup { context =>
       Behaviors.receiveMessage {
         case Step(dt, viewMsgOpt) =>
-          println("[SIMULATION]: Step "+step)
+//          println("[SIMULATION]: Step "+step)
           for viewMsg <- viewMsgOpt do viewListenerRelayActor ! viewMsg
-          println("[SIMULATION]: VIEW UPDATED")
+//          println("[SIMULATION]: VIEW UPDATED")
           if step <= 0 then
             simulationEnded
           else {
@@ -57,7 +57,7 @@ case class SimulationActor(roadActors: List[ActorRef[RoadActor.Command]], viewLi
                 )
 
 //                context.system.receptionist ! Receptionist.Find(ViewActor.viewServiceKey, listingResponseAdapter())
-                println(totalCars(1).position)
+//                println(totalCars(1).position)
                 Step(dt, List(ViewListenerRelayActor.StepDone(step, totalRoads, totalCars, totalTrafficLights), ViewListenerRelayActor.Stat(computeAverageSpeed(totalCars)))),
               timeout = 5.seconds
             )

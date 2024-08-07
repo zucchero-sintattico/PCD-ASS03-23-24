@@ -159,23 +159,23 @@ object Road:
   def doAction(car: CarRecord, cars: List[CarRecord]): CarRecord =
     car.carRecord.selectedAction match
       case Some(action: MoveForward) =>
-          print(car.carRecord.agentID+" "+cars+" ")
+//          print(car.carRecord.agentID+" "+cars+" ")
           val nearestCarInFront = findNearestCarInFront(car, cars)
           var newPosition = car.carRecord.position
           nearestCarInFront match
             case Some(nearestCarInFront) =>
-              print("case 1 ")
+//              print("case 1 ")
               val distanceToNearestCar = nearestCarInFront.position - car.carRecord.position
               if distanceToNearestCar > action.distance + minDistAllowed then
-                print("case 1.2 ")
+//                print("case 1.2 ")
                 newPosition = car.carRecord.position + action.distance
             case None =>
-              print("case 2 ")
+//              print("case 2 ")
               newPosition = car.carRecord.position + action.distance
           if newPosition > car.carRecord.road.length then
-            print("case 3")
+//            print("case 3")
             newPosition = 0
-          println()
+//          println()
           car.copy(carRecord = car.carRecord.updatePositionAndRemoveAction(newPosition))
       case _ => car
 

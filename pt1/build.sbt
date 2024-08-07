@@ -12,5 +12,6 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.5.6",
   akkaGroup %% "akka-actor-testkit-typed" % akkaVersion % Test,
   "org.scalatest" %% "scalatest" % "3.2.18" % Test,
-  "org.scala-lang.modules" %% "scala-swing" % "3.0.0"
+  "org.scala-lang.modules" %% "scala-swing" % "3.0.0",
+  "com.github.sbt" % "junit-interface" % "0.13.2" % Test
 )

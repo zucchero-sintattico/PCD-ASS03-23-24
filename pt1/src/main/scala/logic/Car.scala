@@ -73,7 +73,7 @@ case class BaseCarAgent(agentID: String, position: Double, road: Road, configura
         car = car.copy(waitingTime = newWaitingTime)
         if newWaitingTime > maxWaitingTime then car = car.copy(state = BaseCarAgentState.ACCELERATING)
       case BaseCarAgentState.MOVING_CONSTANT_SPEED => if detectedNearCar then car = car.copy(state = BaseCarAgentState.DECELERATING_BECAUSE_OF_A_CAR)
-    println(car.agentID+" "+  car.state+" "+car.position+" "+car.speed)
+//    println(car.agentID+" "+  car.state+" "+car.position+" "+car.speed)
     if car.speed > 0 then car.copy(selectedAction = Option(MoveForward(car.speed * dt))) else car
   override def updatePositionAndRemoveAction(newPosition: Double): Car = this.copy(position = newPosition, selectedAction = Option.empty)
 
@@ -99,10 +99,10 @@ case class ExtendedCarAgent(agentID: String, position: Double, road: Road, confi
           val newState = if newSpeed >= configuration.maxSpeed then ExtendedCarAgentState.MOVING_CONSTANT_SPEED else ExtendedCarAgentState.ACCELERATING
           car = car.copy(speed = newSpeed, state = newState)
       case ExtendedCarAgentState.MOVING_CONSTANT_SPEED =>
-        if carPerception.nearestTrafficLight.isDefined then println(car.agentID +" "+carPerception.nearestTrafficLight.get.trafficLightPositionInfo)
-        if carPerception.nearestTrafficLight.isDefined then println(car.agentID +" "+carPerception.nearestTrafficLight.get.state)
-        if carPerception.nearestTrafficLight.isDefined then println(car.agentID +" "+carPerception.roadPosition)
-        if carPerception.nearestTrafficLight.isDefined then println(car.agentID +" "+detectedRedOrYellowNearTrafficLights)
+//        if carPerception.nearestTrafficLight.isDefined then println(car.agentID +" "+carPerception.nearestTrafficLight.get.trafficLightPositionInfo)
+//        if carPerception.nearestTrafficLight.isDefined then println(car.agentID +" "+carPerception.nearestTrafficLight.get.state)
+//        if carPerception.nearestTrafficLight.isDefined then println(car.agentID +" "+carPerception.roadPosition)
+//        if carPerception.nearestTrafficLight.isDefined then println(car.agentID +" "+detectedRedOrYellowNearTrafficLights)
         if detectedNearCar then car = car.copy(state = ExtendedCarAgentState.DECELERATING_BECAUSE_OF_A_CAR)
         else if detectedRedOrYellowNearTrafficLights then car = car.copy(state = ExtendedCarAgentState.DECELERATING_BECAUSE_OF_A_NOT_GREEN_SEM)
       case ExtendedCarAgentState.DECELERATING_BECAUSE_OF_A_CAR =>
@@ -122,6 +122,6 @@ case class ExtendedCarAgent(agentID: String, position: Double, road: Road, confi
       case ExtendedCarAgentState.WAITING_FOR_GREEN_SEM =>
         if detectedGreenTrafficLights then car = car.copy(state = ExtendedCarAgentState.ACCELERATING)
 
-    println(car.agentID + " " + car.state + " " + car.position + " " + car.speed)
+//    println(car.agentID + " " + car.state + " " + car.position + " " + car.speed)
     if car.speed > 0 then car.copy(selectedAction = Option(MoveForward(car.speed * dt))) else car
   override def updatePositionAndRemoveAction(newPosition: Double): Car = this.copy(position = newPosition, selectedAction = Option.empty)
