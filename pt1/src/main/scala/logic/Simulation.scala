@@ -1,14 +1,14 @@
 package logic
 
 import akka.actor.typed.receptionist.Receptionist
-import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior}
 import logic.SimulationActor.{Command, RoadStepDone, Start, Step, Stop}
 import utils.Point2D
 import view.ViewListenerRelayActor
 
 import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 given ExecutionContext = scala.concurrent.ExecutionContext.global
 object SimulationActor:
@@ -18,19 +18,23 @@ object SimulationActor:
   private case class Step(viewMsg: List[ViewListenerRelayActor.Command] = List()) extends Command
   final case class RoadStepDone(road: Road, cars: List[Car], trafficLights: List[TrafficLight]) extends Command
 
+  def apply(dt: Int, numStep: Int, delay: FiniteDuration, roadsBuildData: List[RoadBuildData], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command]): Behavior[Command] =
+    buildSimulationActor(dt, numStep, roadsBuildData, viewListenerRelayActor, context => (context.system.ignoreRef, m => context.scheduleOnce(delay, context.self, m)))
   def apply(dt: Int, numStep: Int, roadsBuildData: List[RoadBuildData], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command]): Behavior[Command] =
+    buildSimulationActor(dt, numStep, roadsBuildData, viewListenerRelayActor, context => (context.self, m => m))
+
+  private def buildSimulationActor[R](dt: Int, numStep: Int, roadsBuildData: List[RoadBuildData], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command], stepReplyHandle: ActorContext[Command] => (ActorRef[R], Command => R)): Behavior[Command] =
     Behaviors.setup { context =>
       val roadActors = roadsBuildData.map(rbd => context.spawn(RoadActor(rbd.road, rbd.trafficLights, rbd.cars), rbd.road.agentID))
-      Behaviors.receiveMessagePartial{
+      Behaviors.receiveMessagePartial {
         case Start =>
           context.self ! Step()
           viewListenerRelayActor ! ViewListenerRelayActor.Init(0, roadsBuildData.flatMap(_.cars))
-          SimulationActor(dt, roadActors, viewListenerRelayActor).run(numStep)
+          SimulationActor(dt, roadActors, viewListenerRelayActor, stepReplyHandle).run(numStep)
       }
     }
 
-
-case class SimulationActor(dt: Int, roadActors: List[ActorRef[RoadActor.Command]], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command]):
+case class SimulationActor[R](dt: Int, roadActors: List[ActorRef[RoadActor.Command]], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command], stepReplyHandle: ActorContext[Command] => (ActorRef[R], Command => R)):
   private def run(step: Int): Behavior[Command] =
     Behaviors.setup { context =>
       Behaviors.receiveMessage {
@@ -38,32 +42,28 @@ case class SimulationActor(dt: Int, roadActors: List[ActorRef[RoadActor.Command]
           paused(step)
         case Step(viewMsgOpt) =>
           for viewMsg <- viewMsgOpt do viewListenerRelayActor ! viewMsg
-//          println("[SIMULATION]: VIEW UPDATED")
           if step <= 0 then
             simulationEnded
           else {
-//          println("SPAWNNNNNN")
-          context.spawnAnonymous(
-            Aggregator[RoadStepDone, Any](
-              sendRequests = replyTo => roadActors.foreach(_ ! RoadActor.Step(dt, replyTo)),
-              expectedReplies = roadActors.size,
-              replyTo = context.system.ignoreRef,
-              aggregateReplies = replies =>
-                var totalRoads = List[Road]()
-                var totalCars = List[Car]()
-                var totalTrafficLights = List[TrafficLight]()
-                replies.foreach ( reply =>
-                    totalRoads = reply.road :: totalRoads
-                    totalCars = totalCars.concat(reply.cars)
-                    totalTrafficLights = totalTrafficLights.concat(reply.trafficLights)
-                )
-
-//                context.system.receptionist ! Receptionist.Find(ViewActor.viewServiceKey, listingResponseAdapter())
-//                println(totalCars(1).position)
-                context.system.scheduler.scheduleOnce(1.milliseconds,() => context.self ! Step(List(ViewListenerRelayActor.StepDone(step, totalRoads, totalCars, totalTrafficLights), ViewListenerRelayActor.Stat(computeAverageSpeed(totalCars)))))
+            val (replyTo, reply) = stepReplyHandle(context)
+            context.spawnAnonymous(
+              Aggregator[RoadStepDone, R](
+                sendRequests = replyTo => roadActors.foreach(_ ! RoadActor.Step(dt, replyTo)),
+                expectedReplies = roadActors.size,
+                replyTo = replyTo,
+                aggregateReplies = replies =>
+                  var totalRoads = List[Road]()
+                  var totalCars = List[Car]()
+                  var totalTrafficLights = List[TrafficLight]()
+                  replies.foreach ( reply =>
+                      totalRoads = reply.road :: totalRoads
+                      totalCars = totalCars.concat(reply.cars)
+                      totalTrafficLights = totalTrafficLights.concat(reply.trafficLights)
+                  )
+                  reply(Step(List(ViewListenerRelayActor.StepDone(step, totalRoads, totalCars, totalTrafficLights), ViewListenerRelayActor.Stat(computeAverageSpeed(totalCars)))))
+              )
             )
-          )
-          run(step-1)}
+            run(step-1)}
       }
     }
   private def paused(step: Int): Behavior[Command] =
@@ -73,7 +73,6 @@ case class SimulationActor(dt: Int, roadActors: List[ActorRef[RoadActor.Command]
         run(step)
       case Step(viewMsgOpt) =>
         for viewMsg <- viewMsgOpt do viewListenerRelayActor ! viewMsg
-        //          println("[SIMULATION]: VIEW UPDATED")
         if step <= 0 then
           simulationEnded
         else Behaviors.same
@@ -111,7 +110,6 @@ object SimulationType:
     case SimulationType.SINGLE_ROAD_WITH_TRAFFIC_TWO_CAR => ???
     case SimulationType.CROSS_ROADS => SimulationExample.trafficSimulationWithCrossRoads
     case SimulationType.MASSIVE_SIMULATION => SimulationExample.trafficSimulationMassiveTest
-
 
 trait SimulationListener:
   def notifyInit(t: Int, agents: List[Car]): Unit

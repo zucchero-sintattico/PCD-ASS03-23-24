@@ -27,7 +27,7 @@ case class SimulationHandlerActor(simulation: Option[ActorRef[SimulationActor.Co
         for v <- view do viewListenerRelayActor ! ViewListenerRelayActor.Add(v)
         val simulation = context.spawnAnonymous(SimulationActor(dt, numSteps, simulationType.simulationSetup, viewListenerRelayActor)) //todo check name conflict
         context.watchWith(simulation, EndSimulation)
-        this.copy(simulation = Option(simulation), viewToDispose = view).simulationReady
+        copy(simulation = Option(simulation), viewToDispose = view).simulationReady
     )
 
 

@@ -10,7 +10,6 @@ import view.{StatisticalView, ViewClickRelayActor, ViewListenerRelayActor}
 object StartSystem:
   def apply(): Behavior[NotUsed] =
     Behaviors.setup { context =>
-      val dt = 1
       val mainView = StatisticalView()
       val logView = RoadSimStatistics()
       val viewListenerRelayActor = context.spawn(ViewListenerRelayActor(List(mainView, logView)), "viewListenerRelayActor")
@@ -23,7 +22,7 @@ object StartSystem:
   val actorSys = ActorSystem(StartSystem(), "root")
   println("ASS03")
 
-//import scala.util.{Success, Failure}  
+//import scala.util.{Success, Failure}
 //import scala.concurrent.duration.DurationInt
 //object TestAsk:
 //  def apply(): Behavior[NotUsed] =
