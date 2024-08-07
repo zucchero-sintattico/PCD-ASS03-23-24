@@ -37,8 +37,7 @@ case class RoadActor(road: Road, trafficLightActors: List[ActorRef[TrafficLightA
               sendRequests = replyTo => trafficLightActors.foreach(_ ! TrafficLightActor.Step(dt, replyTo)),
               expectedReplies = trafficLightActors.size,
               replyTo = context.self,
-              aggregateReplies = replies => ProcessStep(dt, replyTo),
-              timeout = 5.seconds
+              aggregateReplies = replies => ProcessStep(dt, replyTo)
             )
           )
           askForTrafficLightsRecords
@@ -54,8 +53,7 @@ case class RoadActor(road: Road, trafficLightActors: List[ActorRef[TrafficLightA
               sendRequests = replyTo => trafficLightActors.foreach(_ ! TrafficLightActor.RequestTrafficLightRecord(replyTo)),
               expectedReplies = trafficLightActors.size,
               replyTo = context.self,
-              aggregateReplies = replies => p.copy(trafficLights = Option(replies.toList)),
-              timeout = 5.seconds
+              aggregateReplies = replies => p.copy(trafficLights = Option(replies))
             )
           )
           askForCarRecords
@@ -71,8 +69,7 @@ case class RoadActor(road: Road, trafficLightActors: List[ActorRef[TrafficLightA
               sendRequests = replyTo => carActors.foreach(_ ! CarActor.RequestCarRecord(replyTo)),
               expectedReplies = carActors.size,
               replyTo = context.self,
-              aggregateReplies = replies => p.copy(cars = Option(replies.toList)),
-              timeout = 5.seconds
+              aggregateReplies = replies => p.copy(cars = Option(replies))
             )
           )
           evaluatePerceptions
@@ -94,8 +91,7 @@ case class RoadActor(road: Road, trafficLightActors: List[ActorRef[TrafficLightA
                   do car.carRef ! CarActor.DecideAction(p.dt, carPerception, replyTo),
               expectedReplies = carActors.size,
               replyTo = context.self,
-              aggregateReplies = replies => p.copy(cars = Option(replies.sortBy(_.carRecord.agentID).toList)),
-              timeout = 5.seconds
+              aggregateReplies = replies => p.copy(cars = Option(replies.sortBy(_.carRecord.agentID)))
             )
           )
           evaluateActions
@@ -123,8 +119,7 @@ case class RoadActor(road: Road, trafficLightActors: List[ActorRef[TrafficLightA
                     updatedCars.foreach(carRecord => carRecord.carRef ! CarActor.UpdateCarRecord(carRecord.carRecord, replyTo))}},
               expectedReplies = carActors.size,
               replyTo = p.replyTo,
-              aggregateReplies = replies => SimulationActor.RoadStepDone(road, replies.map(_.car).sortBy(_.agentID).toList, p.trafficLights.get.map(_.trafficLightRecord)),
-              timeout = 5.seconds
+              aggregateReplies = replies => SimulationActor.RoadStepDone(road, replies.map(_.car).sortBy(_.agentID), p.trafficLights.get.map(_.trafficLightRecord))
             )
           )
           waitForStepRequest

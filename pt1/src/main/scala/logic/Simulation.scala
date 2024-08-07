@@ -60,8 +60,7 @@ case class SimulationActor(dt: Int, roadActors: List[ActorRef[RoadActor.Command]
 
 //                context.system.receptionist ! Receptionist.Find(ViewActor.viewServiceKey, listingResponseAdapter())
 //                println(totalCars(1).position)
-                context.system.scheduler.scheduleOnce(100.milliseconds,() => context.self ! Step(List(ViewListenerRelayActor.StepDone(step, totalRoads, totalCars, totalTrafficLights), ViewListenerRelayActor.Stat(computeAverageSpeed(totalCars))))),
-              timeout = 5.seconds
+                context.system.scheduler.scheduleOnce(1.milliseconds,() => context.self ! Step(List(ViewListenerRelayActor.StepDone(step, totalRoads, totalCars, totalTrafficLights), ViewListenerRelayActor.Stat(computeAverageSpeed(totalCars)))))
             )
           )
           run(step-1)}
