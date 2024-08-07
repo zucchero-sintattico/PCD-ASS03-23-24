@@ -28,7 +28,7 @@ case class SimulationHandlerActor(simulation: Option[ActorRef[SimulationActor.Co
         val view = if showView then Some(RoadSimView()) else None
         for v <- view do viewListenerRelayActor ! ViewListenerRelayActor.Add(v)
         val simulation = delayOpt match
-          case Some(delay) => context.spawnAnonymous(SimulationActor(dt, numSteps, delay, simulationType.simulationSetup, viewListenerRelayActor)) //todo check name conflict 
+          case Some(delay) => context.spawnAnonymous(SimulationActor(dt, numSteps, delay, simulationType.simulationSetup, viewListenerRelayActor)) //todo check name conflict
           case _ =>context.spawnAnonymous(SimulationActor(dt, numSteps, simulationType.simulationSetup, viewListenerRelayActor))
         context.watchWith(simulation, EndSimulation)
         copy(simulation = Option(simulation), viewToDispose = view).simulationReady

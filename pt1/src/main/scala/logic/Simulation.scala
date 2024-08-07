@@ -35,6 +35,7 @@ object SimulationActor:
     }
 
 case class SimulationActor[R](dt: Int, roadActors: List[ActorRef[RoadActor.Command]], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command], stepReplyHandle: ActorContext[Command] => (ActorRef[R], Command => R)):
+  private val startTime = System.currentTimeMillis()
   private def run(step: Int): Behavior[Command] =
     Behaviors.setup { context =>
       Behaviors.receiveMessage {
@@ -80,7 +81,7 @@ case class SimulationActor[R](dt: Int, roadActors: List[ActorRef[RoadActor.Comma
 
 
   private def simulationEnded: Behavior[Command] =
-    viewListenerRelayActor ! ViewListenerRelayActor.SimulationEnded(0) //todo improve time elapsed
+    viewListenerRelayActor ! ViewListenerRelayActor.SimulationEnded((System.currentTimeMillis() - startTime).toInt) //todo improve time elapsed
     Behaviors.stopped
 
   private def computeAverageSpeed(agents: List[Car]): Double =
