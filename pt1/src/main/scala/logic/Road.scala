@@ -109,12 +109,18 @@ case class RoadActor(road: Road, trafficLightActors: List[ActorRef[TrafficLightA
           context.spawnAnonymous(
             Aggregator[CarStepDone, SimulationActor.RoadStepDone](
               sendRequests =
-                {replyTo => for cars <- p.cars do {
+                {replyTo =>
+                  //cars
+                  for cars <- p.cars do {
 //                  println(cars)
-                  var updatedCars = List[CarRecord]()//cars
-                  cars.foreach(car => updatedCars ::= Road.doAction(car, updatedCars)) //Todo evaluate correctness
+                    var updatedCars = cars
+                    cars.foreach(car => {
+                      val nc = Road.doAction(car, updatedCars)
+                      updatedCars = updatedCars.map(oc => if oc.carRecord.agentID == nc.carRecord.agentID then nc else oc)
+//                      updatedCars ::=
+                    }) //Todo evaluate correctness
 //                  println(updatedCars)
-                  updatedCars.foreach(carRecord => carRecord.carRef ! CarActor.UpdateCarRecord(carRecord.carRecord, replyTo))}},
+                    updatedCars.foreach(carRecord => carRecord.carRef ! CarActor.UpdateCarRecord(carRecord.carRecord, replyTo))}},
               expectedReplies = carActors.size,
               replyTo = p.replyTo,
               aggregateReplies = replies => SimulationActor.RoadStepDone(road, replies.map(_.car).sortBy(_.agentID).toList, p.trafficLights.get.map(_.trafficLightRecord)),
@@ -136,28 +142,40 @@ object Road:
     CarPerception(car.carRecord.position, findNearestCarInFront(car, cars), findNearestTrafficLightInFront(car, trafficLights))
 
   private def findNearestCarInFront(car: CarRecord, cars: List[CarRecord]): Option[Car] =
-    cars.map(_.carRecord)
-      .filterNot(_.agentID == car.carRecord.agentID)
-      .filter(otherCar => otherCar.position > car.carRecord.position && otherCar.position - car.carRecord.position < carDetectionRange)
+    val crs = cars.map(_.carRecord)
+//      .filterNot(_.agentID == car.carRecord.agentID)
+      .filter(otherCar => otherCar.position > car.carRecord.position && otherCar.position - car.carRecord.position <= carDetectionRange)
       .sortBy(_.position).headOption
+    crs
 
   private def findNearestTrafficLightInFront(car: CarRecord, trafficLights: List[TrafficLightRecord]): Option[TrafficLight] =
-    trafficLights.map(_.trafficLightRecord)
-      .filter(trafficLight => trafficLight.trafficLightPositionInfo.roadPosition > car.carRecord.position && trafficLight.trafficLightPositionInfo.roadPosition - car.carRecord.position < trafficLightDetectionRange)
-      .sortBy(_.trafficLightPositionInfo.roadPosition).headOption
+    val tls = trafficLights.map(_.trafficLightRecord)
+      .filter(trafficLight => trafficLight.trafficLightPositionInfo.roadPosition > car.carRecord.position)
+    if tls.isEmpty then Option.empty
+    else Option(tls.min((c1,c2) => Math.round(c1.trafficLightPositionInfo.roadPosition - c2.trafficLightPositionInfo.roadPosition).toInt))
+//      && trafficLight.trafficLightPositionInfo.roadPosition - car.carRecord.position < trafficLightDetectionRange)
+//      .sortBy(_.trafficLightPositionInfo.roadPosition).headOption
 
   def doAction(car: CarRecord, cars: List[CarRecord]): CarRecord =
     car.carRecord.selectedAction match
       case Some(action: MoveForward) =>
+          print(car.carRecord.agentID+" "+cars+" ")
           val nearestCarInFront = findNearestCarInFront(car, cars)
-          var newPosition = 0.0
+          var newPosition = car.carRecord.position
           nearestCarInFront match
             case Some(nearestCarInFront) =>
+              print("case 1 ")
               val distanceToNearestCar = nearestCarInFront.position - car.carRecord.position
               if distanceToNearestCar > action.distance + minDistAllowed then
+                print("case 1.2 ")
                 newPosition = car.carRecord.position + action.distance
-            case None => newPosition = car.carRecord.position + action.distance
-          if newPosition > car.carRecord.road.length then newPosition = 0
+            case None =>
+              print("case 2 ")
+              newPosition = car.carRecord.position + action.distance
+          if newPosition > car.carRecord.road.length then
+            print("case 3")
+            newPosition = 0
+          println()
           car.copy(carRecord = car.carRecord.updatePositionAndRemoveAction(newPosition))
       case _ => car
 

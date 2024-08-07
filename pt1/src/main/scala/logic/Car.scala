@@ -2,7 +2,6 @@ package logic
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-import logic.BaseCarAgentState.{ACCELERATING, DECELERATING_BECAUSE_OF_A_CAR, MOVING_CONSTANT_SPEED, STOPPED, WAIT_A_BIT}
 import logic.RoadActor.CarRecord
 
 object CarActor:
@@ -33,13 +32,11 @@ case class CarAgentConfiguration(acceleration: Double, deceleration: Double, max
 
 case class CarPerception(roadPosition: Double, nearestCarInFront: Option[Car], nearestTrafficLight: Option[TrafficLight])
 
-enum BaseCarAgentState:
-  case STOPPED, ACCELERATING, DECELERATING_BECAUSE_OF_A_CAR, WAIT_A_BIT, MOVING_CONSTANT_SPEED
-
 trait Car:
   val carNearDist = 15
   val carFarEnoughDist = 20
   val maxWaitingTime = 2
+  val semNearDist = 100
   val agentID: String
   val position: Double
   val road: Road
@@ -48,31 +45,83 @@ trait Car:
   val speed: Double
   def decide(dt: Int, carPerception: CarPerception): Car
   def updatePositionAndRemoveAction(newPosition: Double): Car
-case class BaseCarAgent(agentID: String, position: Double, road: Road, configuration: CarAgentConfiguration, selectedAction: Option[Action] = None, speed: Double = 0, private val state: BaseCarAgentState = STOPPED, private val waitingTime: Int = 0) extends Car:
+
+enum BaseCarAgentState:
+  case STOPPED, ACCELERATING, DECELERATING_BECAUSE_OF_A_CAR, WAIT_A_BIT, MOVING_CONSTANT_SPEED
+
+case class BaseCarAgent(agentID: String, position: Double, road: Road, configuration: CarAgentConfiguration, selectedAction: Option[Action] = None, speed: Double = 0, private val state: BaseCarAgentState = BaseCarAgentState.STOPPED, private val waitingTime: Int = 0) extends Car:
   override def decide(dt: Int, carPerception: CarPerception): Car =
     val detectedNearCar = carPerception.nearestCarInFront.isDefined && ((carPerception.nearestCarInFront.get.position - carPerception.roadPosition) < carNearDist)
     val carFarEnough = carPerception.nearestCarInFront.isDefined && ((carPerception.nearestCarInFront.get.position - carPerception.roadPosition) > carFarEnoughDist)
     var car = this
     state match
-      case BaseCarAgentState.STOPPED => if !detectedNearCar then car = car.copy(state = ACCELERATING)
+      case BaseCarAgentState.STOPPED => if !detectedNearCar then car = car.copy(state = BaseCarAgentState.ACCELERATING)
       case BaseCarAgentState.ACCELERATING =>
         if detectedNearCar then
-          car = car.copy(state = DECELERATING_BECAUSE_OF_A_CAR)
+          car = car.copy(state = BaseCarAgentState.DECELERATING_BECAUSE_OF_A_CAR)
         else
           val newSpeed = speed + configuration.acceleration * dt
-          val newState = if newSpeed >= configuration.maxSpeed then MOVING_CONSTANT_SPEED else ACCELERATING
+          val newState = if newSpeed >= configuration.maxSpeed then BaseCarAgentState.MOVING_CONSTANT_SPEED else BaseCarAgentState.ACCELERATING
           car = car.copy(speed = newSpeed, state = newState)
       case BaseCarAgentState.DECELERATING_BECAUSE_OF_A_CAR =>
         val newSpeed = speed - configuration.deceleration * dt
         car = car.copy(speed = newSpeed)
-        if newSpeed <= 0 then car = car.copy(state = STOPPED)
-        else if carFarEnough then car = car.copy(waitingTime = 0, state = WAIT_A_BIT)
+        if newSpeed <= 0 then car = car.copy(state = BaseCarAgentState.STOPPED)
+        else if carFarEnough then car = car.copy(waitingTime = 0, state = BaseCarAgentState.WAIT_A_BIT)
       case BaseCarAgentState.WAIT_A_BIT =>
         val newWaitingTime = waitingTime + dt
-        if newWaitingTime >= maxWaitingTime
-        then car = car.copy(state = ACCELERATING)
-        else car = car.copy(waitingTime = newWaitingTime)
-      case BaseCarAgentState.MOVING_CONSTANT_SPEED => if detectedNearCar then car.copy(state = DECELERATING_BECAUSE_OF_A_CAR)
+        car = car.copy(waitingTime = newWaitingTime)
+        if newWaitingTime > maxWaitingTime then car = car.copy(state = BaseCarAgentState.ACCELERATING)
+      case BaseCarAgentState.MOVING_CONSTANT_SPEED => if detectedNearCar then car = car.copy(state = BaseCarAgentState.DECELERATING_BECAUSE_OF_A_CAR)
     println(car.agentID+" "+  car.state+" "+car.position+" "+car.speed)
+    if car.speed > 0 then car.copy(selectedAction = Option(MoveForward(car.speed * dt))) else car
+  override def updatePositionAndRemoveAction(newPosition: Double): Car = this.copy(position = newPosition, selectedAction = Option.empty)
+
+enum ExtendedCarAgentState:
+  case STOPPED, ACCELERATING, DECELERATING_BECAUSE_OF_A_CAR, DECELERATING_BECAUSE_OF_A_NOT_GREEN_SEM, WAITING_FOR_GREEN_SEM, WAIT_A_BIT, MOVING_CONSTANT_SPEED
+
+case class ExtendedCarAgent(agentID: String, position: Double, road: Road, configuration: CarAgentConfiguration, selectedAction: Option[Action] = None, speed: Double = 0, private val state: ExtendedCarAgentState = ExtendedCarAgentState.STOPPED, private val waitingTime: Int = 0) extends Car:
+  override def decide(dt: Int, carPerception: CarPerception): Car =
+    val detectedNearCar = carPerception.nearestCarInFront.isDefined && ((carPerception.nearestCarInFront.get.position - carPerception.roadPosition) < carNearDist)
+    val detectedRedOrYellowNearTrafficLights = carPerception.nearestTrafficLight.isDefined && carPerception.nearestTrafficLight.get.state != TrafficLightState.GREEN && carPerception.nearestTrafficLight.get.trafficLightPositionInfo.roadPosition - carPerception.roadPosition < semNearDist && carPerception.nearestTrafficLight.get.trafficLightPositionInfo.roadPosition - carPerception.roadPosition > 0 //todo is > 0 needed?? i think no because perception find tl in front
+    val carFarEnough = carPerception.nearestCarInFront.isDefined && ((carPerception.nearestCarInFront.get.position - carPerception.roadPosition) > carFarEnoughDist)
+    val detectedGreenTrafficLights = carPerception.nearestTrafficLight.isDefined && carPerception.nearestTrafficLight.get.state == TrafficLightState.GREEN
+    var car = this
+    state match
+      case ExtendedCarAgentState.STOPPED => if !detectedNearCar then car = car.copy(state = ExtendedCarAgentState.ACCELERATING)
+      case ExtendedCarAgentState.ACCELERATING =>
+        if detectedNearCar then
+          car = car.copy(state = ExtendedCarAgentState.DECELERATING_BECAUSE_OF_A_CAR)
+        else if detectedRedOrYellowNearTrafficLights then
+          car = car.copy(state = ExtendedCarAgentState.DECELERATING_BECAUSE_OF_A_NOT_GREEN_SEM)
+        else
+          val newSpeed = speed + configuration.acceleration * dt
+          val newState = if newSpeed >= configuration.maxSpeed then ExtendedCarAgentState.MOVING_CONSTANT_SPEED else ExtendedCarAgentState.ACCELERATING
+          car = car.copy(speed = newSpeed, state = newState)
+      case ExtendedCarAgentState.MOVING_CONSTANT_SPEED =>
+        if carPerception.nearestTrafficLight.isDefined then println(car.agentID +" "+carPerception.nearestTrafficLight.get.trafficLightPositionInfo)
+        if carPerception.nearestTrafficLight.isDefined then println(car.agentID +" "+carPerception.nearestTrafficLight.get.state)
+        if carPerception.nearestTrafficLight.isDefined then println(car.agentID +" "+carPerception.roadPosition)
+        if carPerception.nearestTrafficLight.isDefined then println(car.agentID +" "+detectedRedOrYellowNearTrafficLights)
+        if detectedNearCar then car = car.copy(state = ExtendedCarAgentState.DECELERATING_BECAUSE_OF_A_CAR)
+        else if detectedRedOrYellowNearTrafficLights then car = car.copy(state = ExtendedCarAgentState.DECELERATING_BECAUSE_OF_A_NOT_GREEN_SEM)
+      case ExtendedCarAgentState.DECELERATING_BECAUSE_OF_A_CAR =>
+        val newSpeed = speed - configuration.deceleration * dt
+        car = car.copy(speed = newSpeed)
+        if newSpeed <= 0 then car = car.copy(state = ExtendedCarAgentState.STOPPED)
+        else if carFarEnough then car = car.copy(waitingTime = 0, state = ExtendedCarAgentState.WAIT_A_BIT)
+      case ExtendedCarAgentState.DECELERATING_BECAUSE_OF_A_NOT_GREEN_SEM =>
+        val newSpeed = speed - configuration.deceleration * dt
+        car = car.copy(speed = newSpeed)
+        if newSpeed <= 0 then car = car.copy(state = ExtendedCarAgentState.WAITING_FOR_GREEN_SEM)
+        else if !detectedRedOrYellowNearTrafficLights then car = car.copy(state = ExtendedCarAgentState.ACCELERATING)
+      case ExtendedCarAgentState.WAIT_A_BIT =>
+        val newWaitingTime = waitingTime + dt
+        car = car.copy(waitingTime = newWaitingTime)
+        if newWaitingTime > maxWaitingTime then car = car.copy(state = ExtendedCarAgentState.ACCELERATING)
+      case ExtendedCarAgentState.WAITING_FOR_GREEN_SEM =>
+        if detectedGreenTrafficLights then car = car.copy(state = ExtendedCarAgentState.ACCELERATING)
+
+    println(car.agentID + " " + car.state + " " + car.position + " " + car.speed)
     if car.speed > 0 then car.copy(selectedAction = Option(MoveForward(car.speed * dt))) else car
   override def updatePositionAndRemoveAction(newPosition: Double): Car = this.copy(position = newPosition, selectedAction = Option.empty)

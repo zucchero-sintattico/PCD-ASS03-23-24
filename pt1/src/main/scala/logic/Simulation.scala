@@ -95,7 +95,7 @@ object SimulationType:
     case SimulationType.SINGLE_ROAD_TWO_CAR => SimulationExample.trafficSimulationSingleRoadTwoCars
     case SimulationType.SINGLE_ROAD_SEVERAL_CARS => ???
     case SimulationType.SINGLE_ROAD_WITH_TRAFFIC_TWO_CAR => ???
-    case SimulationType.CROSS_ROADS => ???
+    case SimulationType.CROSS_ROADS => SimulationExample.trafficSimulationWithCrossRoads
     case SimulationType.MASSIVE_SIMULATION => SimulationExample.trafficSimulationMassiveTest
 
 
@@ -109,8 +109,8 @@ trait SimulationListener:
 object SimulationExample:
   def trafficSimulationSingleRoadTwoCars: List[RoadBuildData] =
     val road = Road("road-1", Point2D(0,300), Point2D(1500, 300))
-    val car1 = BaseCarAgent("car-1", 0, road, CarAgentConfiguration(0.1,0.2,8))
-    val car2 = BaseCarAgent("car-2", 100, road, CarAgentConfiguration(0.1,0.1,7))
+    val car1 = BaseCarAgent("car-1", 0, road, CarAgentConfiguration(0.1,0.2,8.0))
+    val car2 = BaseCarAgent("car-2", 100, road, CarAgentConfiguration(0.1,0.1,7.0))
     List(RoadBuildData(road, List.empty, List(car1, car2)))
 
   def trafficSimulationMassiveTest: List[RoadBuildData] =
@@ -119,3 +119,16 @@ object SimulationExample:
     for i <- 0 until 5000 do
       cars = cars :+ BaseCarAgent("car-"+i, i*10, road, CarAgentConfiguration(1.0,0.3,7.0))
     List(RoadBuildData(road, List.empty, cars))
+
+  def trafficSimulationWithCrossRoads: List[RoadBuildData] =
+    val road1 = Road("road-1", Point2D(0,300), Point2D(1500, 300))
+    val tl1 = TrafficLight("trafficLight-1", TrafficLightPositionInfo(Point2D(740,200), 740), TrafficLightTimingSetup(75,25,100), TrafficLightState.GREEN)
+    val car1 = ExtendedCarAgent("car-1", 0, road1, CarAgentConfiguration(0.1,0.3,6.0))
+    val car2 = ExtendedCarAgent("car-2", 100, road1, CarAgentConfiguration(0.1,0.3,5.0))
+    val roadBuildData1 = RoadBuildData(road1, List(tl1), List(car1, car2))
+    val road2 = Road("road-2", Point2D(750, 0), Point2D(750, 600))
+    val tl2 = TrafficLight("trafficLight-2", TrafficLightPositionInfo(Point2D(750, 290), 290), TrafficLightTimingSetup(75, 25, 100), TrafficLightState.RED)
+    val car3 = ExtendedCarAgent("car-3", 0, road2, CarAgentConfiguration(0.1, 0.2, 5.0))
+    val car4 = ExtendedCarAgent("car-4", 100, road2, CarAgentConfiguration(0.1, 0.1, 4.0))
+    val roadBuildData2 = RoadBuildData(road2, List(tl2), List(car3, car4))
+    List(roadBuildData1,roadBuildData2)
