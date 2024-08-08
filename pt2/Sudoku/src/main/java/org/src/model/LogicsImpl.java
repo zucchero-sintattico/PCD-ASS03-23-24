@@ -13,6 +13,7 @@ import java.util.List;
 public class LogicsImpl {
     private static final String EXCHANGE_NAME = "logs";
     private final Channel channel;
+    //private final GridBuilder gridBuilder = new GridBuilder();
 
     public LogicsImpl(Channel channel) throws IOException {
         this.channel = channel;

@@ -6,6 +6,7 @@ import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
 import org.src.common.Grid;
 import org.src.common.User;
+import org.src.model.GridBuilder;
 import org.src.model.GridImpl;
 import org.src.model.LogicsImpl;
 import org.src.model.UserImpl;
@@ -34,9 +35,10 @@ public class Main {
         String queueName = channel.queueDeclare().getQueue();
         channel.queueBind(queueName, EXCHANGE_NAME, "");
 
-                Grid grid = new GridImpl();
-                LogicsImpl logics = new LogicsImpl(channel);
-                GridView view = new GridView(logics, user, grid);
+        Grid grid = new GridImpl();
+        LogicsImpl logics = new LogicsImpl(channel);
+        GridView view = new GridView(logics, user, grid);
+        GridBuilder gridBuilder = new GridBuilder();
 
             DeliverCallback deliverCallback = (consumerTag, delivery) -> {
                 try {

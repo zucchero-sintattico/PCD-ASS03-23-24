@@ -115,6 +115,15 @@ public class GridImpl implements Grid {
     }
 
     @Override
+    public Cell getCellAt(int row, int col) {
+        return this.getCells()
+                .stream()
+                .filter(cell -> cell.getPosition().x() == row && cell.getPosition().y() == col)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Cell not found at position (" + row + ", " + col + ")"));
+    }
+
+    @Override
     public boolean isEmpty() {
         return cells.stream().noneMatch(e -> e.getNumber().isPresent()) && cells.stream().noneMatch(e -> e.isSelected().isPresent());
     }

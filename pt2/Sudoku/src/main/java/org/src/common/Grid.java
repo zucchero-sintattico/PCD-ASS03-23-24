@@ -10,5 +10,7 @@ public interface Grid {
 
     Grid formJson(String json);
 
+    Cell getCellAt(int row, int col);
+
     boolean isEmpty();
 }
