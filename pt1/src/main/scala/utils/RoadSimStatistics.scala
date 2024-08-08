@@ -5,7 +5,7 @@ import logic.{Car, Road, SimulationListener, TrafficLight}
 import java.nio.file.{Files, Paths}
 import java.io.FileWriter
 
-class RoadSimStatistics extends SimulationListener:
+case class RoadSimStatistics(consoleLog: Boolean = false) extends SimulationListener:
   private var _averageSpeed = .0
   private val path = Paths.get("log.txt")
 
@@ -22,7 +22,7 @@ class RoadSimStatistics extends SimulationListener:
   def averageSpeed: Double = _averageSpeed
 
   private def log(msg: String): Unit =
-//    println("[RoadSimStatistics]: log step stats")
+    if consoleLog then println("[RoadSimStatistics]: "+msg)
     try
       val fw = new FileWriter(path.toFile, true)
       try

@@ -5,14 +5,10 @@ import akka.actor.typed.{ActorRef, Behavior}
 import logic.RoadActor.{CarRecord, CarStepDone, Command, ProcessStep, Step, TrafficLightRecord, TrafficLightStepDone}
 import utils.Point2D
 
-import scala.concurrent.duration.DurationInt
-
 object RoadActor:
-
   sealed trait Command
   final case class Step(dt: Int, replyTo: ActorRef[SimulationActor.RoadStepDone]) extends Command
   private final case class ProcessStep(dt: Int, replyTo: ActorRef[SimulationActor.RoadStepDone  ], trafficLights: Option[List[TrafficLightRecord]] = Option.empty, cars: Option[List[CarRecord]] = Option.empty) extends Command
-
   case object TrafficLightStepDone extends Command
   final case class TrafficLightRecord(trafficLightRecord: TrafficLight) extends Command
   final case class CarRecord(carRecord: Car, carRef: ActorRef[CarActor.Command]) extends Command
@@ -31,7 +27,6 @@ case class RoadActor(road: Road, trafficLightActors: List[ActorRef[TrafficLightA
     Behaviors.setup{ context =>
       Behaviors.receiveMessagePartial {
         case Step(dt, replyTo) =>
-//          println("[ROAD]: Step1")
           context.spawnAnonymous(
             Aggregator[TrafficLightStepDone.type, ProcessStep](
               sendRequests = replyTo => trafficLightActors.foreach(_ ! TrafficLightActor.Step(dt, replyTo)),
@@ -47,7 +42,6 @@ case class RoadActor(road: Road, trafficLightActors: List[ActorRef[TrafficLightA
     Behaviors.setup { context =>
       Behaviors.receiveMessagePartial {
         case p: ProcessStep =>
-//          println("[ROAD]: Step2")
           context.spawnAnonymous(
             Aggregator[TrafficLightRecord, ProcessStep](
               sendRequests = replyTo => trafficLightActors.foreach(_ ! TrafficLightActor.RequestTrafficLightRecord(replyTo)),
@@ -63,7 +57,6 @@ case class RoadActor(road: Road, trafficLightActors: List[ActorRef[TrafficLightA
     Behaviors.setup { context =>
       Behaviors.receiveMessagePartial {
         case p: ProcessStep =>
-//          println("[ROAD]: Step3")
           context.spawnAnonymous(
             Aggregator[CarRecord, ProcessStep](
               sendRequests = replyTo => carActors.foreach(_ ! CarActor.RequestCarRecord(replyTo)),
@@ -106,16 +99,12 @@ case class RoadActor(road: Road, trafficLightActors: List[ActorRef[TrafficLightA
             Aggregator[CarStepDone, SimulationActor.RoadStepDone](
               sendRequests =
                 {replyTo =>
-                  //cars
                   for cars <- p.cars do {
-//                  println(cars)
                     var updatedCars = cars
                     cars.foreach(car => {
                       val nc = Road.doAction(car, updatedCars)
                       updatedCars = updatedCars.map(oc => if oc.carRecord.agentID == nc.carRecord.agentID then nc else oc)
-//                      updatedCars ::=
-                    }) //Todo evaluate correctness
-//                  println(updatedCars)
+                    })
                     updatedCars.foreach(carRecord => carRecord.carRef ! CarActor.UpdateCarRecord(carRecord.carRecord, replyTo))}},
               expectedReplies = carActors.size,
               replyTo = p.replyTo,
@@ -138,7 +127,6 @@ object Road:
 
   private def findNearestCarInFront(car: CarRecord, cars: List[CarRecord]): Option[Car] =
     val crs = cars.map(_.carRecord)
-//      .filterNot(_.agentID == car.carRecord.agentID)
       .filter(otherCar => otherCar.position > car.carRecord.position && otherCar.position - car.carRecord.position <= carDetectionRange)
       .sortBy(_.position).headOption
     crs
@@ -148,29 +136,21 @@ object Road:
       .filter(trafficLight => trafficLight.trafficLightPositionInfo.roadPosition > car.carRecord.position)
     if tls.isEmpty then Option.empty
     else Option(tls.min((c1,c2) => Math.round(c1.trafficLightPositionInfo.roadPosition - c2.trafficLightPositionInfo.roadPosition).toInt))
-//      && trafficLight.trafficLightPositionInfo.roadPosition - car.carRecord.position < trafficLightDetectionRange)
-//      .sortBy(_.trafficLightPositionInfo.roadPosition).headOption
 
   def doAction(car: CarRecord, cars: List[CarRecord]): CarRecord =
     car.carRecord.selectedAction match
       case Some(action: MoveForward) =>
-//          print(car.carRecord.agentID+" "+cars+" ")
           val nearestCarInFront = findNearestCarInFront(car, cars)
           var newPosition = car.carRecord.position
           nearestCarInFront match
             case Some(nearestCarInFront) =>
-//              print("case 1 ")
               val distanceToNearestCar = nearestCarInFront.position - car.carRecord.position
               if distanceToNearestCar > action.distance + minDistAllowed then
-//                print("case 1.2 ")
                 newPosition = car.carRecord.position + action.distance
             case None =>
-//              print("case 2 ")
               newPosition = car.carRecord.position + action.distance
           if newPosition > car.carRecord.road.length then
-//            print("case 3")
             newPosition = 0
-//          println()
           car.copy(carRecord = car.carRecord.updatePositionAndRemoveAction(newPosition))
       case _ => car
 

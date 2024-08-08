@@ -45,7 +45,7 @@ trait Clickable:
   def whenClicked(onClick: ViewClickRelayActor.Command => Unit): Unit
 
 object ViewClickRelayActor:
-  trait Command
+  sealed trait Command
   case object RestartSimulation extends Command
   case object StopSimulation extends Command
   case object ResetSimulation extends Command

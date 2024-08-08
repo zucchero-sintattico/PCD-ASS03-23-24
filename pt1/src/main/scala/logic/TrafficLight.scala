@@ -5,7 +5,6 @@ import akka.actor.typed.scaladsl.Behaviors
 import utils.*
 
 object TrafficLightActor:
-
   sealed trait Command
   final case class Step(dt: Int, replyTo: ActorRef[RoadActor.TrafficLightStepDone.type]) extends Command
   final case class RequestTrafficLightRecord(replyTo: ActorRef[RoadActor.TrafficLightRecord]) extends Command

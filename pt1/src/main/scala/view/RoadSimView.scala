@@ -1,7 +1,7 @@
 package view
 
 import javax.swing.WindowConstants
-import logic.{Car, Road, SimulationListener, TrafficLight, TrafficLightState}
+import logic.{Car, Road, TrafficLight, TrafficLightState}
 import utils.Vector2D
 
 import java.awt.{BorderLayout, Color, Graphics, Graphics2D, RenderingHints}
@@ -10,8 +10,8 @@ import javax.swing.*
 object RoadSimView:
   val carDrawSize = 10
 
-class RoadSimView extends JFrame("RoadSim View") with DisposableSimulationListener:
-  private val panel: RoadSimViewPanel = new RoadSimViewPanel(1500, 600)
+case class RoadSimView() extends JFrame("RoadSim View") with DisposableSimulationListener:
+  private val panel: RoadSimViewPanel = RoadSimViewPanel(1500, 600)
   setSize(1500, 600)
   panel.setSize(1500, 600)
   val cp = new JPanel
@@ -21,7 +21,7 @@ class RoadSimView extends JFrame("RoadSim View") with DisposableSimulationListen
   setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
   display()
 
-  def display(): Unit = SwingUtilities.invokeLater(() => this.setVisible(true))
+  def display(): Unit = SwingUtilities.invokeLater(() => setVisible(true))
 
   override def notifyInit(t: Int, agents: List[Car]): Unit = {}
 
@@ -32,7 +32,7 @@ class RoadSimView extends JFrame("RoadSim View") with DisposableSimulationListen
 
   override def notifyStat(averageSpeed: Double): Unit = {}
 
-  private[view] class RoadSimViewPanel(w: Int, h: Int) extends JPanel:
+  private[view] case class RoadSimViewPanel(w: Int, h: Int) extends JPanel:
     private[view] var cars: List[Car] = List()
     private[view] var roads: List[Road] = List()
     private[view] var trafficLights: List[TrafficLight] = List()

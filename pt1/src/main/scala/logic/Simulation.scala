@@ -6,16 +6,13 @@ import akka.actor.typed.{ActorRef, Behavior}
 import logic.SimulationActor.{Command, RoadStepDone, Start, Step, Stop}
 import utils.Point2D
 import view.ViewListenerRelayActor
+import scala.concurrent.duration.FiniteDuration
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.{DurationInt, FiniteDuration}
-
-given ExecutionContext = scala.concurrent.ExecutionContext.global
 object SimulationActor:
   sealed trait Command
   case object Start extends Command
   case object Stop extends Command
-  private case class Step(viewMsg: List[ViewListenerRelayActor.Command] = List()) extends Command
+  private final case class Step(viewMsg: List[ViewListenerRelayActor.Command] = List()) extends Command
   final case class RoadStepDone(road: Road, cars: List[Car], trafficLights: List[TrafficLight]) extends Command
 
   def apply(dt: Int, numStep: Int, delay: FiniteDuration, roadsBuildData: List[RoadBuildData], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command]): Behavior[Command] =
@@ -36,7 +33,7 @@ object SimulationActor:
 case class SimulationActor[R](dt: Int, roadActors: List[ActorRef[RoadActor.Command]], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command], stepReplyHandle: ActorContext[Command] => (ActorRef[R], Command => R)):
   private def run(step: Int): Behavior[Command] =
     Behaviors.setup { context =>
-      Behaviors.receiveMessage {
+      Behaviors.receiveMessagePartial {
         case Stop =>
           paused(step)
         case Step(viewMsgOpt) =>
@@ -65,6 +62,7 @@ case class SimulationActor[R](dt: Int, roadActors: List[ActorRef[RoadActor.Comma
             run(step-1)}
       }
     }
+
   private def paused(step: Int): Behavior[Command] =
     Behaviors.receive { (context, msg) => msg match
       case Start =>
@@ -76,7 +74,7 @@ case class SimulationActor[R](dt: Int, roadActors: List[ActorRef[RoadActor.Comma
           Behaviors.stopped
         else Behaviors.same
     }
-  
+
   private def computeAverageSpeed(agents: List[Car]): Double =
     var avSpeed = .0
     var maxSpeed = -1.0
@@ -97,6 +95,7 @@ enum SimulationType:
   SINGLE_ROAD_WITH_TRAFFIC_TWO_CAR,
   CROSS_ROADS,
   MASSIVE_SIMULATION;
+
 object SimulationType:
   extension (simulationType: SimulationType) def simulationSetup: List[RoadBuildData] = simulationType match
     case SimulationType.SINGLE_ROAD_TWO_CAR => SimulationExample.trafficSimulationSingleRoadTwoCars
@@ -110,7 +109,7 @@ trait SimulationListener:
   def notifyStepDone(t: Int, roads: List[Road], agents: List[Car], trafficLights: List[TrafficLight]): Unit
   def notifySimulationEnded(simulationDuration: Int): Unit
   def notifyStat(averageSpeed: Double): Unit
-  
+
 
 object SimulationExample:
   def trafficSimulationSingleRoadTwoCars: List[RoadBuildData] =

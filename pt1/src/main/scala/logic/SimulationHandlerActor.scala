@@ -15,6 +15,7 @@ object SimulationHandlerActor:
   case object ResetSimulation extends Command
   case object EndSimulation extends Command
   final case class SetupSimulationAndStart(simulationType: SimulationType, dt: Int, numSteps: Int, showView: Boolean, delay: Option[FiniteDuration] = Option.empty) extends Command
+
   def apply(viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command], viewToDispose: Option[DisposableSimulationListener] = Option.empty): Behavior[Command] =
     Behaviors.receivePartial((context, message) => message match
       case SetupSimulationAndStart(simulationType, dt, numSteps, showView, delayOpt) =>
@@ -41,9 +42,7 @@ case class SimulationHandlerActor(simulation: ActorRef[SimulationActor.Command],
           simulation ! SimulationActor.Start
           simulationRunning
         case ResetSimulation =>
-          println("RESET recieved")
           context.stop(simulation)
-          println(viewToDispose)
           for v <- viewToDispose do viewListenerRelayActor ! ViewListenerRelayActor.Remove(v)
           copy(viewToDispose = Option.empty).awaitSimulationTermination
      )

@@ -33,7 +33,7 @@ class SimulationTestClassic:
             simulationDone.complete(())
             context.system.terminate()
           override def notifyStat(averageSpeed: Double): Unit = {}
-        val logView = RoadSimStatistics()
+        val logView = RoadSimStatistics(true)
         val viewListenerRelayActor = context.spawn(ViewListenerRelayActor(List(controlView, logView)), "viewListenerRelayActor")
         val simulationHandlerActor = context.spawn(SimulationHandlerActor(viewListenerRelayActor), "simulationHandlerActor")
         simulationHandlerActor ! SimulationHandlerActor.SetupSimulationAndStart(st, dt, step, false)
