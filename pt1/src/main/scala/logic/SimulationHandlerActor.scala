@@ -5,7 +5,6 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import logic.SimulationHandlerActor.{Command, EndSimulation, ResetSimulation, RestartSimulation, SetupSimulationAndStart, StopSimulation}
 import view.{DisposableSimulationListener, RoadSimView, ViewListenerRelayActor}
-
 import scala.concurrent.duration.FiniteDuration
 
 

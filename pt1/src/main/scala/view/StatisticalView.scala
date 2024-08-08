@@ -32,7 +32,7 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
   private val labelNumberOfSteps = new JLabel("Number of steps")
   private val fieldNumberOfSteps = new JTextField("100", 1)
   private val labelConsoleLog = new JLabel("Console log")
-  private val areaConsoleLog = new JTextArea("Console log")
+  private val areaConsoleLog = new JTextArea()
   private val buttonStart = new JButton("Start simulation")
   private val buttonReset = new JButton("Reset simulation")
   private val buttonStop = new JButton("Stop simulation")
@@ -56,25 +56,19 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
       buttonStart.addActionListener(_ =>
         if !simulationStarted then
           if validateInput then
-            println("[Statistical View]: StartSimulation")
             updateViewWhenSimulationStart()
             clearTextArea()
             clickMessage(ViewClickRelayActor.SetupSimulationAndStart(simulationType, simulationDelta, numberOfSteps.get, showView, delay))
         else
-          println("[Statistical View]: ResumeSimulation")
           updateViewWhenSimulationStart()
           clickMessage(ViewClickRelayActor.RestartSimulation)
       )
       buttonReset.addActionListener(_ =>
         if validateInput then
-          println("[Statistical View]: ResetSimulation")
-          clearTextArea()
-          areaConsoleLog.setText("Console log")
-          resetView()
+          simulationStarted = false
           clickMessage(ViewClickRelayActor.ResetSimulation)
       )
       buttonStop.addActionListener(_ =>
-        println("[Statistical View]: StopSimulation")
         buttonStart.setEnabled(true)
         buttonStop.setEnabled(false)
         buttonReset.setEnabled(true)
@@ -90,8 +84,12 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
 
   override def notifySimulationEnded(simulationDuration: Int): Unit =
     SwingUtilities.invokeLater(() =>
+      if simulationStarted then
+        updateView("[SIMULATION] Time: " + simulationDuration + " ms")
+      else
+        clearTextArea()
+        updateView("Simulation stopped")
       resetView()
-      updateView("[SIMULATION] Time: " + simulationDuration + " ms")
     )
 
   override def notifyStat(averageSpeed: Double): Unit =
