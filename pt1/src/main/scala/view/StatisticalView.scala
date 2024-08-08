@@ -111,6 +111,7 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
     areaConsoleLog.setEditable(false)
     populateComboBox()
     buttonStop.setEnabled(false)
+    buttonReset.setEnabled(false)
     labelNumberOfSteps.setFont(bigFont)
     labelConsoleLog.setFont(bigFont)
     labelBox.setFont(bigFont)
@@ -208,7 +209,7 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
   private def resetView(): Unit =
     buttonStart.setEnabled(true)
     buttonStop.setEnabled(false)
-    buttonReset.setEnabled(true)
+    buttonReset.setEnabled(false)
     buttonStart.setText("Start simulation")
     simulationStarted = false
 
