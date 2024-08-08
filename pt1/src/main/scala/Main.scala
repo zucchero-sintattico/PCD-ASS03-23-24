@@ -17,5 +17,4 @@ object StartSystem:
     }
 
 @main def Main(): Unit =
-  val actorSys = ActorSystem(StartSystem(), "root")
-
+  ActorSystem(StartSystem(), "root")
