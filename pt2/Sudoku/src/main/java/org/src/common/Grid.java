@@ -13,4 +13,7 @@ public interface Grid {
     Cell getCellAt(int row, int col);
 
     boolean isEmpty();
+
+    boolean isNew();
+    void setNew(boolean isNew);
 }

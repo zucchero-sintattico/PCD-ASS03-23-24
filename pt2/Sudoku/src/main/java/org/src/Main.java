@@ -35,44 +35,45 @@ public class Main {
         String queueName = channel.queueDeclare().getQueue();
         channel.queueBind(queueName, EXCHANGE_NAME, "");
 
-        Grid grid = new GridImpl();
+        GridBuilder gridBuilder = new GridBuilder();
+        Grid grid = gridBuilder.generatePartialSolution();
         LogicsImpl logics = new LogicsImpl(channel);
         GridView view = new GridView(logics, user, grid);
-        GridBuilder gridBuilder = new GridBuilder();
 
-            DeliverCallback deliverCallback = (consumerTag, delivery) -> {
-                try {
-                    String receivedMessage = new String(delivery.getBody(), StandardCharsets.UTF_8);
-                    System.out.println(" [x] Received '" + receivedMessage + "'");
+        DeliverCallback deliverCallback = (consumerTag, delivery) -> {
+            try {
+                String receivedMessage = new String(delivery.getBody(), StandardCharsets.UTF_8);
+                System.out.println(" [x] Received '" + receivedMessage + "'");
 
-                    if (receivedMessage.equals("new_grid") && !grid.isEmpty()) {
-                        logics.sendMessageToServer(grid);
-                        System.out.println("New User Join Started!");
-                    } else if (!receivedMessage.equals("new_grid")) {
-                        logics.updateGridFromServer(grid, receivedMessage);
-                        System.out.println("Grid Sent!");
-                    }
-                    view.updateGridView();
-
-                } catch (Exception e) {
-                    System.err.println("Error handling delivery: " + e.getMessage());
-                    e.printStackTrace();
-                }
-            };
-
-            channel.basicConsume(queueName, true, deliverCallback, consumerTag -> {});
-
-                if (!grid.isEmpty()) {
+                if (receivedMessage.equals("new_grid") && grid.isNew()) {
                     logics.sendMessageToServer(grid);
-                } else {
-                    String message = "new_grid";
-                    channel.basicPublish(EXCHANGE_NAME, "", null, message.getBytes());
-                    System.out.println("New grid Started!");
-                    System.out.println(grid);
+                    grid.setNew(false);
+                    System.out.println("New User Join Started!");
+                } else if (!receivedMessage.equals("new_grid")) {
+                    logics.updateGridFromServer(grid, receivedMessage);
+                    System.out.println("Grid Sent!");
                 }
+                view.updateGridView();
 
-                System.out.println("-----------------Sudoku Game-----------------");
-                System.out.println(grid);
+            } catch (Exception e) {
+                System.err.println("Error handling delivery: " + e.getMessage());
+                e.printStackTrace();
+            }
+        };
+
+        channel.basicConsume(queueName, true, deliverCallback, consumerTag -> {});
+
+//        if (!grid.isEmpty()) {
+//            logics.sendMessageToServer(grid);
+//        } else {
+        String message = "new_grid";
+        channel.basicPublish(EXCHANGE_NAME, "", null, message.getBytes());
+        System.out.println("New grid Started!");
+        System.out.println(grid);
+//        }
+
+        System.out.println("-----------------Sudoku Game-----------------");
+        System.out.println(grid);
 
 
 

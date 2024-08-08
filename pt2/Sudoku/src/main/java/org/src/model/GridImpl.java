@@ -13,6 +13,8 @@ public class GridImpl implements Grid {
 
     List<Cell> cells = new ArrayList<>();
 
+    private boolean isNew = true;
+
     int GRID_SIZE = 9;
 
     public GridImpl() {
@@ -126,5 +128,15 @@ public class GridImpl implements Grid {
     @Override
     public boolean isEmpty() {
         return cells.stream().noneMatch(e -> e.getNumber().isPresent()) && cells.stream().noneMatch(e -> e.isSelected().isPresent());
+    }
+
+    @Override
+    public boolean isNew() {
+        return isNew;
+    }
+
+    @Override
+    public void setNew(boolean isNew) {
+        this.isNew = isNew;
     }
 }
