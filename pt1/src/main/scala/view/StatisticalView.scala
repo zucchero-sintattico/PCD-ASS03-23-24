@@ -62,12 +62,11 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
             println("[Statistical View]: StartSimulation")
             updateViewWhenSimulationStart()
             clearTextArea()
-            clickMessage(ViewClickRelayActor.SetupSimulation(simulationType, simulationDelta, numberOfSteps.get, showView, delay))
-            clickMessage(ViewClickRelayActor.StartSimulation)
+            clickMessage(ViewClickRelayActor.SetupSimulationAndStart(simulationType, simulationDelta, numberOfSteps.get, showView, delay))
         else
           println("[Statistical View]: ResumeSimulation")
           updateViewWhenSimulationStart()
-          clickMessage(ViewClickRelayActor.StartSimulation)
+          clickMessage(ViewClickRelayActor.RestartSimulation)
       )
       buttonReset.addActionListener(_ =>
         if validateInput then

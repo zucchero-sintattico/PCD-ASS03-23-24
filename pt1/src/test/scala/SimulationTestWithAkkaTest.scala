@@ -14,13 +14,13 @@ class SimulationTestWithAkkaTest extends AnyFunSuite with Matchers with BeforeAn
   private val testKit = ActorTestKit()
   override def afterAll(): Unit = testKit.shutdownTestKit()
 
+  test("Massive simulation result match expectation"):
+    testSimulation(MASSIVE_SIMULATION, 1, 100)
+    FileComparator.compareFiles("log.txt", "src/test/scala/resources/log_massive_improved.txt") shouldBe true
+
   test("TrafficLight simulation result match expectation"):
     testSimulation(CROSS_ROADS, 1, 500)
     FileComparator.compareFiles("log.txt", "src/test/scala/resources/log_with_trafficLights_improved.txt") shouldBe true
-
-  test("Massive simulation result match expectation"):
-    testSimulation(MASSIVE_SIMULATION, 1, 5)
-    FileComparator.compareFiles("log.txt", "src/test/scala/resources/log_massive_improved.txt") shouldBe true
 
   case object CompareResult
   private val compareResultProbe = testKit.createTestProbe[CompareResult.type]()
@@ -33,9 +33,8 @@ class SimulationTestWithAkkaTest extends AnyFunSuite with Matchers with BeforeAn
   }
   private val viewListenerRelayActorProbe = testKit.createTestProbe[ViewListenerRelayActor.Command]()
   private val mockedViewListenerRelayActor = testKit.spawn(Behaviors.monitor(viewListenerRelayActorProbe.ref, viewListenerRelayActorMockedBehavior))
+  private val simulationHandlerActor = testKit.spawn(SimulationHandlerActor(mockedViewListenerRelayActor))
 
   private def testSimulation(simulationType: SimulationType, dt: Int, step: Int): Unit =
-    val simulationHandlerActor = testKit.spawn(SimulationHandlerActor(mockedViewListenerRelayActor)) //todo handle bug in simulationHandler when start before end message concurrency
-    simulationHandlerActor ! SimulationHandlerActor.SetupSimulation(simulationType, dt, step, false)
-    simulationHandlerActor ! SimulationHandlerActor.StartSimulation
+    simulationHandlerActor ! SimulationHandlerActor.SetupSimulationAndStart(simulationType, dt, step, false)
     compareResultProbe.expectMessage(1.hours, CompareResult)

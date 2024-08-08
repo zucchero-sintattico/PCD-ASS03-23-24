@@ -29,13 +29,11 @@ object SimulationActor:
       Behaviors.receiveMessagePartial {
         case Start =>
           context.self ! Step()
-          viewListenerRelayActor ! ViewListenerRelayActor.Init(0, roadsBuildData.flatMap(_.cars))
           SimulationActor(dt, roadActors, viewListenerRelayActor, stepReplyHandle).run(numStep)
       }
     }
 
 case class SimulationActor[R](dt: Int, roadActors: List[ActorRef[RoadActor.Command]], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command], stepReplyHandle: ActorContext[Command] => (ActorRef[R], Command => R)):
-  private val startTime = System.currentTimeMillis()
   private def run(step: Int): Behavior[Command] =
     Behaviors.setup { context =>
       Behaviors.receiveMessage {
@@ -44,7 +42,7 @@ case class SimulationActor[R](dt: Int, roadActors: List[ActorRef[RoadActor.Comma
         case Step(viewMsgOpt) =>
           for viewMsg <- viewMsgOpt do viewListenerRelayActor ! viewMsg
           if step <= 0 then
-            simulationEnded
+            Behaviors.stopped
           else {
             val (replyTo, reply) = stepReplyHandle(context)
             context.spawnAnonymous(
@@ -75,15 +73,10 @@ case class SimulationActor[R](dt: Int, roadActors: List[ActorRef[RoadActor.Comma
       case Step(viewMsgOpt) =>
         for viewMsg <- viewMsgOpt do viewListenerRelayActor ! viewMsg
         if step <= 0 then
-          simulationEnded
+          Behaviors.stopped
         else Behaviors.same
     }
-
-
-  private def simulationEnded: Behavior[Command] =
-    viewListenerRelayActor ! ViewListenerRelayActor.SimulationEnded((System.currentTimeMillis() - startTime).toInt) //todo improve time elapsed
-    Behaviors.stopped
-
+  
   private def computeAverageSpeed(agents: List[Car]): Double =
     var avSpeed = .0
     var maxSpeed = -1.0

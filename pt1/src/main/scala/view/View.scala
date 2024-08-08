@@ -45,16 +45,16 @@ trait Clickable:
 
 object ViewClickRelayActor:
   trait Command
-  case object StartSimulation extends Command
+  case object RestartSimulation extends Command
   case object StopSimulation extends Command
   case object ResetSimulation extends Command
-  final case class SetupSimulation(simulationType: SimulationType, dt: Int, numSteps: Int, showView: Boolean, delay: FiniteDuration) extends Command
+  final case class SetupSimulationAndStart(simulationType: SimulationType, dt: Int, numSteps: Int, showView: Boolean, delay: FiniteDuration) extends Command
   def apply(view: Clickable, simulationHandlerActor: ActorRef[SimulationHandlerActor.Command]): Behavior[Command] =
     Behaviors.setup { context =>
       view.whenClicked(context.self ! _)
       Behaviors.receiveMessage {
-        case StartSimulation =>
-          simulationHandlerActor ! SimulationHandlerActor.StartSimulation
+        case RestartSimulation =>
+          simulationHandlerActor ! SimulationHandlerActor.RestartSimulation
           Behaviors.same
         case StopSimulation =>
           simulationHandlerActor ! SimulationHandlerActor.StopSimulation
@@ -62,8 +62,8 @@ object ViewClickRelayActor:
         case ResetSimulation =>
           simulationHandlerActor ! SimulationHandlerActor.ResetSimulation
           Behaviors.same
-        case SetupSimulation(simulationType, dt, numSteps, showView, delay) =>
-          simulationHandlerActor ! SimulationHandlerActor.SetupSimulation(simulationType, dt, numSteps, showView, Option(delay))
+        case SetupSimulationAndStart(simulationType, dt, numSteps, showView, delay) =>
+          simulationHandlerActor ! SimulationHandlerActor.SetupSimulationAndStart(simulationType, dt, numSteps, showView, Option(delay))
           Behaviors.same
       }
     }

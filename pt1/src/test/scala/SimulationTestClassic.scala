@@ -37,7 +37,6 @@ class SimulationTestClassic:
         val logView = RoadSimStatistics()
         val viewListenerRelayActor = context.spawn(ViewListenerRelayActor(List(controlView, logView)), "viewListenerRelayActor")
         val simulationHandlerActor = context.spawn(SimulationHandlerActor(viewListenerRelayActor), "simulationHandlerActor")
-        simulationHandlerActor ! SimulationHandlerActor.SetupSimulation(st, dt, step, false)
-        simulationHandlerActor ! SimulationHandlerActor.StartSimulation
+        simulationHandlerActor ! SimulationHandlerActor.SetupSimulationAndStart(st, dt, step, false)
         Behaviors.same
       }
