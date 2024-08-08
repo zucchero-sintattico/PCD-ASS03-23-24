@@ -7,7 +7,6 @@ import java.awt.Insets
 import java.awt.GridBagConstraints
 import java.awt.FlowLayout
 import java.awt.Font
-import java.util
 import javax.swing.JButton
 import javax.swing.JComboBox
 import javax.swing.JFrame
@@ -23,8 +22,6 @@ import javax.swing.SwingUtilities
 import logic.*
 import logic.SimulationType
 import scala.concurrent.duration.DurationInt
-
-import java.awt.event.{WindowAdapter, WindowEvent}
 
 case class StatisticalView() extends JFrame with SimulationListener with Clickable:
   private val defaultSize = 1000
@@ -99,8 +96,6 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
 
   override def notifyStat(averageSpeed: Double): Unit =
     SwingUtilities.invokeLater(() => updateView("[STAT]: average speed: " + averageSpeed))
-
-  override def simulationStopped(): Unit = {}
 
   private def setFrameProperties(): Unit =
     setLayout(new GridBagLayout)

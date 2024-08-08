@@ -10,7 +10,7 @@ import javax.swing.*
 object RoadSimView:
   val carDrawSize = 10
 
-class RoadSimView extends JFrame("RoadSim View") with SimulationListener:
+class RoadSimView extends JFrame("RoadSim View") with DisposableSimulationListener:
   private val panel: RoadSimViewPanel = new RoadSimViewPanel(1500, 600)
   setSize(1500, 600)
   panel.setSize(1500, 600)
@@ -31,8 +31,6 @@ class RoadSimView extends JFrame("RoadSim View") with SimulationListener:
   override def notifySimulationEnded(simulationDuration: Int): Unit = {}
 
   override def notifyStat(averageSpeed: Double): Unit = {}
-
-  override def simulationStopped(): Unit = dispose()
 
   private[view] class RoadSimViewPanel(w: Int, h: Int) extends JPanel:
     private[view] var cars: List[Car] = List()

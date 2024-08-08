@@ -19,8 +19,6 @@ class RoadSimStatistics extends SimulationListener:
 
   override def notifyStat(averageSpeed: Double): Unit = log("average speed: " + averageSpeed)
 
-  override def simulationStopped(): Unit = {}
-
   def averageSpeed: Double = _averageSpeed
 
   private def log(msg: String): Unit =

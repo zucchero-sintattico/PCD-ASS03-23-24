@@ -3,13 +3,17 @@ package view
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
 import logic.{Car, Road, SimulationHandlerActor, SimulationListener, SimulationType, TrafficLight}
-
 import scala.concurrent.duration.FiniteDuration
+
+trait Disposable:
+  def dispose(): Unit
+
+trait DisposableSimulationListener extends SimulationListener with Disposable
 
 object ViewListenerRelayActor:
   sealed trait Command
   final case class Add(simulationListener: SimulationListener) extends Command
-  final case class Remove(simulationListener: SimulationListener) extends Command
+  final case class Remove(simulationListener: DisposableSimulationListener) extends Command
   final case class Init(t: Int, agents: List[Car]) extends Command
   final case class StepDone(t: Int, roads: List[Road], agents: List[Car], trafficLights: List[TrafficLight]) extends Command
   final case class SimulationEnded(simulationDuration: Int) extends Command
@@ -21,7 +25,7 @@ object ViewListenerRelayActor:
       case Add(sl) =>
         ViewListenerRelayActor(sl :: views)
       case Remove(sl) =>
-        sl.simulationStopped()
+        sl.dispose()
         ViewListenerRelayActor(views.filter(_ != sl))
       case Init(t, agents) =>
         for view <- views do view.notifyInit(t, agents)
@@ -37,11 +41,8 @@ object ViewListenerRelayActor:
         Behaviors.same
     }
 
-
-// Define the behavior of the ViewActor here
 trait Clickable:
   def whenClicked(onClick: ViewClickRelayActor.Command => Unit): Unit
-
 
 object ViewClickRelayActor:
   trait Command

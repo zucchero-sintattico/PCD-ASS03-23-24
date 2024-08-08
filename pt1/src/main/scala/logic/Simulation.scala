@@ -110,7 +110,7 @@ trait SimulationListener:
   def notifyStepDone(t: Int, roads: List[Road], agents: List[Car], trafficLights: List[TrafficLight]): Unit
   def notifySimulationEnded(simulationDuration: Int): Unit
   def notifyStat(averageSpeed: Double): Unit
-  def simulationStopped(): Unit
+  
 
 object SimulationExample:
   def trafficSimulationSingleRoadTwoCars: List[RoadBuildData] =
