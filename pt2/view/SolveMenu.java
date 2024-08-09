@@ -2,6 +2,8 @@ package pt2.view;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class SolveMenu extends JFrame {
 
@@ -12,19 +14,11 @@ public class SolveMenu extends JFrame {
         this.buildFrame();
         this.buildComponents();
         this.addComponentsInFrame();
-        this.attachListener();
-        this.attachMouseAdapter();
         this.spawnFrameAtCenter();
     }
 
     private void spawnFrameAtCenter(){
         this.setLocation(Utils.computeCenteredXDimension(this.getWidth()), Utils.computeCenteredYDimension(this.getHeight()));
-    }
-
-    private void attachMouseAdapter() {
-    }
-
-    private void attachListener() {
     }
 
     private void addComponentsInFrame() {
@@ -38,7 +32,22 @@ public class SolveMenu extends JFrame {
         for (int i = 0; i < 100; i++) {
             JButton button = new JButton("Sudoku " + i);
             button.setPreferredSize(new Dimension(80, 80));
+            button.setFont(new Font("Arial", Font.PLAIN, 16));
             this.panel.add(button);
+
+            //Mouse Enter and Mouse Leave control
+            button.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    //Do........
+                    button.setFont(new Font("Arial", Font.BOLD, 16));
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    button.setFont(new Font("Arial", Font.PLAIN, 16));
+                }
+            });
         }
 
         //Scroll interface
@@ -49,7 +58,7 @@ public class SolveMenu extends JFrame {
     private void buildFrame() {
         this.setTitle("Sudoku Solver");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setSize(600, 400);
+        this.setSize(800, 500);
         this.setResizable(false);
     }
 
