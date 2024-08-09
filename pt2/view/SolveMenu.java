@@ -9,12 +9,22 @@ public class SolveMenu extends JFrame {
 
     private final JPanel panel = new JPanel();
     private final JScrollPane scrollPane = new JScrollPane(this.panel);
+    private final JButton back = new JButton("< - Back");
 
     public SolveMenu() {
         this.buildFrame();
         this.buildComponents();
         this.addComponentsInFrame();
+        this.attachListener();
         this.spawnFrameAtCenter();
+    }
+
+    private void attachListener() {
+        this.back.addActionListener(e -> {
+            this.dispose();
+            Menu menu = new Menu();
+            SwingUtilities.invokeLater(menu::display);
+        });
     }
 
     private void spawnFrameAtCenter(){
@@ -23,6 +33,7 @@ public class SolveMenu extends JFrame {
 
     private void addComponentsInFrame() {
         this.add(this.scrollPane);
+        this.add(this.back, BorderLayout.SOUTH);
     }
 
     private void buildComponents() {
