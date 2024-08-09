@@ -11,11 +11,14 @@ public class GUI extends JFrame {
     private final JTextField[][] cells;
     private final LogicsImpl logics;
     private final JLabel usernameLabel;
+    private final JButton back = new JButton("< - Back");
 
     public GUI(int emptyCells, String username) {
         this.logics = new LogicsImpl(emptyCells);
         this.cells = new JTextField[9][9];
         this.usernameLabel = new JLabel("Username: " + username);
+        this.attachListener();
+        this.spawnFrameAtCenter();
         this.build();
     }
 
@@ -96,12 +99,31 @@ public class GUI extends JFrame {
         }
 
         this.add(gridPanel, BorderLayout.CENTER);
-
+        this.add(this.back, BorderLayout.SOUTH);
         this.setSize(600, 600);
         this.setVisible(true);
     }
 
+    public void display(){
+        this.setVisible(true);
+    }
+
+    private void spawnFrameAtCenter(){
+        this.setLocation(Utils.computeCenteredXDimension(this.getWidth()), Utils.computeCenteredYDimension(this.getHeight()));
+    }
+
+    private void attachListener(){
+        this.back.addActionListener(e -> {
+            //Do........
+            this.dispose();
+            Menu menu = new Menu();
+            SwingUtilities.invokeLater(menu::display);
+        });
+    }
+
+    /*
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new GUI(40, "Alecs00"));
     }
+     */
 }

@@ -6,6 +6,7 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import java.awt.*;
+import java.util.Objects;
 
 public class Login extends JFrame {
 
@@ -17,6 +18,8 @@ public class Login extends JFrame {
         this.buildFrame();
         this.buildComponents();
         this.addComponentsInFrame();
+        this.attachListener();
+        this.spawnFrameAtCenter();
     }
 
     private void addComponentsInFrame() {
@@ -45,6 +48,10 @@ public class Login extends JFrame {
         ((AbstractDocument) this.username.getDocument()).setDocumentFilter(new LengthFilter(14));
     }
 
+    private void spawnFrameAtCenter(){
+        this.setLocation(Utils.computeCenteredXDimension(this.getWidth()), Utils.computeCenteredYDimension(this.getHeight()));
+    }
+
     private void buildFrame() {
         this.setTitle("Login");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -55,6 +62,19 @@ public class Login extends JFrame {
 
     public void display(){
         this.setVisible(true);
+    }
+
+    private void attachListener(){
+        this.login.addActionListener(e -> {
+            if(Objects.equals(this.username.getText(), "")){
+                Utils.showErrorMessage(this, "Invalid Username", "Username Problem");
+            }else{
+                Utils.setUsername(username.getText());
+                this.dispose();
+                Menu menu = new Menu();
+                SwingUtilities.invokeLater(menu::display);
+            }
+        });
     }
 
     /* To limit the len of the textfield */
@@ -83,10 +103,5 @@ public class Login extends JFrame {
         public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
             super.remove(fb, offset, length);
         }
-    }
-
-    public static void main(String[] args) {
-        Login login = new Login();
-        SwingUtilities.invokeLater(login::display);
     }
 }

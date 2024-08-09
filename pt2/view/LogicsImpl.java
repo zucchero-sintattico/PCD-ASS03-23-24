@@ -168,6 +168,7 @@ public class LogicsImpl implements Logics {
         }
     }
 
+    /*
     public static void main(String[] args) {
         int emptyCells = 40; // Numero di celle vuote da generare
         LogicsImpl game = new LogicsImpl(emptyCells);
@@ -193,4 +194,5 @@ public class LogicsImpl implements Logics {
         System.out.println("\nNew Initial Partial Solution (what user sees):");
         game.printGrid(game.partialSolution);
     }
+     */
 }
