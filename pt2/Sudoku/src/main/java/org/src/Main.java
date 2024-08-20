@@ -19,25 +19,29 @@ import java.util.concurrent.TimeoutException;
 import org.src.view.GridView;
 
 public class Main {
-    private static final String EXCHANGE_NAME = "logs";
     private static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) throws IOException, TimeoutException {
         System.out.println("Enter your username: ");
         String username = scanner.nextLine();
+
+        System.out.println("Enter grid Id: ");
+        String gridId = scanner.nextLine();
+
+
         User user = new UserImpl(username);
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
 
-        channel.exchangeDeclare(EXCHANGE_NAME, "fanout");
+        channel.exchangeDeclare(gridId, "fanout");
         String queueName = channel.queueDeclare().getQueue();
-        channel.queueBind(queueName, EXCHANGE_NAME, "");
+        channel.queueBind(queueName, gridId, "");
 
         GridBuilder gridBuilder = new GridBuilder();
         Grid grid = gridBuilder.generatePartialSolution();
-        LogicsImpl logics = new LogicsImpl(channel);
+        LogicsImpl logics = new LogicsImpl(channel, gridId);
         GridView view = new GridView(logics, user, grid);
 
         DeliverCallback deliverCallback = (consumerTag, delivery) -> {
@@ -67,7 +71,7 @@ public class Main {
 //            logics.sendMessageToServer(grid);
 //        } else {
         String message = "new_grid";
-        channel.basicPublish(EXCHANGE_NAME, "", null, message.getBytes());
+        channel.basicPublish(gridId, "", null, message.getBytes());
         System.out.println("New grid Started!");
         System.out.println(grid);
 //        }

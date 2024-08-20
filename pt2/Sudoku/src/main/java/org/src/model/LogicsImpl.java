@@ -11,12 +11,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LogicsImpl {
-    private static final String EXCHANGE_NAME = "logs";
+
     private final Channel channel;
+    private final String gridId;
     //private final GridBuilder gridBuilder = new GridBuilder();
 
-    public LogicsImpl(Channel channel) throws IOException {
+    public LogicsImpl(Channel channel, String EXCHANGE_NAME) throws IOException {
         this.channel = channel;
+        this.gridId = EXCHANGE_NAME;
         channel.queueDeclare(EXCHANGE_NAME, true, false, false, null);
     }
 
@@ -25,7 +27,7 @@ public class LogicsImpl {
         if (channel != null && channel.isOpen()) {
             try {
                 String message = grid.toJson();
-                channel.basicPublish(EXCHANGE_NAME, "", null, message.getBytes(StandardCharsets.UTF_8));
+                channel.basicPublish(gridId, "", null, message.getBytes(StandardCharsets.UTF_8));
                 System.out.println("Message sent to server: " + message);
             } catch (IOException e) {
                 e.printStackTrace();
