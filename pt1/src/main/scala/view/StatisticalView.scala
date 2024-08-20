@@ -26,7 +26,7 @@ import scala.concurrent.duration.DurationInt
 case class StatisticalView() extends JFrame with SimulationListener with Clickable:
   private val defaultSize = 1000
   private val simulationDelta = 1
-  private val delay = 100.milliseconds
+  private val delay = 100.milliseconds //todo improve fps
   private val bigFont = new Font(getName, Font.PLAIN, 16)
   private val smallFont = new Font(getName, Font.PLAIN, 14)
   private val labelNumberOfSteps = new JLabel("Number of steps")
