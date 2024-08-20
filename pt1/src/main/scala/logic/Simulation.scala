@@ -1,11 +1,12 @@
 package logic
 
 import akka.actor.typed.receptionist.Receptionist
-import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
+import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer}
 import akka.actor.typed.{ActorRef, Behavior}
 import logic.SimulationActor.{Command, RoadStepDone, Start, Step, Stop}
 import utils.Point2D
 import view.ViewListenerRelayActor
+
 import scala.concurrent.duration.FiniteDuration
 
 object SimulationActor:
@@ -21,16 +22,19 @@ object SimulationActor:
     buildSimulationActor(dt, numStep, roadsBuildData, viewListenerRelayActor, context => (context.self, m => m))
 
   private def buildSimulationActor[R](dt: Int, numStep: Int, roadsBuildData: List[RoadBuildData], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command], stepReplyHandle: ActorContext[Command] => (ActorRef[R], Command => R)): Behavior[Command] =
-    Behaviors.setup { context =>
-      val roadActors = roadsBuildData.map(rbd => context.spawn(RoadActor(rbd.road, rbd.trafficLights, rbd.cars), rbd.road.agentID))
-      Behaviors.receiveMessagePartial {
-        case Start =>
-          context.self ! Step()
-          SimulationActor(dt, roadActors, viewListenerRelayActor, stepReplyHandle).run(numStep)
+    Behaviors.withStash(1){ buffer =>
+      Behaviors.setup { context =>
+        val roadActors = roadsBuildData.map(rbd => context.spawn(RoadActor(rbd.road, rbd.trafficLights, rbd.cars), rbd.road.agentID))
+        Behaviors.receiveMessagePartial {
+          case Start =>
+            context.self ! Step()
+            SimulationActor(dt, roadActors, viewListenerRelayActor, stepReplyHandle, buffer).run(numStep)
+        }
       }
     }
 
-case class SimulationActor[R](dt: Int, roadActors: List[ActorRef[RoadActor.Command]], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command], stepReplyHandle: ActorContext[Command] => (ActorRef[R], Command => R)):
+
+case class SimulationActor[R](dt: Int, roadActors: List[ActorRef[RoadActor.Command]], viewListenerRelayActor: ActorRef[ViewListenerRelayActor.Command], stepReplyHandle: ActorContext[Command] => (ActorRef[R], Command => R), buffer: StashBuffer[Command]):
   private def run(step: Int): Behavior[Command] =
     Behaviors.setup { context =>
       Behaviors.receiveMessagePartial {
@@ -66,13 +70,10 @@ case class SimulationActor[R](dt: Int, roadActors: List[ActorRef[RoadActor.Comma
   private def paused(step: Int): Behavior[Command] =
     Behaviors.receive { (context, msg) => msg match
       case Start =>
-        context.self ! Step()
-        run(step)
-      case Step(viewMsgOpt) =>
-        for viewMsg <- viewMsgOpt do viewListenerRelayActor ! viewMsg
-        if step <= 0 then
-          Behaviors.stopped
-        else Behaviors.same
+        buffer.unstashAll(run(step))
+      case msg: Step =>
+        buffer.stash(msg)
+        Behaviors.same
     }
 
   private def computeAverageSpeed(agents: List[Car]): Double =
