@@ -57,9 +57,7 @@ public class GridView extends JFrame {
                 this.cells[row][col].setBackground(background);
                 if (number != 0) {
                     this.cells[row][col].setText(String.valueOf(number));
-                    this.cells[row][col].setEditable(false);
                 } else {
-                    this.cells[row][col].setEditable(true);
                     int finalRow = row;
                     int finalCol = col;
                     this.cells[row][col].addFocusListener(new FocusListener() {

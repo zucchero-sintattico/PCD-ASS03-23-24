@@ -127,7 +127,7 @@ public class GridImpl implements Grid {
 
     @Override
     public boolean isEmpty() {
-        return cells.stream().noneMatch(e -> e.getNumber().isPresent()) && cells.stream().noneMatch(e -> e.isSelected().isPresent());
+        return cells.stream().noneMatch(e -> e.getNumber().isPresent());
     }
 
     @Override

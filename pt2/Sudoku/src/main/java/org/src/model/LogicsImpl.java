@@ -14,32 +14,35 @@ public class LogicsImpl {
 
     private final Channel channel;
     private final String gridId;
-    //private final GridBuilder gridBuilder = new GridBuilder();
+    private static final String UPDATE_GRID_KEY = "grid.update";
+    private static final String USER_MOVE_KEY = "grid.move";
 
-    public LogicsImpl(Channel channel, String EXCHANGE_NAME) throws IOException {
+    public LogicsImpl(Channel channel, String gridId) throws IOException {
         this.channel = channel;
-        this.gridId = EXCHANGE_NAME;
-        channel.queueDeclare(EXCHANGE_NAME, true, false, false, null);
+        this.gridId = gridId;
     }
 
     public void sendMessageToServer(Grid grid) {
-
         if (channel != null && channel.isOpen()) {
             try {
+                if (grid.isEmpty()) {
+                    System.err.println("Empty grid. Cannot send message to server.");
+                    return;
+                }
                 String message = grid.toJson();
-                channel.basicPublish(gridId, "", null, message.getBytes(StandardCharsets.UTF_8));
+                channel.basicPublish(gridId, UPDATE_GRID_KEY, null, message.getBytes(StandardCharsets.UTF_8));
                 System.out.println("Message sent to server: " + message);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         } else {
-            System.err.println("Channel is closed. Cannot send message to server.");
+            System.err.println("Channel is closed or empty grid. Cannot send message to server.");
         }
     }
 
     public void updateGridFromServer(Grid grid, String receivedMessage) {
-        Grid newCellListFromServer = grid.formJson(receivedMessage);
-        grid.updateGrid(newCellListFromServer.getCells());
+        Grid newGridFromServer = grid.formJson(receivedMessage);
+        grid.updateGrid(newGridFromServer.getCells());
         System.out.println("-----------------Sudoku Game-----------------");
         System.out.println(grid);
     }
@@ -84,8 +87,18 @@ public class LogicsImpl {
             newCellList.add(newCell);
         }
         grid.updateGrid(newCellList);
-        sendMessageToServer(grid);
+        sendMoveToServer(grid, user, number);
         System.out.println("-----------------Sudoku Game-----------------");
         System.out.println(grid);
+    }
+
+    private void sendMoveToServer(Grid grid, User user, int number) throws IOException {
+        if (channel != null && channel.isOpen()) {
+            String message = String.format("%s:%d:%s", user.getName(), number, grid.toJson());
+            channel.basicPublish(gridId, USER_MOVE_KEY, null, message.getBytes(StandardCharsets.UTF_8));
+            System.out.println("User move sent to server: " + message);
+        } else {
+            System.err.println("Channel is closed. Cannot send move to server.");
+        }
     }
 }
