@@ -53,13 +53,6 @@ public class Main {
 
         if(!startNewGrid){
             channel.basicPublish(gridId, MessageTopic.NEW_USER_JOINED.getTopic(), null, user.getName().getBytes());
-            channel.basicConsume(queueName, true, (consumerTag, delivery) -> {
-                if (delivery.getEnvelope().getRoutingKey().equals(MessageTopic.UPDATE_GRID.getTopic()) && !viewIsSet.get()){
-                    logics.pull(grid, new String(delivery.getBody()));
-                    gridView.set(new GridView(logics, user, grid));
-                    viewIsSet.set(true);
-                }
-            }, consumerTag -> {});
         }else{
             gridView.set(new GridView(logics, user, grid));
             viewIsSet.set(true);
@@ -74,8 +67,15 @@ public class Main {
 
             if (delivery.getEnvelope().getRoutingKey().equals(MessageTopic.UPDATE_GRID.getTopic())){
                 logics.pull(grid, new String(delivery.getBody()));
+
+                if(!viewIsSet.get()){
+                    gridView.set(new GridView(logics, user, grid));
+                    viewIsSet.set(true);
+                }
             }
-            gridView.get().updateGridView();
+            if(viewIsSet.get()){
+                gridView.get().updateGridView();
+            }
         };
 
         channel.basicConsume(queueName, true, deliverCallback, consumerTag -> {});
