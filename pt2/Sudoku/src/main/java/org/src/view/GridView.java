@@ -63,21 +63,15 @@ public class GridView extends JFrame {
                     this.cells[row][col].addFocusListener(new FocusListener() {
                         @Override
                         public void focusGained(FocusEvent e) {
-
-                            logics.selectCell(grid, user, finalRow, finalCol);
                             try {
-                                updateGridView();
+                                logics.selectCell(grid, user, finalRow, finalCol);
                             } catch (IOException ex) {
-                                throw new RuntimeException(ex);}
-
+                                throw new RuntimeException(ex);
+                            }
                         }
 
                         @Override
                         public void focusLost(FocusEvent e) {
-//                            checkCell((JTextField) e.getSource());
-//                            if(logics.won()){
-//                                JOptionPane.showMessageDialog(null, "You have won", "Sudoku Game", JOptionPane.INFORMATION_MESSAGE);
-//                            }
                         }
 
                     });
@@ -88,10 +82,8 @@ public class GridView extends JFrame {
                             if (!((c >= '1' && c <= '9') || c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE)) {
                                 e.consume();
                             }
-
                             try {
                                 logics.makeMove(grid, user, Character.getNumericValue(c));
-                                updateGridView();
                             } catch (IOException ex) {
                                 throw new RuntimeException(ex);
                             }
@@ -130,10 +122,8 @@ public class GridView extends JFrame {
                     this.cells[row][col].setBackground(background);
                  if (number != 0) {
                       this.cells[row][col].setText(String.valueOf(number));
-                      this.cells[row][col].setEditable(false);
                  } else {
                       this.cells[row][col].setText("");
-                      this.cells[row][col].setEditable(true);
                  }
                 }
           }

@@ -4,25 +4,20 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.src.common.Grid;
 import org.src.common.User;
-import org.src.model.GridBuilder;
-import org.src.model.GridImpl;
-import org.src.model.LogicsImpl;
-import org.src.model.UserImpl;
-
+import org.src.model.*;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.src.view.GridView;
 
 public class Main {
     private static final Scanner scanner = new Scanner(System.in);
-    private static final Logger log = LoggerFactory.getLogger(Main.class);
+
 
     public static void main(String[] args) throws IOException, TimeoutException {
         System.out.println("Enter your username: ");
@@ -44,43 +39,47 @@ public class Main {
         channel.exchangeDeclare(gridId, "topic");
         String queueName = channel.queueDeclare().getQueue();
 
-        // Binding keys for new grid and grid updates
-        String newGridKey = "grid.new";
-        String updateGridKey = "grid.update";
-        String userJoinKey = "grid.user.join";
-
         // Bind the queue to the exchange with the appropriate binding keys
-        channel.queueBind(queueName, gridId, newGridKey);
-        channel.queueBind(queueName, gridId, updateGridKey);
-
-        Grid grid;
-        if (startNewGrid) {
-            GridBuilder gridBuilder = new GridBuilder();
-            grid = gridBuilder.generatePartialSolution();
-        } else {
-            grid = new GridImpl();
-            channel.basicPublish(gridId, userJoinKey, null, user.getName().getBytes());
-        }
+        channel.queueBind(queueName, gridId, MessageTopic.NEW_USER_JOINED.getTopic());
+        channel.queueBind(queueName, gridId, MessageTopic.UPDATE_GRID.getTopic());
+        channel.queueBind(queueName, gridId, MessageTopic.USER_LEFT.getTopic());
 
         LogicsImpl logics = new LogicsImpl(channel, gridId);
-        GridView gridView = new GridView( logics,  user, grid);
+        GridBuilder gridBuilder = new GridBuilder();
+        Grid grid = gridBuilder.generatePartialSolution();
+
+        AtomicReference<GridView> gridView = new AtomicReference<>();
+        AtomicBoolean viewIsSet = new AtomicBoolean(false);
+
+        if(!startNewGrid){
+            channel.basicPublish(gridId, MessageTopic.NEW_USER_JOINED.getTopic(), null, user.getName().getBytes());
+            channel.basicConsume(queueName, true, (consumerTag, delivery) -> {
+                if (delivery.getEnvelope().getRoutingKey().equals(MessageTopic.UPDATE_GRID.getTopic()) && !viewIsSet.get()){
+                    logics.pull(grid, new String(delivery.getBody()));
+                    gridView.set(new GridView(logics, user, grid));
+                    viewIsSet.set(true);
+                }
+            }, consumerTag -> {});
+        }else{
+            gridView.set(new GridView(logics, user, grid));
+            viewIsSet.set(true);
+        }
+
+
 
         DeliverCallback deliverCallback = (consumerTag, delivery) -> {
-
-            if (delivery.getEnvelope().getRoutingKey().equals(userJoinKey)) {
-                System.out.println("User joined: " + new String(delivery.getBody(), StandardCharsets.UTF_8));
-                logics.sendMessageToServer(grid);
+            if(delivery.getEnvelope().getRoutingKey().equals(MessageTopic.NEW_USER_JOINED.getTopic())){
+                logics.push(grid);
             }
 
-            if (delivery.getEnvelope().getRoutingKey().equals(updateGridKey)) {
-                logics.updateGridFromServer(grid, new String(delivery.getBody(), StandardCharsets.UTF_8));
+            if (delivery.getEnvelope().getRoutingKey().equals(MessageTopic.UPDATE_GRID.getTopic())){
+                logics.pull(grid, new String(delivery.getBody()));
             }
-
-            gridView.updateGridView();
-
+            gridView.get().updateGridView();
         };
 
         channel.basicConsume(queueName, true, deliverCallback, consumerTag -> {});
+
 
 
     }
