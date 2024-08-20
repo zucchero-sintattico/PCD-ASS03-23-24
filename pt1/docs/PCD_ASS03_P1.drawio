@@ -459,7 +459,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="s28YZQ22wPrng8cPDE2a" name="SequenceDiagram">
-    <mxGraphModel dx="1229" dy="620" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="717" dy="362" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -704,13 +704,13 @@
             <mxPoint x="6" y="-3" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="hdnvNoVmXQ3CYoYpXD8p-76" value="" style="endArrow=classic;html=1;rounded=0;dashed=1;dashPattern=8 8;" edge="1" parent="1">
+        <mxCell id="hdnvNoVmXQ3CYoYpXD8p-76" value="" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="420" y="790" as="sourcePoint" />
             <mxPoint x="260" y="790" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="hdnvNoVmXQ3CYoYpXD8p-77" value="Notify Termination" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="hdnvNoVmXQ3CYoYpXD8p-76">
+        <mxCell id="hdnvNoVmXQ3CYoYpXD8p-77" value="&amp;lt;Signal&amp;gt; Terminate" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="hdnvNoVmXQ3CYoYpXD8p-76">
           <mxGeometry x="0.27" y="2" relative="1" as="geometry">
             <mxPoint x="22" y="-2" as="offset" />
           </mxGeometry>
@@ -753,13 +753,13 @@
             <mxPoint x="6" y="-3" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="hdnvNoVmXQ3CYoYpXD8p-121" value="" style="endArrow=classic;html=1;rounded=0;dashed=1;dashPattern=8 8;" edge="1" parent="1">
+        <mxCell id="hdnvNoVmXQ3CYoYpXD8p-121" value="" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="420" y="270" as="sourcePoint" />
             <mxPoint x="260" y="270" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="hdnvNoVmXQ3CYoYpXD8p-122" value="Notify Termination" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="hdnvNoVmXQ3CYoYpXD8p-121">
+        <mxCell id="hdnvNoVmXQ3CYoYpXD8p-122" value="&amp;lt;Signal&amp;gt; Terminate" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="hdnvNoVmXQ3CYoYpXD8p-121">
           <mxGeometry x="0.27" y="2" relative="1" as="geometry">
             <mxPoint x="22" y="-2" as="offset" />
           </mxGeometry>
