@@ -7,6 +7,7 @@ import com.google.gson.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class GridImpl implements Grid {
@@ -33,7 +34,22 @@ public class GridImpl implements Grid {
 
     @Override
     public void updateGrid(List<Cell> cells) {
-        this.cells = cells;
+        AtomicBoolean isAValidGrid = new AtomicBoolean(true);
+        cells.forEach(cell -> {
+            if (cell.getNumber().isPresent()){
+                if(cell.getNumber().get() == 3 && !cell.isImmutable()){
+                    isAValidGrid.set(false);
+                }
+
+            }
+        });
+        if(isAValidGrid.get()){
+            this.cells = cells;
+        }else {
+            System.out.println("Invalid Move");
+        }
+
+
     }
 
     @Override
