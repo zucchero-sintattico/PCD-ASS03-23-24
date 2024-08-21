@@ -30,8 +30,7 @@ func createStartGameButton(gameStatusChannel chan StatusMessage) *widget.Button 
 		gameStatusChannel <- Start
 		go func() {
 			switch msg := <-gameStatusChannel; msg {
-			case End:
-				start.Enable()
+			case End:start.Enable()
 			}
 		}()
 	})

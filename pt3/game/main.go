@@ -1,5 +1,5 @@
 package main
 
-func main(){
+func main() {
 	createGame(3, 1000)
 }

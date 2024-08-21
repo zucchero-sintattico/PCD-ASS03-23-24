@@ -7,28 +7,27 @@ import (
 )
 
 func spawnHostAndCreateGame(numPlayers, max int) chan StatusMessage {
-	playerChannels, fanIn, stats := setupGame(numPlayers, max)
-
-	logChannel := createGUI("Host")
 	gameStatusChannel := make(chan StatusMessage)
-
-	go func() {
-		for eventMsg := range gameStatusChannel {
-			switch eventMsg {
-			case Start:
-				numberToGuess := rand.Intn(max)
-				logChannel <- fmt.Sprintf("Game started, number to guess: %d", numberToGuess)
-				winnerId := handleGame(playerChannels, fanIn, numberToGuess)
-				stats[winnerId]++
-				logStats(stats, logChannel)
-				logChannel <- "Game finished"
-				gameStatusChannel <- End
-			}
-		}
-	}()
+	go createGameAndWaitStart(numPlayers, max, gameStatusChannel)
 	return gameStatusChannel
 }
 
+func createGameAndWaitStart(numPlayers, max int, gameStatusChannel chan StatusMessage) {
+	playerChannels, fanIn, stats := setupGame(numPlayers, max)
+	logChannel := createGUI("Host")
+	for eventMsg := range gameStatusChannel {
+		switch eventMsg {
+		case Start:
+			numberToGuess := rand.Intn(max)
+			logChannel <- fmt.Sprintf("Game started, number to guess: %d", numberToGuess)
+			winnerId := handleGame(playerChannels, fanIn, numberToGuess)
+			stats[winnerId]++
+			logStats(stats, logChannel)
+			logChannel <- "Game finished"
+			gameStatusChannel <- End
+		}
+	}
+}
 func setupPlayers(numPlayers, max int) ([]chan Message, map[string]int) {
 	var channels []chan Message
 	stats := make(map[string]int)
@@ -101,10 +100,10 @@ func handleClientMessage(msg ClientMessage, numberToGuess int, win *bool, winner
 	}
 }
 
-func waitForPlayersToFinish(playerChannels []chan Message, eventFanIn []reflect.SelectCase) {
+func waitForPlayersToFinish(playerChannels []chan Message, fanIn []reflect.SelectCase) {
 	endNotification := 0
 	for endNotification < len(playerChannels) {
-		_, message, _ := reflect.Select(eventFanIn)
+		_, message, _ := reflect.Select(fanIn)
 		switch message.Interface() {
 		case End:
 			endNotification++
@@ -112,7 +111,7 @@ func waitForPlayersToFinish(playerChannels []chan Message, eventFanIn []reflect.
 	}
 }
 
-func logStats(stats map[string]int, logChannel chan string) {
+func logStats(stats map[string]int, logChannel chan<- string) {
 	for id, score := range stats {
 		logChannel <- fmt.Sprintf("%s: %d", id, score)
 	}

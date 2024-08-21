@@ -6,7 +6,7 @@ import (
 
 type PlayerConfiguration struct {
 	id string
-	playerLogChannel chan string
+	playerLogChannel chan<- string
 	playerChannel chan Message
 }
 

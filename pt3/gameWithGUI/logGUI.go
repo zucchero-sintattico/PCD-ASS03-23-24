@@ -26,7 +26,7 @@ func guiUpdater(textGUI *widget.Entry, channel chan string) {
 	}
 }
 
-func createGUI(name string) chan string {
+func createGUI(name string) chan<- string {
 	logChannel := make(chan string)
 	showGUI(name, logChannel)
 	return logChannel

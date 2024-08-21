@@ -47,10 +47,14 @@ func handleGame(playerChannels []chan Message, fanIn []reflect.SelectCase, numbe
 		case ClientMessage:
 			turnResponses[ch] = handleClientMessage(msg, numberToGuess, &win)
 		default:
-			if !isOpen { closedChannels[ch] = true }
+			if !isOpen {
+				closedChannels[ch] = true
+			} //Todo handle channel closure better, in this way the only assurance is the fairness of the select
 		}
 		if len(turnResponses) == len(playerChannels) {
-			for playerChannel, serverMessage := range turnResponses { playerChannel <- serverMessage }
+			for playerChannel, serverMessage := range turnResponses {
+				playerChannel <- serverMessage
+			}
 			turnResponses = make(map[chan Message]ServerMessage)
 		}
 	}
@@ -60,16 +64,16 @@ func handleClientMessage(msg ClientMessage, numberToGuess int, win *bool) Server
 	guess := msg.guess
 	fmt.Printf("%s guess: %d\n", msg.senderId, guess)
 	switch {
-		case *win: //situation where guess == numberToGuess and game is already won could be handle better
-			return ServerMessage{hint: Lose}
-		case guess < numberToGuess:
-			return ServerMessage{hint: Higher}
-		case guess > numberToGuess:
-			return ServerMessage{hint: Lower}
-		default: 
-			*win = true
-			return ServerMessage{hint: Win}
-		}
+	case *win: //situation where guess == numberToGuess and game is already won could be handle better
+		return ServerMessage{hint: Lose}
+	case guess < numberToGuess:
+		return ServerMessage{hint: Higher}
+	case guess > numberToGuess:
+		return ServerMessage{hint: Lower}
+	default:
+		*win = true
+		return ServerMessage{hint: Win}
+	}
 }
 
 /*
