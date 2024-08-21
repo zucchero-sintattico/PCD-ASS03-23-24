@@ -6,24 +6,27 @@ import (
 	"reflect"
 )
 
-func createGame(numPlayers, max int, masterGUIChannel chan Status) {
-	playerBackendConfigurations, messageFanIn, eventFanIn, stats:= setupGame(numPlayers, max)
+func spawnHostAndCreateGame(numPlayers, max int) chan Status {
+	playerBackendConfigurations, messageFanIn, eventFanIn, stats := setupGame(numPlayers, max)
 
-	logChannel := make(chan string)
-	showGUI("Host", logChannel)
+	logChannel := createGUI("Host")
+	gameStatusChannel := make(chan Status)
 
-	for eventMsg := range masterGUIChannel {
-		switch eventMsg {
-		case Start:
-			numberToGuess := rand.Intn(max)
-			logChannel <- fmt.Sprintf("Game started, number to guess: %d", numberToGuess)
-			winnerId := handleGame(playerBackendConfigurations, messageFanIn, eventFanIn, numberToGuess)
-			stats[winnerId]++
-			logStats(stats, logChannel)
-			logChannel <- "Game finished"
-			masterGUIChannel <- End
+	go func(){
+		for eventMsg := range gameStatusChannel {
+			switch eventMsg {
+			case Start:
+				numberToGuess := rand.Intn(max)
+				logChannel <- fmt.Sprintf("Game started, number to guess: %d", numberToGuess)
+				winnerId := handleGame(playerBackendConfigurations, messageFanIn, eventFanIn, numberToGuess)
+				stats[winnerId]++
+				logStats(stats, logChannel)
+				logChannel <- "Game finished"
+				gameStatusChannel <- End
+			}
 		}
-	}	
+	}()
+	return gameStatusChannel
 }
 
 func setupPlayers(numPlayers, max int) ([]PlayerBackendConfiguration, map[string]int) {
@@ -74,8 +77,12 @@ func handleClients(messageFanIn []reflect.SelectCase, playerBackendConfiguration
 			turnResponses[playerChannel] = handleClientMessage(msg, numberToGuess, &win, &winnerId)
 		}
 		if len(turnResponses) == len(playerBackendConfigurations) {
-			for playerChannel, serverMessage := range turnResponses { playerChannel <- serverMessage }
-			if win { break }
+			for playerChannel, serverMessage := range turnResponses {
+				playerChannel <- serverMessage
+			}
+			if win {
+				break
+			}
 			turnResponses = make(map[chan Message]ServerMessage)
 		}
 	}
@@ -91,7 +98,7 @@ func handleClientMessage(msg ClientMessage, numberToGuess int, win *bool, winner
 		return ServerMessage{hint: Higher}
 	case guess > numberToGuess:
 		return ServerMessage{hint: Lower}
-	default: 
+	default:
 		*win = true
 		*winnerId = msg.senderId
 		return ServerMessage{hint: Win}

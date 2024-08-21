@@ -1,27 +1,24 @@
 package main
 
 import (
-	"strconv"
-	"fyne.io/fyne/v2/widget"
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/widget"
+	"strconv"
 )
 
 func showAndRunGameGUI() {
 	window := application.NewWindow("Controller GUI")
 	window.Resize(fyne.NewSize(600, 150))
 
-	gameStatusChannel := make(chan Status)
-
-	startGameButton :=  createStartGameButton(gameStatusChannel)
-
-	onCreate := func (numPlayer, maxNum int) {
+	onCreate := func(numPlayer, maxNum int) {
+		gameStatusChannel := spawnHostAndCreateGame(numPlayer, maxNum)
+		startGameButton := createStartGameButton(gameStatusChannel)
 		window.SetContent(startGameButton)
-		go createGame(numPlayer,maxNum, gameStatusChannel)
 	}
-	
+
 	form := createSetupForm(onCreate)
 
-	window.SetOnClosed(func() {application.Quit()})
+	window.SetOnClosed(func() { application.Quit() })
 	window.SetContent(form)
 	window.ShowAndRun()
 }
@@ -51,7 +48,7 @@ func createSetupForm(onCreate func(int, int)) *widget.Form {
 			{Text: "numPlayer", Widget: numPlayerEntry},
 			{Text: "maxNum", Widget: maxNumEntry},
 		},
-		OnSubmit: func() { 
+		OnSubmit: func() {
 			numPlayer, err1 := strconv.Atoi(numPlayerEntry.Text)
 			maxNum, err2 := strconv.Atoi(maxNumEntry.Text)
 			switch {
