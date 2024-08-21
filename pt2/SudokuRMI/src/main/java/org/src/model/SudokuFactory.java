@@ -5,37 +5,43 @@ import org.src.common.Grid;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class GridBuilder {
+public class SudokuFactory{
 
+    private static final Random random = new Random();
     private static final int SIZE = 9;
     private static final int SUBGRID_SIZE = 3;
     private static final int NUMBER_OF_EMPTY_BLOCK = 40;
 
-    public GridBuilder(){
+    public static Grid createGrid() throws RemoteException {
+        Grid grid = new GridImpl();
+        fillGrid(grid,0,0);
+        System.out.println(grid.print());
+        return grid;
 
-    }
-
-    public Grid generatePartialSolution() throws RemoteException {
-        return this.generateGrid();
+//        return this.generateGrid();
     }
 
     /* Generate the complete solution of sudoku */
     private Grid generateGrid() throws RemoteException {
         Grid solution = new GridImpl();
-        if(this.fillGrid(solution)){
-            Grid newGrid = this.createPuzzle(solution, NUMBER_OF_EMPTY_BLOCK);
-            newGrid.getCells().forEach(cell -> {
-                if(cell.getNumber().isPresent() && cell.getNumber().get() != 0){
-                    cell.setImmutable(true);
-                }
-            });
-            return newGrid;
-        }else{
-            throw new RuntimeException("It's not possible to generate a grid");
-        }
+//        if(this.fillGrid(solution)){
+//            Grid newGrid = this.createPuzzle(solution, NUMBER_OF_EMPTY_BLOCK);
+//            newGrid.getCells().forEach(cell -> {
+//                if(cell.getNumber().isPresent() && cell.getNumber().get() != 0){
+//                    cell.setImmutable(true);
+//                }
+//            });
+//            return newGrid;
+//        }else{
+//            throw new RuntimeException("It's not possible to generate a grid");
+//        }
+        return solution;
     }
 
     /*Take the solution grid and remove cell to create puzzle*/
@@ -56,47 +62,33 @@ public class GridBuilder {
         return grid;
     }
 
-    private boolean fillGrid(Grid grid) throws RemoteException {
-        return solve(grid, 0, 0);
-    }
+//    private static Grid fillGrid(Grid grid) throws RemoteException {
+//        return solve(grid, 0, 0);
+//    }
 
-    private boolean solve(Grid grid, int row, int col) throws RemoteException {
-        if (row == SIZE) {
-            return true;
-        }
+    private static boolean fillGrid(Grid grid, int row, int col) throws RemoteException {
+        if (row == SIZE) { return true; }
 
         int nextRow = col == SIZE - 1 ? row + 1 : row;
         int nextCol = (col + 1) % SIZE;
 
         Cell currentCell = grid.getCellAt(row, col);
-        if (currentCell.getNumber().isPresent()) {
-            return solve(grid, nextRow, nextCol);
-        }
+        List<Integer> numbers = random.ints(1, SIZE + 1)
+                .distinct().limit(SIZE).boxed().toList();
 
-        Random random = new Random();
-        int[] numbers = random.ints(1, SIZE + 1).distinct().limit(SIZE).toArray();
-
-        for (int num : numbers) {
-            if (isValid(grid, row, col, num)) {
-                currentCell.setNumber(num);
-                if (solve(grid, nextRow, nextCol)) {
+        for (int n : numbers) {
+            if (isValid(grid, row, col, n)) {
+                currentCell.setNumber(n);
+                if (fillGrid(grid, nextRow, nextCol)) {
                     return true;
                 }
                 currentCell.setAtEmpty();
             }
         }
-
         return false;
     }
 
-    private boolean isValid(Grid grid, int row, int col, int num) throws RemoteException {
-        for (int i = 0; i < SIZE; i++) {
-            if (grid.getCellAt(row, i).getNumber().orElse(0) == num ||
-                    grid.getCellAt(i, col).getNumber().orElse(0) == num) {
-                return false;
-            }
-        }
-
+    private static boolean isValid(Grid grid, int row, int col, int num) throws RemoteException {
         int subgridRowStart = (row / SUBGRID_SIZE) * SUBGRID_SIZE;
         int subgridColStart = (col / SUBGRID_SIZE) * SUBGRID_SIZE;
 
