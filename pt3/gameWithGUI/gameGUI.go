@@ -23,7 +23,7 @@ func showAndRunGameGUI() {
 	window.ShowAndRun()
 }
 
-func createStartGameButton(gameStatusChannel chan Status) *widget.Button {
+func createStartGameButton(gameStatusChannel chan StatusMessage) *widget.Button {
 	var start *widget.Button
 	start = widget.NewButton("StartRound", func() {
 		start.Disable()

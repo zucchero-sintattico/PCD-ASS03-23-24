@@ -4,15 +4,10 @@ import (
 	"fmt"
 )
 
-type PlayerBackendConfiguration struct {
-	playerChannel chan Message
-	playerEventChannel chan Status
-}
-
 type PlayerConfiguration struct {
 	id string
 	playerLogChannel chan string
-	playerBackendConfiguration PlayerBackendConfiguration 
+	playerChannel chan Message
 }
 
 func gameHandler(playerConfiguration PlayerConfiguration, max int) {
@@ -20,7 +15,7 @@ func gameHandler(playerConfiguration PlayerConfiguration, max int) {
 }
 
 func waitForStart(playerConfiguration PlayerConfiguration, min, max int) {
-	for eventMessage := range playerConfiguration.playerBackendConfiguration.playerEventChannel {
+	for eventMessage := range playerConfiguration.playerChannel {
 		switch eventMessage {
 		case Start:
 			playerConfiguration.playerLogChannel <- "Game started"
@@ -31,7 +26,7 @@ func waitForStart(playerConfiguration PlayerConfiguration, min, max int) {
 }
 
 func playGame(playerConfiguration PlayerConfiguration, min, max, guess, turn int) {
-	for gameMessage := range playerConfiguration.playerBackendConfiguration.playerChannel {
+	for gameMessage := range playerConfiguration.playerChannel {
 		switch m := gameMessage.(type) {
 		case ServerMessage:
 			switch m.hint {
@@ -43,11 +38,11 @@ func playGame(playerConfiguration PlayerConfiguration, min, max, guess, turn int
 				guess, turn = playTurn(playerConfiguration, turn, min, max)
 			case Win:
 				playerConfiguration.playerLogChannel <- fmt.Sprintf("%s: WIN", playerConfiguration.id)
-				playerConfiguration.playerBackendConfiguration.playerEventChannel <- End
+				playerConfiguration.playerChannel <- End
 				return
 			case Lose:
 				playerConfiguration.playerLogChannel <- fmt.Sprintf("%s: LOSE", playerConfiguration.id)
-				playerConfiguration.playerBackendConfiguration.playerEventChannel <- End
+				playerConfiguration.playerChannel <- End
 				return
 			} 
 		}
@@ -58,7 +53,7 @@ func playTurn(playerConfiguration PlayerConfiguration, turn, min, max int) (int,
 	playerConfiguration.playerLogChannel <- fmt.Sprintf("starting turn %d", turn)
 	guess := calculateGuess(min, max)
 	playerConfiguration.playerLogChannel <- fmt.Sprintf("%s guess: %d", playerConfiguration.id, guess)
-	playerConfiguration.playerBackendConfiguration.playerChannel <- ClientMessage{guess: guess, senderId: playerConfiguration.id}
+	playerConfiguration.playerChannel <- ClientMessage{guess: guess, senderId: playerConfiguration.id}
 	return guess, turn + 1
 }
 	
@@ -67,15 +62,12 @@ func calculateGuess(lowerBound, upperBound int) int {
 	return guess
 }
 
-func spawnPlayer(id string, max int) PlayerBackendConfiguration {
+func spawnPlayer(id string, max int) chan Message {
 	playerConfiguration := PlayerConfiguration{
 		id: id,
 		playerLogChannel: createGUI(id),
-		playerBackendConfiguration: PlayerBackendConfiguration{
-			playerChannel: make(chan Message),
-			playerEventChannel: make(chan Status),
-		},
+		playerChannel: make(chan Message),
 	}
 	go gameHandler(playerConfiguration, max)
-	return playerConfiguration.playerBackendConfiguration
+	return playerConfiguration.playerChannel
 }

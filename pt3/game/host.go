@@ -7,7 +7,6 @@ import (
 )
 
 func createGame(numPlayers, max int) {
-
 	numberToGuess := rand.Intn(max)
 	println("Number to guess: ", numberToGuess)
 	playerChannels, fanIn := setupGame(numPlayers, max)

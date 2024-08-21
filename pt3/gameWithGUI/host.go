@@ -6,19 +6,19 @@ import (
 	"reflect"
 )
 
-func spawnHostAndCreateGame(numPlayers, max int) chan Status {
-	playerBackendConfigurations, messageFanIn, eventFanIn, stats := setupGame(numPlayers, max)
+func spawnHostAndCreateGame(numPlayers, max int) chan StatusMessage {
+	playerChannels, fanIn, stats := setupGame(numPlayers, max)
 
 	logChannel := createGUI("Host")
-	gameStatusChannel := make(chan Status)
+	gameStatusChannel := make(chan StatusMessage)
 
-	go func(){
+	go func() {
 		for eventMsg := range gameStatusChannel {
 			switch eventMsg {
 			case Start:
 				numberToGuess := rand.Intn(max)
 				logChannel <- fmt.Sprintf("Game started, number to guess: %d", numberToGuess)
-				winnerId := handleGame(playerBackendConfigurations, messageFanIn, eventFanIn, numberToGuess)
+				winnerId := handleGame(playerChannels, fanIn, numberToGuess)
 				stats[winnerId]++
 				logStats(stats, logChannel)
 				logChannel <- "Game finished"
@@ -29,8 +29,8 @@ func spawnHostAndCreateGame(numPlayers, max int) chan Status {
 	return gameStatusChannel
 }
 
-func setupPlayers(numPlayers, max int) ([]PlayerBackendConfiguration, map[string]int) {
-	var channels []PlayerBackendConfiguration
+func setupPlayers(numPlayers, max int) ([]chan Message, map[string]int) {
+	var channels []chan Message
 	stats := make(map[string]int)
 	for i := 0; i < numPlayers; i++ {
 		playerId := fmt.Sprintf("player-%d", i)
@@ -41,48 +41,44 @@ func setupPlayers(numPlayers, max int) ([]PlayerBackendConfiguration, map[string
 	return channels, stats
 }
 
-func setupGame(numPlayers, max int) ([]PlayerBackendConfiguration, []reflect.SelectCase, []reflect.SelectCase, map[string]int) {
+func setupGame(numPlayers, max int) ([]chan Message, []reflect.SelectCase, map[string]int) {
 	channels, stats := setupPlayers(numPlayers, max)
-	messageFanIn := make([]reflect.SelectCase, len(channels))
-	eventFanIn := make([]reflect.SelectCase, len(channels))
+	fanIn := make([]reflect.SelectCase, len(channels))
 	for i, ch := range channels {
-		messageFanIn[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch.playerChannel)}
-		eventFanIn[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch.playerEventChannel)}
+		fanIn[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch)}
 	}
-	return channels, messageFanIn, eventFanIn, stats
+	return channels, fanIn, stats
 }
 
-func handleGame(playerBackendConfigurations []PlayerBackendConfiguration, messageFanIn, eventFanIn []reflect.SelectCase, numberToGuess int) string {
-	notifyClientToStart(playerBackendConfigurations)
-	winnerID := handleClients(messageFanIn, playerBackendConfigurations, numberToGuess)
-	waitForPlayersToFinish(playerBackendConfigurations, eventFanIn)
+func handleGame(playerChannels []chan Message, fanIn []reflect.SelectCase, numberToGuess int) string {
+	notifyClientToStart(playerChannels)
+	winnerID := handleClients(playerChannels, fanIn, numberToGuess)
+	waitForPlayersToFinish(playerChannels, fanIn)
 	return winnerID
 }
 
-func notifyClientToStart(playerBackendConfigurations []PlayerBackendConfiguration) {
-	for _, ch := range playerBackendConfigurations {
-		ch.playerEventChannel <- Start
+func notifyClientToStart(playerChannels []chan Message) {
+	for _, ch := range playerChannels {
+		ch <- Start
 	}
 }
 
-func handleClients(messageFanIn []reflect.SelectCase, playerBackendConfigurations []PlayerBackendConfiguration, numberToGuess int) string {
+func handleClients(playerChannels []chan Message, fanIn []reflect.SelectCase, numberToGuess int) string {
 	turnResponses := make(map[chan Message]ServerMessage)
 	win := false
 	var winnerId string
 	for {
-		channelIndex, message, _ := reflect.Select(messageFanIn)
-		playerChannel := playerBackendConfigurations[channelIndex].playerChannel
+		channelIndex, message, _ := reflect.Select(fanIn)
+		ch := playerChannels[channelIndex]
 		switch msg := message.Interface().(type) {
 		case ClientMessage:
-			turnResponses[playerChannel] = handleClientMessage(msg, numberToGuess, &win, &winnerId)
+			turnResponses[ch] = handleClientMessage(msg, numberToGuess, &win, &winnerId)
 		}
-		if len(turnResponses) == len(playerBackendConfigurations) {
+		if len(turnResponses) == len(playerChannels) {
 			for playerChannel, serverMessage := range turnResponses {
 				playerChannel <- serverMessage
 			}
-			if win {
-				break
-			}
+			if win { break }
 			turnResponses = make(map[chan Message]ServerMessage)
 		}
 	}
@@ -105,9 +101,9 @@ func handleClientMessage(msg ClientMessage, numberToGuess int, win *bool, winner
 	}
 }
 
-func waitForPlayersToFinish(playerBackendConfigurations []PlayerBackendConfiguration, eventFanIn []reflect.SelectCase) {
+func waitForPlayersToFinish(playerChannels []chan Message, eventFanIn []reflect.SelectCase) {
 	endNotification := 0
-	for endNotification < len(playerBackendConfigurations) {
+	for endNotification < len(playerChannels) {
 		_, message, _ := reflect.Select(eventFanIn)
 		switch message.Interface() {
 		case End:

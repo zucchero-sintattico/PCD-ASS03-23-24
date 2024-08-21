@@ -1,12 +1,5 @@
 package main
 
-type Status int
-
-const(
-	Start Status = iota
-	End
-)
-
 type Hint int
 
 const(
@@ -18,6 +11,13 @@ const(
  
 type Message interface {}
 
+type StatusMessage int
+
+const(
+	Start StatusMessage = iota
+	End
+)
+
 type ServerMessage struct {
 	hint Hint
 }
@@ -26,5 +26,3 @@ type ClientMessage struct {
 	guess int
 	senderId string 
 }
-
-
