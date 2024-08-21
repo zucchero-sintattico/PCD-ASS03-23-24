@@ -16,4 +16,6 @@ public interface Grid {
 
     boolean isNew();
     void setNew(boolean isNew);
+
+    void checkAndUpdateGrid(List<Cell> newCellList);
 }

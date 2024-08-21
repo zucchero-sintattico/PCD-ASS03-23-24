@@ -31,8 +31,7 @@ public class GridImpl implements Grid {
         return cells;
     }
 
-    @Override
-    public void updateGrid(List<Cell> cells) {
+    public void checkAndUpdateGrid(List<Cell> cells) {
         AtomicBoolean isAValidGrid = new AtomicBoolean(true);
         //Update grid if the move is valid
         cells.forEach(cell -> {
@@ -42,9 +41,7 @@ public class GridImpl implements Grid {
                 int number = cell.getNumber().orElse(0);
 
                 if(number != 0){
-                    if(this.isValidCell(cells, x, y)){
-                        System.out.println("(" + x + ", " + y + ") is valid");
-                    }else{
+                    if(!this.isValidCell(cells, x, y)){
                         System.out.println("(" + x + ", " + y + ") is not valid");
                         isAValidGrid.set(false);
                     }
@@ -60,6 +57,11 @@ public class GridImpl implements Grid {
         }
     }
 
+    @Override
+    public void updateGrid(List<Cell> cells) {
+        this.cells = cells;
+    }
+
     private boolean isValidCell(List<Cell> cells, int x, int y) {
         int number = getCellAt(x,y).getNumber().orElse(0);
 
@@ -70,9 +72,15 @@ public class GridImpl implements Grid {
     }
 
     private boolean isUniqueInRow(List<Cell> cells, int x, int y, int number) {
-        return cells.stream()
-                .filter(cell -> cell.getPosition().x() == x && cell.getPosition().y() != y)
-                .noneMatch(cell -> cell.getNumber().orElse(0) == number);
+        AtomicBoolean isUnique = new AtomicBoolean(true);
+        cells.forEach(cell -> {
+            if(cell.getPosition().x() == x && cell.getPosition().y() != y){
+                if(number!=0){
+                    isUnique.set(false);
+                }
+            }
+        });
+        return isUnique.get();
     }
 
     private boolean isUniqueInColumn(List<Cell> cells, int x, int y, int number) {

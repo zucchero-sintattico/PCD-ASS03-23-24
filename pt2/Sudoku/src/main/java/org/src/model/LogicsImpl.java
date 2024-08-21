@@ -69,7 +69,7 @@ public class LogicsImpl {
             }
             newCellList.add(newCell);
         }
-        grid.updateGrid(newCellList);
+        grid.checkAndUpdateGrid(newCellList);
         push(grid);
     }
 
