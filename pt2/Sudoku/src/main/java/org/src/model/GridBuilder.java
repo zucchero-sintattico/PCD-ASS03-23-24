@@ -47,7 +47,7 @@ public class GridBuilder {
             int col = rand.nextInt(SIZE);
             Cell cell = grid.getCellAt(row, col);
             if(cell.getNumber().isPresent()){
-                cell.setNumber(0);
+                cell.setAtEmpty();
                 numberOfEmptyBlock--;
             }
         }
@@ -81,7 +81,7 @@ public class GridBuilder {
                 if (solve(grid, nextRow, nextCol)) {
                     return true;
                 }
-                currentCell.setNumber(0);
+                currentCell.setAtEmpty();
             }
         }
 

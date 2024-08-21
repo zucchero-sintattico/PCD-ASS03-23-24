@@ -55,6 +55,10 @@ public class GridImpl implements Grid {
         }else {
             System.out.println("Invalid Move");
         }
+
+        if(checkWin()){
+            System.out.println("Hai vinto");
+        }
     }
 
     @Override
@@ -72,20 +76,16 @@ public class GridImpl implements Grid {
     }
 
     private boolean isUniqueInRow(List<Cell> cells, int x, int y, int number) {
-        AtomicBoolean isUnique = new AtomicBoolean(true);
-        cells.forEach(cell -> {
-            if(cell.getPosition().x() == x && cell.getPosition().y() != y){
-                if(number!=0){
-                    isUnique.set(false);
-                }
-            }
-        });
-        return isUnique.get();
+        return cells.stream()
+                .filter(cell -> cell.getPosition().x() == x && cell.getPosition().y() != y)
+                .filter(cell -> cell.getNumber().isPresent())
+                .noneMatch(cell -> cell.getNumber().get() == number);
     }
 
     private boolean isUniqueInColumn(List<Cell> cells, int x, int y, int number) {
         return cells.stream()
                 .filter(cell -> cell.getPosition().y() == y && cell.getPosition().x() != x)
+                .filter(cell -> cell.getNumber().isPresent())
                 .noneMatch(cell -> cell.getNumber().orElse(0) == number);
     }
 

@@ -48,6 +48,11 @@ public class CellImpl implements Cell {
     }
 
     @Override
+    public void setAtEmpty() {
+        this.number = null;
+    }
+
+    @Override
     public boolean isImmutable() {
         return this.isImmutable;
     }
