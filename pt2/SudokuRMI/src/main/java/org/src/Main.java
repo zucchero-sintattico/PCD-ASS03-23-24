@@ -31,6 +31,8 @@ public class Main {
         registry.rebind(gridID, gridStub);
 
         Grid remoteGrid = (Grid) registry.lookup(gridID);
+        LogicsImpl logics = new LogicsImpl();
+        GridView gridView = new GridView(logics, new UserImpl("test"), remoteGrid);
         System.out.println(remoteGrid.print());
         System.out.println(remoteGrid.getCellAt(0, 0));
 
@@ -47,9 +49,7 @@ public class Main {
 //
 //        User user = new UserImpl(username);
 
-//        LogicsImpl logics = new LogicsImpl(channel, gridId);
-//        GridBuilder gridBuilder = new GridBuilder();
-//        Grid grid = gridBuilder.generatePartialSolution();
+
 //
 //        AtomicReference<GridView> gridView = new AtomicReference<>();
 //        AtomicBoolean viewIsSet = new AtomicBoolean(false);
