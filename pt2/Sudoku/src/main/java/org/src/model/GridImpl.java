@@ -13,10 +13,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class GridImpl implements Grid {
 
     List<Cell> cells = new ArrayList<>();
-
     private boolean isNew = true;
-
     int GRID_SIZE = 9;
+    int SUBGRID_SIZE = 3;
 
     public GridImpl() {
         // Initialize the grid with empty cells
@@ -35,21 +34,72 @@ public class GridImpl implements Grid {
     @Override
     public void updateGrid(List<Cell> cells) {
         AtomicBoolean isAValidGrid = new AtomicBoolean(true);
+        //Update grid if the move is valid
         cells.forEach(cell -> {
-            if (cell.getNumber().isPresent()){
-                if(cell.getNumber().get() == 3 && !cell.isImmutable()){
-                    isAValidGrid.set(false);
-                }
+            if(!cell.isImmutable()){
+                int x = cell.getPosition().x();
+                int y = cell.getPosition().y();
+                int number = cell.getNumber().orElse(0);
 
+                if(number != 0){
+                    if(this.isValidCell(cells, x, y)){
+                        System.out.println("(" + x + ", " + y + ") is valid");
+                    }else{
+                        System.out.println("(" + x + ", " + y + ") is not valid");
+                        isAValidGrid.set(false);
+                    }
+                }
             }
         });
+
         if(isAValidGrid.get()){
             this.cells = cells;
+            System.out.println("Valid move");
         }else {
             System.out.println("Invalid Move");
         }
+    }
 
+    private boolean isValidCell(List<Cell> cells, int x, int y) {
+        int number = getCellAt(x,y).getNumber().orElse(0);
 
+        //Check if the number is unique in row, column and in the subgrid 3x3
+        return isUniqueInRow(cells, x, y, number); //&&
+                //isUniqueInColumn(cells, x, y, number) &&
+                //isUniqueInSubgrid(cells, x, y, number);
+    }
+
+    private boolean isUniqueInRow(List<Cell> cells, int x, int y, int number) {
+        return cells.stream()
+                .filter(cell -> cell.getPosition().x() == x && cell.getPosition().y() != y)
+                .noneMatch(cell -> cell.getNumber().orElse(0) == number);
+    }
+
+    private boolean isUniqueInColumn(List<Cell> cells, int x, int y, int number) {
+        return cells.stream()
+                .filter(cell -> cell.getPosition().y() == y && cell.getPosition().x() != x)
+                .noneMatch(cell -> cell.getNumber().orElse(0) == number);
+    }
+
+    private boolean isUniqueInSubgrid(List<Cell> cells, int x, int y, int number) {
+        int subgridX = (x / 3) * 3;
+        int subgridY = (y / 3) * 3;
+
+        return cells.stream()
+                .filter(cell -> {
+                    int cellX = cell.getPosition().x();
+                    int cellY = cell.getPosition().y();
+                    return cellX != x && cellY != y &&
+                            cellX >= subgridX && cellX < subgridX + 3 &&
+                            cellY >= subgridY && cellY < subgridY + 3;
+                })
+                .noneMatch(cell -> cell.getNumber().orElse(0) == number);
+    }
+
+    private boolean checkWin() {
+        //Check if all cells are not empty with correct number
+        return cells.stream()
+                .allMatch(cell -> cell.getNumber().isPresent() && isValidCell(cells, cell.getPosition().x(), cell.getPosition().y()));
     }
 
     @Override
