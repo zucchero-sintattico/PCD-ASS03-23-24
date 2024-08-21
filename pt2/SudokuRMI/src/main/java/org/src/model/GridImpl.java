@@ -29,6 +29,16 @@ public class GridImpl implements Grid {
     }
 
     @Override
+    public void addUser(UserImpl users) {
+
+    }
+
+    @Override
+    public void removeUser(UserImpl users) {
+
+    }
+
+    @Override
     public synchronized List<Cell> getCells() {
         return Collections.unmodifiableList(cells);
     }
@@ -45,6 +55,7 @@ public class GridImpl implements Grid {
                 .filter(cell -> cell.getPosition().getX() == row && cell.getPosition().getY() == col)
                 .findFirst().orElseThrow();
     }
+
 
     @Override
     public synchronized String print() {

@@ -1,23 +1,12 @@
 package org.src.model;
 
-import com.rabbitmq.client.Channel;
-import org.src.common.Cell;
 import org.src.common.Grid;
 import org.src.common.User;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 
 public class LogicsImpl {
 
-    private final Channel channel;
-    private final String gridId;
-
-    public LogicsImpl(Channel channel, String gridId) throws IOException {
-        this.channel = channel;
-        this.gridId = gridId;
-    }
 
     public void selectCell(Grid grid, User user, int x, int y) throws IOException {
 
