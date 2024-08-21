@@ -76,6 +76,7 @@ public class GridImpl implements Grid {
             positionObject.addProperty("y", cell.getPosition().y());
             cellObject.add("position", positionObject);
             cellObject.addProperty("isSelected", cell.isSelected().isPresent() ? cell.isSelected().get().getName() : null);
+            cellObject.addProperty("isImmutable", cell.isImmutable() ? true : null);
             cellObject.addProperty("number", cell.getNumber().isPresent() ? cell.getNumber().get() : null);
             jsonArray.add(cellObject);
         }
@@ -95,6 +96,10 @@ public class GridImpl implements Grid {
             if (cellObject.has("isSelected")) {
                 selected = cellObject.get("isSelected").isJsonNull() ? null : cellObject.get("isSelected").getAsString();
             }
+            String immutable = null;
+            if (cellObject.has("isImmutable")) {
+                immutable = cellObject.get("isImmutable").isJsonNull() ? null : cellObject.get("isImmutable").getAsString();
+            }
             Integer number = null;
             if (cellObject.has("number")) {
                 number = cellObject.get("number").isJsonNull() ? null : cellObject.get("number").getAsInt();
@@ -104,6 +109,9 @@ public class GridImpl implements Grid {
                 if(c.getPosition().x() == x && c.getPosition().y() == y){
                     if (selected != null){
                         c.selectCell(new UserImpl(selected));
+                    }
+                    if (immutable != null){
+                        c.isImmutable(true);
                     }
                     if (number != null){
                         c.setNumber(number);

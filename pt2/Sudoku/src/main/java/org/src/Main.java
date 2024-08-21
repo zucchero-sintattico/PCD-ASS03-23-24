@@ -62,7 +62,9 @@ public class Main {
 
         DeliverCallback deliverCallback = (consumerTag, delivery) -> {
             if(delivery.getEnvelope().getRoutingKey().equals(MessageTopic.NEW_USER_JOINED.getTopic())){
-                logics.push(grid);
+                if(viewIsSet.get()){
+                    logics.push(grid);
+                }
             }
 
             if (delivery.getEnvelope().getRoutingKey().equals(MessageTopic.UPDATE_GRID.getTopic())){
@@ -76,6 +78,7 @@ public class Main {
             if(viewIsSet.get()){
                 gridView.get().updateGridView();
             }
+            System.out.println(new String(delivery.getBody()));
         };
 
         channel.basicConsume(queueName, true, deliverCallback, consumerTag -> {});

@@ -25,7 +25,13 @@ public class GridBuilder {
     private Grid generateGrid(){
         Grid solution = new GridImpl();
         if(this.fillGrid(solution)){
-            return this.createPuzzle(solution, NUMBER_OF_EMPTY_BLOCK);
+            Grid newGrid = this.createPuzzle(solution, NUMBER_OF_EMPTY_BLOCK);
+            newGrid.getCells().forEach(cell -> {
+                if(cell.getNumber().isPresent() && cell.getNumber().get() != 0){
+                    cell.isImmutable(true);
+                }
+            });
+            return newGrid;
         }else{
             throw new RuntimeException("It's not possible to generate a grid");
         }
@@ -39,7 +45,6 @@ public class GridBuilder {
         while(numberOfEmptyBlock > 0){
             int row = rand.nextInt(SIZE);
             int col = rand.nextInt(SIZE);
-
             Cell cell = grid.getCellAt(row, col);
             if(cell.getNumber().isPresent()){
                 cell.setNumber(0);

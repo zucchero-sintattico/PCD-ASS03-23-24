@@ -33,18 +33,20 @@ public class LogicsImpl {
     public void selectCell(Grid grid, User user, int x, int y) throws IOException {
         List<Cell> newCellList = new ArrayList<>();
         for (Cell cell : grid.getCells()) {
-            Cell newCell = new CellImpl(cell.getPosition());
-            if (cell.getNumber().isPresent()) {
-                newCell.setNumber(cell.getNumber().get());
-            }
+                    Cell newCell = new CellImpl(cell.getPosition(), cell.isImmutable());
 
-            if (cell.isSelected().isPresent() && !cell.isSelected().get().getName().equals(user.getName())) {
-                newCell.selectCell(cell.isSelected().get());
-            }
+                    if (cell.getNumber().isPresent()) {
+                        newCell.setNumber(cell.getNumber().get());
+                    }
 
-            if (cell.getPosition().x() == x && cell.getPosition().y() == y) {
-                newCell.selectCell(user);
-            }
+                    if (cell.isSelected().isPresent() && !cell.isSelected().get().getName().equals(user.getName())) {
+                        newCell.selectCell(cell.isSelected().get());
+                    }
+
+                    if (cell.getPosition().x() == x && cell.getPosition().y() == y && !cell.isImmutable()) {
+                        newCell.selectCell(user);
+                        newCellList.add(newCell);
+                    }
             newCellList.add(newCell);
         }
         grid.updateGrid(newCellList);
@@ -55,7 +57,7 @@ public class LogicsImpl {
         List<Cell> newCellList = new ArrayList<>();
 
         for (Cell cell : grid.getCells()) {
-            Cell newCell = new CellImpl(cell.getPosition());
+            Cell newCell = new CellImpl(cell.getPosition(), cell.isImmutable());
             if (cell.getNumber().isPresent()) {
                 newCell.setNumber(cell.getNumber().get());
             }

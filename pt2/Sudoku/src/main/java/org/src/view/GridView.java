@@ -55,9 +55,12 @@ public class GridView extends JFrame {
                     background = this.grid.getCells().get(row * 9 + col).isSelected().get().getColor();
                 }
                 this.cells[row][col].setBackground(background);
+                if(this.grid.getCells().get(row * 9 + col).isImmutable()){
+                    this.cells[row][col].setBackground(Color.LIGHT_GRAY);
+                }
                 if (number != 0) {
                     this.cells[row][col].setText(String.valueOf(number));
-                } else {
+                }
                     int finalRow = row;
                     int finalCol = col;
                     this.cells[row][col].addFocusListener(new FocusListener() {
@@ -90,7 +93,7 @@ public class GridView extends JFrame {
 
                         }
                     });
-                }
+
                 this.cells[row][col].setHorizontalAlignment(JTextField.CENTER);
                 this.cells[row][col].setFont(new Font("Arial", Font.BOLD, 20));
 
@@ -125,6 +128,9 @@ public class GridView extends JFrame {
                  } else {
                       this.cells[row][col].setText("");
                  }
+                    if(this.grid.getCells().get(row * 9 + col).isImmutable()){
+                        this.cells[row][col].setBackground(Color.LIGHT_GRAY);
+                    }
                 }
           }
     }

@@ -11,10 +11,15 @@ public class CellImpl implements Cell {
     private final Point2d position;
     User userHowSelected = null;
     private Integer number;
+    private boolean isImmutable = false;
 
 
     public CellImpl(Point2d point2d) {
         this.position = point2d;
+    }
+    public CellImpl(Point2d point2d, boolean isImmutable) {
+        this.position = point2d;
+        this.isImmutable = isImmutable;
     }
 
     @Override
@@ -40,5 +45,15 @@ public class CellImpl implements Cell {
     @Override
     public void setNumber(int number) {
         this.number = number;
+    }
+
+    @Override
+    public boolean isImmutable() {
+        return this.isImmutable;
+    }
+
+    @Override
+    public void isImmutable(boolean immutable) {
+        this.isImmutable = immutable;
     }
 }

@@ -11,4 +11,8 @@ public interface Cell {
 
     Optional<Integer> getNumber();
     void setNumber(int number);
+
+    boolean isImmutable();
+
+    void isImmutable(boolean immutable);
 }
