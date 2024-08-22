@@ -11,7 +11,7 @@ public class GridBuilder {
 
     private static final int SIZE = 9;
     private static final int SUBGRID_SIZE = 3;
-    private static final int NUMBER_OF_EMPTY_BLOCK = 40;
+    private static final int NUMBER_OF_EMPTY_BLOCK = 40; //40 is the perfect number
 
     public GridBuilder(){
 
@@ -25,6 +25,7 @@ public class GridBuilder {
     private Grid generateGrid(){
         Grid solution = new GridImpl();
         if(this.fillGrid(solution)){
+            printGrid(solution);
             Grid newGrid = this.createPuzzle(solution, NUMBER_OF_EMPTY_BLOCK);
             newGrid.getCells().forEach(cell -> {
                 if(cell.getNumber().isPresent() && cell.getNumber().get() != 0){
