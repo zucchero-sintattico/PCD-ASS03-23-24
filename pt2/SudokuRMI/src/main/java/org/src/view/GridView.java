@@ -14,7 +14,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
-public class GridView extends JFrame implements Changeable, SudokuView {
+public class GridView extends JFrame implements Changeable {
     private final Font numberFont = new Font("Arial", Font.BOLD, 20);
     private final JTextField[][] cells;
     private final JLabel usernameLabel;
@@ -127,7 +127,6 @@ public class GridView extends JFrame implements Changeable, SudokuView {
     }
 
     //TODO maybe add a init method in listener to simplify redundant cell.immutable() check
-    @Override
     public void update(SudokuGrid grid) {
         SwingUtilities.invokeLater(() -> grid.cells().forEach(this::updateCell));
         //TODO maybe a repaint is needed
