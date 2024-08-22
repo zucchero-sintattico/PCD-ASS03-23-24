@@ -1,6 +1,7 @@
 package org.src.model.grid.cell;
 
 import org.src.common.Point2d;
+import org.src.model.user.UserData;
 import org.src.model.user.UserDataImpl;
 
 import java.util.Optional;
@@ -12,7 +13,7 @@ public interface Cell {
 
     Optional<Integer> number();
 
-    Optional<UserDataImpl> user();
+    Optional<UserData> user();
 
     Cell setNumber(int number);
 
@@ -20,7 +21,7 @@ public interface Cell {
 
     Cell removeNumber();
 
-    Cell setUser(UserDataImpl user);
+    Cell setUser(UserData user);
 
     Cell removeUser();
 }
