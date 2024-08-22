@@ -25,7 +25,7 @@ public class RemoteSudokuImpl implements RemoteSudoku {
     public RemoteSudokuImpl() throws RemoteException {}
 
     @Override
-    public synchronized void addUser(String userId) throws RemoteException, NotBoundException {
+    public void addUser(String userId) throws RemoteException, NotBoundException {
         RemoteUser remoteUser = (RemoteUser) registry.lookup(userId);
         users.put(userId, remoteUser);
     }
@@ -37,7 +37,7 @@ public class RemoteSudokuImpl implements RemoteSudoku {
 
     @Override
     public synchronized void selectCell(String username, Point2d position) throws RemoteException {
-        this.grid = new SudokuGrid(grid.cells().stream().map(cell -> {
+        this.grid = SudokuFactory.createGrid(grid.cells().stream().map(cell -> {
             if (cell.position().equals(position)) {
                 return cell.setUser(new UserDataImpl(username));
             }
@@ -47,7 +47,7 @@ public class RemoteSudokuImpl implements RemoteSudoku {
 
     @Override
     public synchronized void updateCell(String username, Point2d position, int number) throws RemoteException {
-        this.grid = new SudokuGrid(grid.cells().stream().map(cell -> {
+        this.grid = SudokuFactory.createGrid(grid.cells().stream().map(cell -> {
             if (cell.position().equals(position) && cell.user().isPresent()){
                 if(cell.user().get().name().equals(username)){
                     return cell.setNumber(number).removeUser();

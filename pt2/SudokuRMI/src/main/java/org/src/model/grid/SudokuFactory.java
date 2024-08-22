@@ -15,6 +15,9 @@ public class SudokuFactory {
     private static final int SUBGRID_SIZE = 3;
     private static final int NUMBER_TO_REMOVE = 40;
 
+    public static SudokuGrid createGrid(List<Cell> cells){
+        return new SudokuGrid(cells);
+    }
     public static SudokuGrid createGrid() {
         return createPuzzle(getValidSudoku());
     }
@@ -53,7 +56,7 @@ public class SudokuFactory {
                 cells.add(cell);
             }
         }
-        return new SudokuGrid(cells);
+        return SudokuFactory.createGrid(cells);
     }
 
     private static boolean fillGrid(int[][] grid, int row, int col) {
