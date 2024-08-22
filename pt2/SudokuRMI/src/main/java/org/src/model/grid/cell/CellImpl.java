@@ -1,7 +1,7 @@
 package org.src.model.grid.cell;
 
 import org.src.common.Point2d;
-import org.src.model.User;
+import org.src.model.user.UserDataImpl;
 
 import java.io.Serializable;
 import java.util.Optional;
@@ -11,7 +11,7 @@ public class CellImpl implements Cell, Serializable {
     private final Point2d position;
     private final boolean immutable;
     private final Integer number;
-    private final User user;
+    private final UserDataImpl user;
 
     public CellImpl(Point2d position) {
         this(position, false, null, null);
@@ -21,7 +21,7 @@ public class CellImpl implements Cell, Serializable {
         this(position, immutable, null, null);
     }
 
-    public CellImpl(Point2d position, boolean immutable, Integer number, User user) {
+    public CellImpl(Point2d position, boolean immutable, Integer number, UserDataImpl user) {
         this.position = position;
         this.immutable = immutable;
         this.number = number;
@@ -44,7 +44,7 @@ public class CellImpl implements Cell, Serializable {
     }
 
     @Override
-    public Optional<User> user() {
+    public Optional<UserDataImpl> user() {
         return Optional.ofNullable(user);
     }
 
@@ -64,7 +64,7 @@ public class CellImpl implements Cell, Serializable {
     }
 
     @Override
-    public Cell setUser(User user) {
+    public Cell setUser(UserDataImpl user) {
         return new CellImpl(position, immutable, number, user);
     }
 

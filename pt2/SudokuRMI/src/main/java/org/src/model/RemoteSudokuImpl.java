@@ -2,9 +2,9 @@ package org.src.model;
 
 
 import org.src.model.grid.SudokuGrid;
-import org.src.model.grid.cell.CellImpl;
 import org.src.model.grid.Grid;
 import org.src.model.grid.SudokuFactory;
+import org.src.model.user.RemoteUser;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
