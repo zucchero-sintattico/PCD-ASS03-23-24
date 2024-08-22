@@ -1,5 +1,6 @@
 package org.src.model.grid;
 
+import org.src.common.Point2d;
 import org.src.model.grid.cell.Cell;
 
 import java.util.List;
@@ -20,11 +21,6 @@ public class SudokuGrid implements Grid {
     @Override
     public List<Cell> cells() {
         return sudokuGrid.cells();
-    }
-
-    @Override
-    public Cell cellAt(int row, int col) {
-        return sudokuGrid.cellAt(row, col);
     }
 
     @Override

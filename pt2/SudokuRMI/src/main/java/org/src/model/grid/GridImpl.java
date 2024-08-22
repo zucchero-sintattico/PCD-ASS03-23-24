@@ -31,12 +31,4 @@ public class GridImpl implements Grid {
         return Collections.unmodifiableList(cells);
     }
 
-    @Override
-    public Cell cellAt(int row, int col) {
-        return this.cells
-                .stream()
-                .filter(cell -> cell.position().x() == row && cell.position().y() == col)
-                .findFirst().orElseThrow();
-    }
-
 }
