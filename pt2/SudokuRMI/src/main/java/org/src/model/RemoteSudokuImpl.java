@@ -1,7 +1,10 @@
 package org.src.model;
 
-import org.src.common.RemoteSudoku;
-import org.src.common.User;
+
+import org.src.model.grid.SudokuGrid;
+import org.src.model.grid.cell.CellImpl;
+import org.src.model.grid.Grid;
+import org.src.model.grid.SudokuFactory;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -13,14 +16,14 @@ import java.util.Map;
 public class RemoteSudokuImpl implements RemoteSudoku {
 
     private Grid grid = SudokuFactory.createGrid();
-    private final Map<String, User> users = new HashMap<>();
+    private final Map<String, RemoteUser> users = new HashMap<>();
     private final Registry registry = LocateRegistry.getRegistry();
 
     public RemoteSudokuImpl() throws RemoteException {}
 
     @Override
     public void addUser(String userId) throws RemoteException, NotBoundException {
-        User remoteUser = (User) registry.lookup(userId);
+        RemoteUser remoteUser = (RemoteUser) registry.lookup(userId);
         users.put(userId, remoteUser);
     }
 
@@ -29,10 +32,16 @@ public class RemoteSudokuImpl implements RemoteSudoku {
         users.remove(userId);
     }
 
+    @Override
+    public void test(SudokuGrid grid) throws RemoteException {
+
+        System.out.println(grid);
+    }
+
 //    private void sendUpdate() {
 //        users.forEach((userId, user) -> {
 //            try {
-//                //todo ??? -> user.updateGrid(grid.getCells());
+//                //todo ??? -> user.updateGrid(grid);
 //            } catch (RemoteException e) {
 //                try {
 //                    removeUser(userId);

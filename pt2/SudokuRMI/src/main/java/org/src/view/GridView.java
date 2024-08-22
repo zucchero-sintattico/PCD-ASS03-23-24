@@ -1,8 +1,9 @@
 package org.src.view;
 
-import org.src.common.User;
-import org.src.model.Grid;
-import org.src.model.LogicsImpl;
+import org.src.model.Controller;
+import org.src.common.Point2d;
+import org.src.model.grid.cell.Cell;
+import org.src.model.grid.SudokuGrid;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,90 +13,52 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
 
-public class GridView extends JFrame {
+public class GridView extends JFrame implements Changeable, SudokuView {
+    private final Font numberFont = new Font("Arial", Font.BOLD, 20);
     private final JTextField[][] cells;
-    private final LogicsImpl logics;
     private final JLabel usernameLabel;
-    private final User user;
-    private final Grid grid;
+    private final JButton back = new JButton("< - Back");
 
-    public GridView(LogicsImpl logic, User user, Grid grid) throws IOException {
-        this.logics = logic;
-        this.user = user;
+    private final Controller controller;
+    private Runnable changeScreen = () -> {};
+
+    public GridView(Controller controller) {
+        this.controller = controller;
         this.cells = new JTextField[9][9];
-        this.usernameLabel = new JLabel("Username: " + user.getName());
-        this.grid = grid;
+        this.usernameLabel = new JLabel("Username: " + controller.getUsername());
         this.build();
+        this.attachListener();
+        this.setLocationRelativeTo(null);
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
-    public void build() throws IOException {
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    public void build(){
+        this.setSize(600, 600);
         this.setLayout(new BorderLayout());
+        this.add(this.buildTopPanel(), BorderLayout.NORTH);
+        this.add(this.buildGrid(), BorderLayout.CENTER);
+        this.add(this.back, BorderLayout.SOUTH);
+    }
 
-        // Top panel for username
+    private JPanel buildTopPanel() {
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new FlowLayout());
-
         topPanel.add(this.usernameLabel);
+        return topPanel;
+    }
 
-        this.add(topPanel, BorderLayout.NORTH);
-
-        // Center panel for Sudoku grid
+    public JPanel buildGrid() {
         JPanel gridPanel = new JPanel();
         gridPanel.setLayout(new GridLayout(9, 9));
 
         for (int row = 0; row < 9; row++) {
             for (int col = 0; col < 9; col++) {
-                this.cells[row][col] = new JTextField();
-                int number = this.grid.cells().get(row * 9 + col).number().orElse(0);
-                Color background = Color.WHITE;
-                if (this.grid.cells().get(row * 9 + col).user().isPresent()) {
-                    background = this.grid.cells().get(row * 9 + col).user().get().getColor();
-                }
-                this.cells[row][col].setBackground(background);
-                if(this.grid.cells().get(row * 9 + col).immutable()){
-                    this.cells[row][col].setBackground(Color.LIGHT_GRAY);
-                }
-                if (number != 0) {
-                    this.cells[row][col].setText(String.valueOf(number));
-                }
-                    int finalRow = row;
-                    int finalCol = col;
-                    this.cells[row][col].addFocusListener(new FocusListener() {
-                        @Override
-                        public void focusGained(FocusEvent e) {
-                            try {
-                                logics.selectCell(grid, user, finalRow, finalCol);
-                            } catch (IOException ex) {
-                                throw new RuntimeException(ex);
-                            }
-                        }
+                JTextField cellRender = new JTextField();
+                this.cells[row][col] = cellRender;
 
-                        @Override
-                        public void focusLost(FocusEvent e) {
-                        }
-
-                    });
-                    this.cells[row][col].addKeyListener(new KeyAdapter() {
-                        @Override
-                        public void keyTyped(KeyEvent e) {
-                            char c = e.getKeyChar();
-                            if (!((c >= '1' && c <= '9') || c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE)) {
-                                e.consume();
-                            }
-                            try {
-                                logics.makeMove(grid, user, Character.getNumericValue(c));
-                            } catch (IOException ex) {
-                                throw new RuntimeException(ex);
-                            }
-
-                        }
-                    });
-
-                this.cells[row][col].setHorizontalAlignment(JTextField.CENTER);
-                this.cells[row][col].setFont(new Font("Arial", Font.BOLD, 20));
+                cellRender.setHorizontalAlignment(JTextField.CENTER);
+                cellRender.setFont(numberFont);
 
                 // Set borders for 3x3 subgrid highlighting
                 int top = (row % 3 == 0) ? 2 : 1;
@@ -103,38 +66,87 @@ public class GridView extends JFrame {
                 int bottom = (row == 8) ? 2 : 1;
                 int right = (col == 8) ? 2 : 1;
                 Border border = BorderFactory.createMatteBorder(top, left, bottom, right, Color.BLACK);
-                this.cells[row][col].setBorder(border);
+                cellRender.setBorder(border);
 
-                gridPanel.add(this.cells[row][col]);
+                Point2d position = new Point2d(row, col);
+                this.addListenerToCell(cellRender, position);
+                gridPanel.add(cellRender);
             }
         }
+        return gridPanel;
 
-        this.add(gridPanel, BorderLayout.CENTER);
-        this.setSize(600, 600);
-        this.setVisible(true);
     }
 
-    //todo doesn't work, need to update the grid because now is immutable
-    public void updateGridView() throws IOException {
-         for (int row = 0; row < 9; row++) {
-                for (int col = 0; col < 9; col++) {
-                 int number = this.grid.cells().get(row * 9 + col).number().orElse(0);
-                    Color background = Color.WHITE;
-                    if (this.grid.cells().get(row * 9 + col).user().isPresent()) {
-                        background = this.grid.cells().get(row * 9 + col).user().get().getColor();
-                    }
-                    this.cells[row][col].setBackground(background);
-                 if (number != 0) {
-                      this.cells[row][col].setText(String.valueOf(number));
-                 } else {
-                      this.cells[row][col].setText("");
-                 }
-                    if(this.grid.cells().get(row * 9 + col).immutable()){
-                        this.cells[row][col].setBackground(Color.LIGHT_GRAY);
-                    }
+    private void addListenerToCell(JTextField cellRender, Point2d cellPosition) {
+        this.addFocusListener(cellRender, cellPosition);
+        this.addKeyListener(cellRender, cellPosition);
+    }
+
+    private void addKeyListener(JTextField cellRender, Point2d cellPosition) {
+        cellRender.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!((c >= '1' && c <= '9') || c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE)) {
+                    e.consume();
+                }else{
+                    controller.updateCellNumber(cellPosition, Character.getNumericValue(c));
                 }
-          }
+            }
+        });
     }
 
+    private void addFocusListener(JTextField cellRender, Point2d cellPosition) {
+        cellRender.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                controller.selectCell(cellPosition);
+            }
 
+            @Override
+            public void focusLost(FocusEvent e) {
+                // TODO Alex things
+            }
+        });
+    }
+
+    public void display(){
+        SwingUtilities.invokeLater(() -> this.setVisible(true));
+    }
+
+    private void attachListener(){
+        this.back.addActionListener(e -> {
+            this.controller.leaveSudoku();
+            this.changeScreen.run();
+        });
+    }
+
+    @Override
+    public void onChange(Runnable runnable) {
+        this.changeScreen = runnable;
+    }
+
+    //TODO maybe add a init method in listener to simplify redundant cell.immutable() check
+    @Override
+    public void update(SudokuGrid grid) {
+        SwingUtilities.invokeLater(() -> grid.cells().forEach(this::updateCell));
+        //TODO maybe a repaint is needed
+    }
+
+    private void updateCell(Cell cell) {
+        JTextField cellRender = this.cells[cell.position().x()][cell.position().y()];
+
+        Color background = Color.WHITE;
+        if(cell.immutable()){
+            cellRender.setEditable(false);
+            background = Color.LIGHT_GRAY;
+        }else if(cell.user().isPresent()){
+            background = cell.user().get().color();
+        }
+
+        String number = cell.number().map(String::valueOf).orElse("");
+
+        cellRender.setBackground(background);
+        cellRender.setText(number);
+    }
 }

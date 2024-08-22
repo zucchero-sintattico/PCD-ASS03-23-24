@@ -1,29 +1,29 @@
-package org.src.model;
+package org.src.model.grid;
 
 import org.src.common.Point2d;
+import org.src.model.grid.cell.Cell;
+import org.src.model.grid.cell.CellImpl;
 
-import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
 public class SudokuFactory {
 
     private static final Random random = new Random();
-    private static final int SIZE = 9;
+    public static final int GRID_SIZE = 9;
     private static final int SUBGRID_SIZE = 3;
     private static final int NUMBER_TO_REMOVE = 40;
 
-    public static Grid createGrid() {
+    public static SudokuGrid createGrid() {
         return createPuzzle(getValidSudoku());
     }
 
-    private static Grid createPuzzle(int[][] grid){
+    private static SudokuGrid createPuzzle(int[][] grid){
         int numberToRemove = NUMBER_TO_REMOVE;
         while(numberToRemove > 0){
-            int row = random.nextInt(SIZE);
-            int col = random.nextInt(SIZE);
+            int row = random.nextInt(GRID_SIZE);
+            int col = random.nextInt(GRID_SIZE);
             if(grid[row][col] != 0){
                 grid[row][col] = 0;
                 numberToRemove--;
@@ -33,38 +33,37 @@ public class SudokuFactory {
     }
 
     private static int[][] getValidSudoku(){
-        int[][] grid = new int[SIZE][SIZE];
+        int[][] grid = new int[GRID_SIZE][GRID_SIZE];
         fillGrid(grid,0, 0);
         return grid;
     }
 
-    private static Grid convertToGrid(int[][] grid) {
+    private static SudokuGrid convertToGrid(int[][] grid) {
         List<Cell> cells = new ArrayList<>();
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
+        for (int i = 0; i < GRID_SIZE; i++) {
+            for (int j = 0; j < GRID_SIZE; j++) {
                 Point2d position = new Point2d(i, j);
                 int number = grid[i][j];
                 Cell cell;
                 if(number != 0){
-                    cell = new Cell(position, true).setNumber(number);
+                    cell = new CellImpl(position, true).setNumber(number);
                 }else{
-                    cell = new Cell(position);
+                    cell = new CellImpl(position);
                 }
                 cells.add(cell);
             }
         }
-        System.out.println(new Grid(cells).print());
-        return new Grid(cells);
+        return new SudokuGrid(cells);
     }
 
     private static boolean fillGrid(int[][] grid, int row, int col) {
-        if (row == SIZE) return true;
+        if (row == GRID_SIZE) return true;
 
-        int nextRow = col == SIZE - 1 ? row + 1 : row;
-        int nextCol = (col + 1) % SIZE;
+        int nextRow = col == GRID_SIZE - 1 ? row + 1 : row;
+        int nextCol = (col + 1) % GRID_SIZE;
 
-        List<Integer> numbers = random.ints(1, SIZE + 1)
-                .distinct().limit(SIZE).boxed().toList();
+        List<Integer> numbers = random.ints(1, GRID_SIZE + 1)
+                .distinct().limit(GRID_SIZE).boxed().toList();
 
         for (int n : numbers) {
             if (isValid(grid, row, col, n)) {
@@ -85,7 +84,7 @@ public class SudokuFactory {
     }
 
     private static boolean isAlreadyPresentInRowOrColumn(int[][] grid, int row, int col, int num) {
-        for (int i = 0; i < SIZE; i++) {
+        for (int i = 0; i < GRID_SIZE; i++) {
             if (grid[row][i] == num || grid[i][col] == num) {
                 return true;
             }
