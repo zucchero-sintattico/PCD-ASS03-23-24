@@ -1,6 +1,5 @@
 package org.src.model;
 
-import org.src.common.Grid;
 import org.src.common.User;
 import java.io.IOException;
 

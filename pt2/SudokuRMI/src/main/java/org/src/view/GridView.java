@@ -1,7 +1,7 @@
 package org.src.view;
 
-import org.src.common.Grid;
 import org.src.common.User;
+import org.src.model.Grid;
 import org.src.model.LogicsImpl;
 
 import javax.swing.*;
@@ -49,13 +49,13 @@ public class GridView extends JFrame {
         for (int row = 0; row < 9; row++) {
             for (int col = 0; col < 9; col++) {
                 this.cells[row][col] = new JTextField();
-                int number = this.grid.getCells().get(row * 9 + col).getNumber().orElse(0);
+                int number = this.grid.cells().get(row * 9 + col).number().orElse(0);
                 Color background = Color.WHITE;
-                if (this.grid.getCells().get(row * 9 + col).isSelected().isPresent()) {
-                    background = this.grid.getCells().get(row * 9 + col).isSelected().get().getColor();
+                if (this.grid.cells().get(row * 9 + col).user().isPresent()) {
+                    background = this.grid.cells().get(row * 9 + col).user().get().getColor();
                 }
                 this.cells[row][col].setBackground(background);
-                if(this.grid.getCells().get(row * 9 + col).isImmutable()){
+                if(this.grid.cells().get(row * 9 + col).immutable()){
                     this.cells[row][col].setBackground(Color.LIGHT_GRAY);
                 }
                 if (number != 0) {
@@ -114,13 +114,14 @@ public class GridView extends JFrame {
         this.setVisible(true);
     }
 
+    //todo doesn't work, need to update the grid because now is immutable
     public void updateGridView() throws IOException {
          for (int row = 0; row < 9; row++) {
                 for (int col = 0; col < 9; col++) {
-                 int number = this.grid.getCells().get(row * 9 + col).getNumber().orElse(0);
+                 int number = this.grid.cells().get(row * 9 + col).number().orElse(0);
                     Color background = Color.WHITE;
-                    if (this.grid.getCells().get(row * 9 + col).isSelected().isPresent()) {
-                        background = this.grid.getCells().get(row * 9 + col).isSelected().get().getColor();
+                    if (this.grid.cells().get(row * 9 + col).user().isPresent()) {
+                        background = this.grid.cells().get(row * 9 + col).user().get().getColor();
                     }
                     this.cells[row][col].setBackground(background);
                  if (number != 0) {
@@ -128,7 +129,7 @@ public class GridView extends JFrame {
                  } else {
                       this.cells[row][col].setText("");
                  }
-                    if(this.grid.getCells().get(row * 9 + col).isImmutable()){
+                    if(this.grid.cells().get(row * 9 + col).immutable()){
                         this.cells[row][col].setBackground(Color.LIGHT_GRAY);
                     }
                 }
