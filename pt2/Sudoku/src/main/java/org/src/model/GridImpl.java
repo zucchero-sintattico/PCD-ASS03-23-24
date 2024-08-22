@@ -7,7 +7,6 @@ import com.google.gson.*;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 
 public class GridImpl implements Grid {
@@ -15,7 +14,6 @@ public class GridImpl implements Grid {
     List<Cell> cells = new ArrayList<>();
     private boolean isNew = true;
     int GRID_SIZE = 9;
-    int SUBGRID_SIZE = 3;
 
     public GridImpl() {
         // Initialize the grid with empty cells
@@ -53,7 +51,7 @@ public class GridImpl implements Grid {
         }
 
         if(checkWin()){
-            System.out.println("Hai vinto");
+            System.out.println("You have won");
         }
     }
 

@@ -69,10 +69,12 @@ public class GridBuilder {
         int nextCol = (col + 1) % SIZE;
 
         Cell currentCell = grid.getCellAt(row, col);
+        /*
+        Cell currentCell = grid.getCellAt(row, col);
         if (currentCell.getNumber().isPresent()) {
             return solve(grid, nextRow, nextCol);
         }
-
+        */
         Random random = new Random();
         int[] numbers = random.ints(1, SIZE + 1).distinct().limit(SIZE).toArray();
 
