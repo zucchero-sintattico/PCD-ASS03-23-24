@@ -8,8 +8,6 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.Objects;
 
 public class Menu extends JFrame implements Changeable{
@@ -26,7 +24,6 @@ public class Menu extends JFrame implements Changeable{
 
     private final Controller controller;
     private Runnable changeScreen = () -> {};
-
 
     public Menu(Controller controller) {
         this.controller = controller;
@@ -148,4 +145,5 @@ public class Menu extends JFrame implements Changeable{
             super.remove(fb, offset, length);
         }
     }
+
 }

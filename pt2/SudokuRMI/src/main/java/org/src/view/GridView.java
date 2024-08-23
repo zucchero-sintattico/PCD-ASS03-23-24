@@ -15,6 +15,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 public class GridView extends JFrame implements Changeable {
+
     private final Font numberFont = new Font("Arial", Font.BOLD, 20);
     private final JTextField[][] cells;
     private final JLabel usernameLabel;
@@ -77,7 +78,6 @@ public class GridView extends JFrame implements Changeable {
             }
         }
         return gridPanel;
-
     }
 
     private void addListenerToCell(JTextField cellRender, Point2d cellPosition) {
@@ -161,4 +161,5 @@ public class GridView extends JFrame implements Changeable {
         cellRender.setBackground(background);
         cellRender.setText(number);
     }
+
 }

@@ -44,4 +44,5 @@ public class SudokuViewImpl implements SudokuView {
             this.currentScreen.setVisible(true);
         });
     }
+
 }

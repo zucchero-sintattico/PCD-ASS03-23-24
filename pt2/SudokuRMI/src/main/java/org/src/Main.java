@@ -21,6 +21,8 @@ public class Main {
         SudokuView view = new SudokuViewImpl(controller);
         controller.setView(view);
         view.display();
+
+        //-----Test Code-----
         System.out.println(SudokuFactory.createGrid());
 
         String gridID = "1";
@@ -32,7 +34,5 @@ public class Main {
 
         RemoteSudoku remoteGrid = (RemoteSudoku) registry.lookup(gridID);
         remoteGrid.test(SudokuFactory.createGrid());
-
-
     }
 }

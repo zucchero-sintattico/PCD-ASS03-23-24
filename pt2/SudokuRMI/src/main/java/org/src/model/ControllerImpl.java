@@ -6,23 +6,27 @@ import org.src.view.SudokuView;
 
 public class ControllerImpl implements Controller {
 
+    //TODO example class, check everything (Interface should be OK)
+
     private SudokuView view;
+    private String username;
 
     @Override
     public void createSudoku(String username, String sudokuId) {
+        this.joinSudoku(username, sudokuId);
+    }
+
+    @Override
+    public void joinSudoku(String username, String sudokuId) {
+        this.username = username;
         if (view != null) {
             view.update(SudokuFactory.createGrid());
         }
     }
 
     @Override
-    public void joinSudoku(String username, String sudokuId) {
-
-    }
-
-    @Override
     public String getUsername() {
-        return "testuser";
+        return this.username;
     }
     
 

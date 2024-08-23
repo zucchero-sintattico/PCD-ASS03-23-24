@@ -3,6 +3,7 @@ package org.src.model.user;
 import java.awt.*;
 
 public class UserDataImpl implements UserData {
+
     private final String name;
     private final Color color;
 
@@ -20,4 +21,5 @@ public class UserDataImpl implements UserData {
     public Color color() {
         return this.color;
     }
+
 }

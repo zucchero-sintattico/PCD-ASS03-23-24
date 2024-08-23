@@ -12,9 +12,13 @@ import java.rmi.RemoteException;
 public interface RemoteSudoku extends Remote {
 
     void addUser(String userId) throws RemoteException, NotBoundException;
+
     void removeUser(String userId) throws RemoteException;
+
     void selectCell(String userId, Point2d position) throws RemoteException;
+
     void updateCell(String userId, Point2d position, int number) throws RemoteException;
+
     void test(SudokuGrid grid) throws RemoteException;
 
 }

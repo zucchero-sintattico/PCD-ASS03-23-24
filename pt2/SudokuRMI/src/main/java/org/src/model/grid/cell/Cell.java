@@ -2,11 +2,12 @@ package org.src.model.grid.cell;
 
 import org.src.common.Point2d;
 import org.src.model.user.UserData;
-import org.src.model.user.UserDataImpl;
 
+import java.io.Serializable;
 import java.util.Optional;
 
-public interface Cell {
+public interface Cell extends Serializable {
+
     Point2d position();
 
     boolean immutable();
@@ -24,4 +25,5 @@ public interface Cell {
     Cell setUser(UserData user);
 
     Cell removeUser();
+
 }

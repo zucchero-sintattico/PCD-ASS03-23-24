@@ -3,10 +3,9 @@ package org.src.model.grid.cell;
 import org.src.common.Point2d;
 import org.src.model.user.UserData;
 
-import java.io.Serializable;
 import java.util.Optional;
 
-public class CellImpl implements Cell, Serializable {
+public class CellImpl implements Cell {
 
     private final Point2d position;
     private final boolean immutable;
@@ -72,5 +71,5 @@ public class CellImpl implements Cell, Serializable {
     public Cell removeUser() {
         return new CellImpl(position, immutable, number, null);
     }
-}
 
+}
