@@ -13,10 +13,12 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 
 public class GridView extends JFrame {
     private final JTextField[][] cells;
     private final LogicsImpl logics;
+    private final JButton returnBack;
     private final JLabel usernameLabel;
     private final JLabel gridIdLabel;
     private final User user;
@@ -30,6 +32,7 @@ public class GridView extends JFrame {
         this.cells = new JTextField[9][9];
         this.usernameLabel = new JLabel("Username: " + user.getName());
         this.gridIdLabel = new JLabel("Id: " + gridId);
+        this.returnBack = new JButton("<-- Back");
         this.grid = grid;
         this.build();
     }
@@ -46,6 +49,22 @@ public class GridView extends JFrame {
         topPanel.add(this.gridIdLabel);
 
         this.add(topPanel, BorderLayout.NORTH);
+
+        this.add(this.returnBack, BorderLayout.SOUTH);
+
+        //Listener to come back
+        this.returnBack.addActionListener(e -> {
+            Menu menu = null;
+            try {
+                menu = new Menu();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            } catch (TimeoutException ex) {
+                throw new RuntimeException(ex);
+            }
+            SwingUtilities.invokeLater(menu::display);
+            this.dispose();
+        });
 
         // Center panel for Sudoku grid
         JPanel gridPanel = new JPanel();
