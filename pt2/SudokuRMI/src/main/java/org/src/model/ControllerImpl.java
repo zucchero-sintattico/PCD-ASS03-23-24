@@ -11,7 +11,7 @@ public class ControllerImpl implements Controller {
     @Override
     public void createSudoku(String username, String sudokuId) {
         if (view != null) {
-            view.init(SudokuFactory.createGrid());
+            view.update(SudokuFactory.createGrid());
         }
     }
 

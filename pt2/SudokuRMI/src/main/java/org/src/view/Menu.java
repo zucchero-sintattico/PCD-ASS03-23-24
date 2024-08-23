@@ -34,7 +34,6 @@ public class Menu extends JFrame implements Changeable{
         this.buildComponents();
         this.addComponentsInFrame();
         this.attachListener();
-        this.attachMouseAdapter();
         this.setLocationRelativeTo(null);
     }
 
@@ -115,37 +114,6 @@ public class Menu extends JFrame implements Changeable{
                 this.changeScreen.run();
             }
         });
-    }
-
-    private void attachMouseAdapter(){
-        this.create.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                create.setText("< Create >");
-                create.setFont(arialBold);
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                create.setText("Create");
-                create.setFont(arial);
-            }
-        });
-
-        this.join.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                join.setText("< Join >");
-                join.setFont(arialBold);
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                join.setText("Join");
-                join.setFont(arial);
-            }
-        });
-
     }
 
     @Override

@@ -119,6 +119,7 @@ public class GridView extends JFrame implements Changeable {
 
     private void attachListener(){
         this.back.addActionListener(e -> {
+            this.initialized = false;
             this.controller.leaveSudoku();
             this.changeScreen.run();
         });
