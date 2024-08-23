@@ -58,8 +58,6 @@ public class Main {
             viewIsSet.set(true);
         }
 
-
-
         DeliverCallback deliverCallback = (consumerTag, delivery) -> {
             if(delivery.getEnvelope().getRoutingKey().equals(MessageTopic.NEW_USER_JOINED.getTopic())){
                 if(viewIsSet.get()){

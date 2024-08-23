@@ -50,9 +50,12 @@ public class ViewController {
     public void startNewGame() throws IOException {
         //Generate grid id
         this.gridId = this.generateNewGridId();
-        this.createSession();
+        this.setupChannel();
+        this.gridView.set(new GridView(logics, user, gridId, grid));
+        this.viewIsSet.set(true);
     }
 
+    //TODO: to change
     private String generateNewGridId() {
         //TODO: not generate the same GridID
         int number = 10000 + random.nextInt(90000);
@@ -62,18 +65,16 @@ public class ViewController {
 
     public void joinInGrid(String gridId) throws IOException {
         this.gridId = gridId;
-        this.createSession();
+        this.setupChannel();
+        this.channel.basicPublish(gridId, MessageTopic.NEW_USER_JOINED.getTopic(), null, user.getName().getBytes());
     }
 
     //TODO: bug fix
-    private void createSession() throws IOException {
+    private void setupChannel() throws IOException {
         this.createChannel();
         this.logics = new LogicsImpl(this.channel, this.gridId);
         GridBuilder gridBuilder = new GridBuilder();
         this.grid = gridBuilder.generatePartialSolution();
-
-        this.gridView.set(new GridView(this.logics, this.user, this.gridId, this.grid));
-        this.viewIsSet.set(true);
 
         DeliverCallback deliverCallback = (consumerTag, delivery) -> {
             if(delivery.getEnvelope().getRoutingKey().equals(MessageTopic.NEW_USER_JOINED.getTopic())){
