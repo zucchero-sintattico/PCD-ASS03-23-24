@@ -22,6 +22,7 @@ public class GridView extends JFrame implements Changeable {
 
     private final Controller controller;
     private Runnable changeScreen = () -> {};
+    private boolean initialized;
 
     public GridView(Controller controller) {
         this.controller = controller;
@@ -57,8 +58,10 @@ public class GridView extends JFrame implements Changeable {
                 JTextField cellRender = new JTextField();
                 this.cells[row][col] = cellRender;
 
+                cellRender.setEnabled(false);
                 cellRender.setHorizontalAlignment(JTextField.CENTER);
                 cellRender.setFont(numberFont);
+                cellRender.setDisabledTextColor(Color.BLACK);
 
                 // Set borders for 3x3 subgrid highlighting
                 int top = (row % 3 == 0) ? 2 : 1;
@@ -105,7 +108,7 @@ public class GridView extends JFrame implements Changeable {
 
             @Override
             public void focusLost(FocusEvent e) {
-                // TODO Alex things
+                //nothing to do
             }
         });
     }
@@ -126,10 +129,20 @@ public class GridView extends JFrame implements Changeable {
         this.changeScreen = runnable;
     }
 
-    //TODO maybe add a init method in listener to simplify redundant cell.immutable() check
+    private void initCell(Cell cell) {
+        JTextField cellRender = this.cells[cell.position().x()][cell.position().y()];
+        cellRender.setEnabled(!cell.immutable());
+    }
+
     public void update(SudokuGrid grid) {
-        SwingUtilities.invokeLater(() -> grid.cells().forEach(this::updateCell));
-        //TODO maybe a repaint is needed
+        SwingUtilities.invokeLater(() -> {
+            if(!initialized){
+                initialized = true;
+                grid.cells().forEach(this::initCell);
+            }
+            grid.cells().forEach(this::updateCell);
+        });
+        //TODO maybe a this.repaint() is needed
     }
 
     private void updateCell(Cell cell) {
@@ -137,7 +150,6 @@ public class GridView extends JFrame implements Changeable {
 
         Color background = Color.WHITE;
         if(cell.immutable()){
-            cellRender.setEditable(false);
             background = Color.LIGHT_GRAY;
         }else if(cell.user().isPresent()){
             background = cell.user().get().color();

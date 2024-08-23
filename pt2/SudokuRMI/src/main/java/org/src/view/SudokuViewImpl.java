@@ -34,6 +34,11 @@ public class SudokuViewImpl implements SudokuView {
     }
 
     @Override
+    public void init(SudokuGrid grid) {
+        this.gridView.init(grid);
+    }
+
+    @Override
     public void update(SudokuGrid grid) {
         this.gridView.update(grid);
     }
