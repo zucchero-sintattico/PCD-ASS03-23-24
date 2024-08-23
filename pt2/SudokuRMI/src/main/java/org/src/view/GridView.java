@@ -13,22 +13,22 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.rmi.RemoteException;
 
 public class GridView extends JFrame implements Changeable {
 
     private final Font numberFont = new Font("Arial", Font.BOLD, 20);
     private final JTextField[][] cells;
-    private final JLabel usernameLabel;
+    private JLabel usernameLabel = new JLabel();
     private final JButton back = new JButton("< - Back");
 
     private final Controller controller;
     private Runnable changeScreen = () -> {};
     private boolean initialized;
 
-    public GridView(Controller controller) {
+    public GridView(Controller controller) throws RemoteException {
         this.controller = controller;
         this.cells = new JTextField[9][9];
-        this.usernameLabel = new JLabel("Username: " + controller.getUsername());
         this.build();
         this.attachListener();
         this.setLocationRelativeTo(null);
@@ -103,12 +103,20 @@ public class GridView extends JFrame implements Changeable {
         cellRender.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent e) {
-                controller.selectCell(cellPosition);
+                try {
+                    controller.selectCell(cellPosition);
+                } catch (RemoteException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
 
             @Override
             public void focusLost(FocusEvent e) {
-                //nothing to do
+                try {
+                    controller.deselectCell(cellPosition);
+                } catch (RemoteException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         });
     }
@@ -138,6 +146,11 @@ public class GridView extends JFrame implements Changeable {
     public void update(SudokuGrid grid) {
         SwingUtilities.invokeLater(() -> {
             if(!initialized){
+                try {
+                    this.usernameLabel = new JLabel("Username: " + controller.getUsername());
+                } catch (RemoteException e) {
+                    throw new RuntimeException(e);
+                }
                 initialized = true;
                 grid.cells().forEach(this::initCell);
             }

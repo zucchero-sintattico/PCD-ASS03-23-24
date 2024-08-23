@@ -1,9 +1,9 @@
 package org.src.model.user;
 
 import java.awt.*;
+import java.io.Serializable;
 
-public interface UserData {
-    //TODO check and maybe refactor/improve
+public interface UserData extends Serializable {
     String name();
     Color color();
 

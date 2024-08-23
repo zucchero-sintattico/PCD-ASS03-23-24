@@ -8,6 +8,8 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import java.awt.*;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.util.Objects;
 
 public class Menu extends JFrame implements Changeable{
@@ -101,13 +103,25 @@ public class Menu extends JFrame implements Changeable{
     private void attachListener(){
         this.create.addActionListener(e -> {
             if(this.validateInput()){
-                this.controller.createSudoku(this.usernameField.getText(), this.sudokuIdField.getText());
+                try {
+                    this.controller.createSudoku(this.usernameField.getText(), this.sudokuIdField.getText());
+                } catch (RemoteException ex) {
+                    throw new RuntimeException(ex);
+                } catch (NotBoundException ex) {
+                    throw new RuntimeException(ex);
+                }
                 this.changeScreen.run();
             }
         });
         this.join.addActionListener(e -> {
             if(this.validateInput()){
-                this.controller.joinSudoku(this.usernameField.getText(), this.sudokuIdField.getText());
+                try {
+                    this.controller.joinSudoku(this.usernameField.getText(), this.sudokuIdField.getText());
+                } catch (NotBoundException ex) {
+                    throw new RuntimeException(ex);
+                } catch (RemoteException ex) {
+                    throw new RuntimeException(ex);
+                }
                 this.changeScreen.run();
             }
         });

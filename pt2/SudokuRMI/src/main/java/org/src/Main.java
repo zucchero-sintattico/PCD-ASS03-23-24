@@ -10,9 +10,7 @@ import org.src.view.SudokuViewImpl;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
+
 
 public class Main {
 
@@ -27,12 +25,5 @@ public class Main {
 
         String gridID = "1";
 
-        RemoteSudoku sudoku = new RemoteSudokuImpl();
-        RemoteSudoku sudokuStub = (RemoteSudoku) UnicastRemoteObject.exportObject(sudoku, 0);
-        Registry registry = LocateRegistry.getRegistry();
-        registry.rebind(gridID, sudokuStub);
-
-        RemoteSudoku remoteGrid = (RemoteSudoku) registry.lookup(gridID);
-        remoteGrid.test(SudokuFactory.createGrid());
     }
 }

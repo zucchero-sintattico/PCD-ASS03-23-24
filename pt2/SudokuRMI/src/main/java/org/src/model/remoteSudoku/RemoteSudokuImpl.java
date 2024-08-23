@@ -10,7 +10,9 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class RemoteSudokuImpl implements RemoteSudoku {
@@ -18,7 +20,7 @@ public class RemoteSudokuImpl implements RemoteSudoku {
     //TODO example class, check everything (Also Interface)
 
     private SudokuGrid grid = SudokuFactory.createGrid();
-    private final Map<String, RemoteUser> users = new HashMap<>();
+    private final List<RemoteUser> users = new ArrayList<>();
     private final Registry registry = LocateRegistry.getRegistry();
 
     public RemoteSudokuImpl() throws RemoteException {}
@@ -26,12 +28,19 @@ public class RemoteSudokuImpl implements RemoteSudoku {
     @Override
     public void addUser(String userId) throws RemoteException, NotBoundException {
         RemoteUser remoteUser = (RemoteUser) registry.lookup(userId);
-        this.users.put(userId, remoteUser);
+        this.users.add(remoteUser);
+        remoteUser.updateGrid(this.grid);
     }
 
     @Override
     public synchronized void removeUser(String userId) throws RemoteException {
-        this.users.remove(userId);
+        this.users.removeIf(user -> {
+            try {
+                return user.equals(registry.lookup(userId));
+            } catch (RemoteException | NotBoundException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
@@ -63,16 +72,23 @@ public class RemoteSudokuImpl implements RemoteSudoku {
         System.out.println(grid);
     }
 
+    @Override
+    public void deselectCell(String username, Point2d cellPosition) {
+        this.grid = SudokuFactory.createGrid(this.grid.cells().stream().map(cell -> {
+            if (cell.position().equals(cellPosition) && cell.user().isPresent() && cell.user().get().name().equals(username)) {
+                return cell.removeUser();
+            }
+            return cell;
+        }).toList());
+        this.sendUpdate();
+    }
+
     private void sendUpdate() {
-        this.users.forEach((userId, user) -> {
+        this.users.forEach(user -> {
             try {
                 user.updateGrid(this.grid);
             } catch (RemoteException e) {
-                try {
-                    this.removeUser(userId);
-                } catch (RemoteException ex) {
-                    throw new RuntimeException(ex);
-                }
+                throw new RuntimeException(e);
             }
         });
     }

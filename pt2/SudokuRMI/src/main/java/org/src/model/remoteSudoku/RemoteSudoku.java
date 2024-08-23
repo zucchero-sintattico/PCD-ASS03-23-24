@@ -21,4 +21,5 @@ public interface RemoteSudoku extends Remote {
 
     void test(SudokuGrid grid) throws RemoteException;
 
+    void deselectCell(String username, Point2d cellPosition) throws RemoteException;
 }
