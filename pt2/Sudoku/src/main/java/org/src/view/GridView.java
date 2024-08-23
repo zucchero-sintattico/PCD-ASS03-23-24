@@ -18,14 +18,18 @@ public class GridView extends JFrame {
     private final JTextField[][] cells;
     private final LogicsImpl logics;
     private final JLabel usernameLabel;
+    private final JLabel gridIdLabel;
     private final User user;
     private final Grid grid;
+    private final String gridId;
 
-    public GridView(LogicsImpl logic, User user, Grid grid) throws IOException {
+    public GridView(LogicsImpl logic, User user, String gridId, Grid grid) throws IOException {
         this.logics = logic;
         this.user = user;
+        this.gridId = gridId;
         this.cells = new JTextField[9][9];
         this.usernameLabel = new JLabel("Username: " + user.getName());
+        this.gridIdLabel = new JLabel("Id: " + gridId);
         this.grid = grid;
         this.build();
     }
@@ -39,6 +43,7 @@ public class GridView extends JFrame {
         topPanel.setLayout(new FlowLayout());
 
         topPanel.add(this.usernameLabel);
+        topPanel.add(this.gridIdLabel);
 
         this.add(topPanel, BorderLayout.NORTH);
 

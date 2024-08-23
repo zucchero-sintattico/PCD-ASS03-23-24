@@ -6,7 +6,9 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import java.awt.*;
+import java.io.IOException;
 import java.util.Objects;
+import java.util.concurrent.TimeoutException;
 
 public class Login extends JFrame {
 
@@ -71,7 +73,14 @@ public class Login extends JFrame {
             }else{
                 Utils.setUsername(username.getText());
                 this.dispose();
-                Menu menu = new Menu();
+                Menu menu = null;
+                try {
+                    menu = new Menu();
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                } catch (TimeoutException ex) {
+                    throw new RuntimeException(ex);
+                }
                 SwingUtilities.invokeLater(menu::display);
             }
         });

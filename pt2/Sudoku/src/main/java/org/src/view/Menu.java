@@ -1,19 +1,24 @@
 package org.src.view;
 
+import org.src.controller.ViewController;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 
-public class Menu extends JFrame {
+public class Menu extends JFrame{
 
     private final JButton newGame = new JButton("New Game");
     private final JButton resolve = new JButton("Resolve Sudoku");
     private final JButton changeNickName = new JButton("Change Nickname");
     private final JPanel panel = new JPanel();
     private final JLabel title = new JLabel("Sudoku Game", SwingConstants.CENTER);
+    private ViewController viewController;
 
-    public Menu() {
+    public Menu() throws IOException, TimeoutException {
+        this.viewController = new ViewController(Utils.getUsername());
         this.buildFrame();
         this.buildComponents();
         this.addComponentsInFrame();
@@ -69,13 +74,24 @@ public class Menu extends JFrame {
         });
 
         this.newGame.addActionListener(e -> {
-            //Do something
+            try {
+                this.viewController.startNewGame();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
             this.dispose();
         });
 
         this.resolve.addActionListener(e -> {
             this.dispose();
-            SolveMenu solveMenu = new SolveMenu();
+            SolveMenu solveMenu = null;
+            try {
+                solveMenu = new SolveMenu();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            } catch (TimeoutException ex) {
+                throw new RuntimeException(ex);
+            }
             SwingUtilities.invokeLater(solveMenu::display);
         });
     }
@@ -133,4 +149,7 @@ public class Menu extends JFrame {
         this.setVisible(true);
     }
 
+    public void setViewController(ViewController viewController) {
+        this.viewController = viewController;
+    }
 }

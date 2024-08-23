@@ -1,20 +1,26 @@
 package org.src.view;
 
+import org.src.controller.ViewController;
+
 import javax.swing.*;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import java.awt.*;
+import java.io.IOException;
 import java.util.Objects;
+import java.util.concurrent.TimeoutException;
 
 public class SolveMenu extends JFrame {
 
     private final JLabel label = new JLabel("Insert session id");
     private final JTextField sessionId = new JTextField(15);
     private final JButton joinSession = new JButton("Join session");
+    private final ViewController viewController;
 
-    public SolveMenu(){
+    public SolveMenu() throws IOException, TimeoutException {
+        this.viewController = new ViewController(Utils.getUsername());
         this.buildFrame();
         this.buildComponents();
         this.addComponentsInFrame();
@@ -69,9 +75,12 @@ public class SolveMenu extends JFrame {
             if(Objects.equals(this.sessionId.getText(), "")){
                 Utils.showErrorMessage(this, "Invalid Session ID", "Session Problem");
             }else{
-                Utils.setUsername(sessionId.getText());
+                try {
+                    this.viewController.joinInGrid(this.sessionId.getText());
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
                 this.dispose();
-                //TODO do something
             }
         });
     }

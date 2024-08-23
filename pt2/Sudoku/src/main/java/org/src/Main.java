@@ -54,7 +54,7 @@ public class Main {
         if(!startNewGrid){
             channel.basicPublish(gridId, MessageTopic.NEW_USER_JOINED.getTopic(), null, user.getName().getBytes());
         }else{
-            gridView.set(new GridView(logics, user, grid));
+            gridView.set(new GridView(logics, user, gridId, grid));
             viewIsSet.set(true);
         }
 
@@ -71,7 +71,7 @@ public class Main {
                 logics.pull(grid, new String(delivery.getBody()));
 
                 if(!viewIsSet.get()){
-                    gridView.set(new GridView(logics, user, grid));
+                    gridView.set(new GridView(logics, user, gridId, grid));
                     viewIsSet.set(true);
                 }
             }
@@ -82,8 +82,5 @@ public class Main {
         };
 
         channel.basicConsume(queueName, true, deliverCallback, consumerTag -> {});
-
-
-
     }
 }
