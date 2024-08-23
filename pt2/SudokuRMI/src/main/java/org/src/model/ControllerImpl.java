@@ -3,9 +3,10 @@ package org.src.model;
 import org.src.common.Point2d;
 import org.src.model.remoteSudoku.RemoteSudoku;
 import org.src.model.remoteSudoku.RemoteSudokuImpl;
-import org.src.model.user.RemoteUser;
-import org.src.model.user.RemoteUserImpl;
+import org.src.model.remoteClient.RemoteClient;
+import org.src.model.remoteClient.RemoteClientImpl;
 import org.src.view.SudokuView;
+import org.src.view.SudokuViewImpl;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -15,15 +16,12 @@ import java.rmi.server.UnicastRemoteObject;
 
 public class ControllerImpl implements Controller {
 
-    //TODO example class, check everything (Interface should be OK)
-
+    private String username;
     private SudokuView view;
     private RemoteSudoku remoteSudoku;
     private final Registry registry =  LocateRegistry.getRegistry();
-    private RemoteUser remoteUser;
 
-    public ControllerImpl() throws RemoteException {
-    }
+    public ControllerImpl() throws RemoteException {}
 
     @Override
     public void createSudoku(String username, String sudokuId) throws RemoteException, NotBoundException {
@@ -35,30 +33,27 @@ public class ControllerImpl implements Controller {
     }
 
     @Override
-    public void joinSudoku(String username, String sudokuId) throws NotBoundException, RemoteException {
-        this.remoteUser = new RemoteUserImpl(username);
+    public void joinSudoku(String username, String sudokuId) throws RemoteException, NotBoundException {
+        this.username = username;
+        RemoteClient remoteClient = new RemoteClientImpl();
         if(this.view != null) {
-            this.remoteUser.setView(this.view);
+            remoteClient.setOnUpdateGridHandler(this.view::update);
         }
-        RemoteUser userStub = (RemoteUser) UnicastRemoteObject.exportObject(this.remoteUser, 0);
+        RemoteClient userStub = (RemoteClient) UnicastRemoteObject.exportObject(remoteClient, 0);
         registry.rebind(username, userStub);
         this.remoteSudoku = (RemoteSudoku) registry.lookup(sudokuId);
         this.remoteSudoku.addUser(username);
     }
 
     @Override
-    public String getUsername() throws RemoteException {
-        return this.remoteUser.getName();
+    public String getUsername() {
+        return this.username;
     }
     
 
     @Override
-    public void leaveSudoku() {
-        try {
-            this.remoteSudoku.removeUser(this.getUsername());
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
+    public void leaveSudoku() throws RemoteException {
+        this.remoteSudoku.removeUser(this.getUsername());
     }
 
     @Override
@@ -67,22 +62,13 @@ public class ControllerImpl implements Controller {
     }
 
     @Override
-    public void updateCellNumber(Point2d cellPosition, int number) {
-        try {
-            this.remoteSudoku.updateCell(this.getUsername(), cellPosition, number);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
+    public void updateCellNumber(Point2d cellPosition, int number) throws RemoteException {
+        this.remoteSudoku.updateCell(this.getUsername(), cellPosition, number);
     }
 
     @Override
     public void setView(SudokuView view) {
         this.view = view;
-    }
-
-    @Override
-    public void deselectCell(Point2d cellPosition) throws RemoteException {
-        this.remoteSudoku.deselectCell(this.getUsername(), cellPosition);
     }
 
 }

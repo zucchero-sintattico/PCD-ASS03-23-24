@@ -10,20 +10,17 @@ import org.src.view.SudokuViewImpl;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 
 
 public class Main {
 
-    public static void main(String[] args) throws RemoteException, NotBoundException {
+    public static void main(String[] args) throws RemoteException {
         Controller controller = new ControllerImpl();
         SudokuView view = new SudokuViewImpl(controller);
         controller.setView(view);
         view.display();
-
-        //-----Test Code-----
-        System.out.println(SudokuFactory.createGrid());
-
-        String gridID = "1";
-
     }
 }

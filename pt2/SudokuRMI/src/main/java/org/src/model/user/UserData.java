@@ -6,5 +6,4 @@ import java.io.Serializable;
 public interface UserData extends Serializable {
     String name();
     Color color();
-
 }

@@ -10,17 +10,16 @@ public interface Controller {
 
     void createSudoku(String username, String sudokuId) throws RemoteException, NotBoundException;
 
-    void joinSudoku(String username, String sudokuId) throws NotBoundException, RemoteException;
+    void joinSudoku(String username, String sudokuId) throws RemoteException, NotBoundException;
 
-    String getUsername() throws RemoteException;
+    String getUsername();
 
-    void leaveSudoku();
+    void leaveSudoku() throws RemoteException;
 
     void selectCell(Point2d cellPosition) throws RemoteException;
 
-    void updateCellNumber(Point2d cellPosition, int number);
+    void updateCellNumber(Point2d cellPosition, int number) throws RemoteException;
 
     void setView(SudokuView view);
 
-    void deselectCell(Point2d cellPosition) throws RemoteException;
 }

@@ -9,24 +9,21 @@ import javax.swing.*;
 import java.awt.*;
 
 import javax.swing.border.Border;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.rmi.RemoteException;
 
 public class GridView extends JFrame implements Changeable {
 
     private final Font numberFont = new Font("Arial", Font.BOLD, 20);
     private final JTextField[][] cells;
-    private JLabel usernameLabel = new JLabel();
+    private final JLabel usernameLabel = new JLabel();
     private final JButton back = new JButton("< - Back");
 
     private final Controller controller;
     private Runnable changeScreen = () -> {};
     private boolean initialized;
 
-    public GridView(Controller controller) throws RemoteException {
+    public GridView(Controller controller) {
         this.controller = controller;
         this.cells = new JTextField[9][9];
         this.build();
@@ -93,7 +90,11 @@ public class GridView extends JFrame implements Changeable {
                 if (!((c >= '1' && c <= '9') || c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE)) {
                     e.consume();
                 }else{
-                    controller.updateCellNumber(cellPosition, Character.getNumericValue(c));
+                    try {
+                        controller.updateCellNumber(cellPosition, Character.getNumericValue(c));
+                    } catch (RemoteException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
             }
         });
@@ -112,11 +113,7 @@ public class GridView extends JFrame implements Changeable {
 
             @Override
             public void focusLost(FocusEvent e) {
-                try {
-                    controller.deselectCell(cellPosition);
-                } catch (RemoteException ex) {
-                    throw new RuntimeException(ex);
-                }
+                //nothing to do
             }
         });
     }
@@ -128,7 +125,11 @@ public class GridView extends JFrame implements Changeable {
     private void attachListener(){
         this.back.addActionListener(e -> {
             this.initialized = false;
-            this.controller.leaveSudoku();
+            try {
+                this.controller.leaveSudoku();
+            } catch (RemoteException ex) {
+                throw new RuntimeException(ex);
+            }
             this.changeScreen.run();
         });
     }
@@ -145,18 +146,13 @@ public class GridView extends JFrame implements Changeable {
 
     public void update(SudokuGrid grid) {
         SwingUtilities.invokeLater(() -> {
-            if(!initialized){
-                try {
-                    this.usernameLabel = new JLabel("Username: " + controller.getUsername());
-                } catch (RemoteException e) {
-                    throw new RuntimeException(e);
-                }
-                initialized = true;
+            if(!this.initialized){
+                this.usernameLabel.setText("Username: " + controller.getUsername());
+                this.initialized = true;
                 grid.cells().forEach(this::initCell);
             }
             grid.cells().forEach(this::updateCell);
         });
-        //TODO maybe a this.repaint() is needed
     }
 
     private void updateCell(Cell cell) {
