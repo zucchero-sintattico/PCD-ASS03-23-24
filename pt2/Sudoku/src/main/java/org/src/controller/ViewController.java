@@ -28,6 +28,7 @@ public class ViewController {
     private final Connection connection;
     private LogicsImpl logics;
     private Grid grid;
+    private GridController gridController;
     private final AtomicReference<GridView> gridView = new AtomicReference<>();
     private final AtomicBoolean viewIsSet = new AtomicBoolean(false);
 
@@ -36,6 +37,10 @@ public class ViewController {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
         this.connection = factory.newConnection();
+    }
+
+    public void setGridListener(GridController gridController){
+        this.gridController = gridController;
     }
 
     private void createChannel() throws IOException {
@@ -51,7 +56,9 @@ public class ViewController {
         //Generate grid id
         this.gridId = this.generateNewGridId();
         this.setupChannel();
-        this.gridView.set(new GridView(logics, user, gridId, grid));
+        if(this.gridController != null){
+            this.gridController.onGridReady(this.logics, this.user, this.gridId, this.grid);
+        }
         this.viewIsSet.set(true);
     }
 
@@ -87,16 +94,33 @@ public class ViewController {
                 this.logics.pull(this.grid, new String(delivery.getBody()));
 
                 if(!this.viewIsSet.get()){
-                    this.gridView.set(new GridView(this.logics, this.user, this.gridId, this.grid));
+                    this.gridController.onGridReady(this.logics, this.user, this.gridId, this.grid);
                     this.viewIsSet.set(true);
                 }
             }
+
             if(this.viewIsSet.get()){
-                this.gridView.get().updateGridView();
+                this.gridController.updateGrid(this.grid);
             }
             System.out.println(new String(delivery.getBody()));
-        };
 
+            /*
+            String routingKey = delivery.getEnvelope().getRoutingKey();
+            String message = new String(delivery.getBody());
+
+            if (routingKey.equals(MessageTopic.NEW_USER_JOINED.getTopic())) {
+                this.logics.push(this.grid);
+            }
+
+            if (routingKey.equals(MessageTopic.UPDATE_GRID.getTopic())) {
+                this.logics.pull(this.grid, message);
+                this.gridController.updateGrid(this.grid);
+            }
+
+            System.out.println(message);
+
+             */
+        };
         this.channel.basicConsume(this.queueName, true, deliverCallback, consumerTag -> {});
     }
 }

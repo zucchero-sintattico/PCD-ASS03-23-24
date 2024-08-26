@@ -15,8 +15,10 @@ public class Login extends JFrame {
     private final JLabel label = new JLabel("Insert username");
     private final JTextField username = new JTextField(15);
     private final JButton login = new JButton("Login");
+    private final ScreenManager screenManager;
 
-    public Login(){
+    public Login(ScreenManager screenManager){
+        this.screenManager = screenManager;
         this.buildFrame();
         this.buildComponents();
         this.addComponentsInFrame();
@@ -51,7 +53,7 @@ public class Login extends JFrame {
     }
 
     private void spawnFrameAtCenter(){
-        this.setLocation(Utils.computeCenteredXDimension(this.getWidth()), Utils.computeCenteredYDimension(this.getHeight()));
+        this.setLocationRelativeTo(null);
     }
 
     private void buildFrame() {
@@ -68,20 +70,11 @@ public class Login extends JFrame {
 
     private void attachListener(){
         this.login.addActionListener(e -> {
-            if(Objects.equals(this.username.getText(), "")){
-                Utils.showErrorMessage(this, "Invalid Username", "Username Problem");
+            if(this.username.getText() != ""){
+                this.screenManager.switchScreen("menu");
+                Utils.setUsername(this.username.getText());
             }else{
-                Utils.setUsername(username.getText());
-                this.dispose();
-                Menu menu = null;
-                try {
-                    menu = new Menu();
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                } catch (TimeoutException ex) {
-                    throw new RuntimeException(ex);
-                }
-                SwingUtilities.invokeLater(menu::display);
+                Utils.showErrorMessage(this, "Username Invalid", "This username isn't valid");
             }
         });
     }
