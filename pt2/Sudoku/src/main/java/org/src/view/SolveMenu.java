@@ -18,8 +18,10 @@ public class SolveMenu extends JFrame {
     private final JTextField sessionId = new JTextField(15);
     private final JButton joinSession = new JButton("Join session");
     private final ViewController viewController;
+    private final ScreenManager screenManager;
 
-    public SolveMenu() throws IOException, TimeoutException {
+    public SolveMenu(ScreenManager screenManager) throws IOException, TimeoutException {
+        this.screenManager = screenManager;
         this.viewController = new ViewController(Utils.getUsername());
         this.buildFrame();
         this.buildComponents();
@@ -55,7 +57,7 @@ public class SolveMenu extends JFrame {
     }
 
     private void spawnFrameAtCenter(){
-        this.setLocation(Utils.computeCenteredXDimension(this.getWidth()), Utils.computeCenteredYDimension(this.getHeight()));
+        this.setLocationRelativeTo(null);
     }
 
     private void buildFrame() {
@@ -76,11 +78,14 @@ public class SolveMenu extends JFrame {
                 Utils.showErrorMessage(this, "Invalid Session ID", "Session Problem");
             }else{
                 try {
+                    SudokuGridView view = new SudokuGridView(this.screenManager);
+                    this.viewController.setGridListener(view);
                     this.viewController.joinInGrid(this.sessionId.getText());
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
+                } catch (TimeoutException ex) {
+                    throw new RuntimeException(ex);
                 }
-                this.dispose();
             }
         });
     }

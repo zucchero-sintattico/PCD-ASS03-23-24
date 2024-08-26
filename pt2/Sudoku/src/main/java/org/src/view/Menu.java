@@ -16,8 +16,10 @@ public class Menu extends JFrame{
     private final JPanel panel = new JPanel();
     private final JLabel title = new JLabel("Sudoku Game", SwingConstants.CENTER);
     private ViewController viewController;
+    private final ScreenManager screenManager;
 
-    public Menu() throws IOException, TimeoutException {
+    public Menu(ScreenManager screenManager) throws IOException, TimeoutException {
+        this.screenManager = screenManager;
         this.viewController = new ViewController(Utils.getUsername());
         this.buildFrame();
         this.buildComponents();
@@ -36,7 +38,7 @@ public class Menu extends JFrame{
     }
 
     private void spawnFrameAtCenter(){
-        this.setLocation(Utils.computeCenteredXDimension(this.getWidth()), Utils.computeCenteredYDimension(this.getHeight()));
+        this.setLocationRelativeTo(null);
     }
 
     private void buildComponents(){
@@ -68,31 +70,24 @@ public class Menu extends JFrame{
 
     private void attachListener(){
         this.changeNickName.addActionListener(e -> {
-            this.dispose();
-            Login login = new Login();
-            SwingUtilities.invokeLater(login::display);
+            this.screenManager.switchScreen("login");
         });
 
         this.newGame.addActionListener(e -> {
             try {
+                SudokuGridView view = new SudokuGridView(this.screenManager);
+                this.viewController.setGridListener(view);
                 this.viewController.startNewGame();
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
-            this.dispose();
-        });
-
-        this.resolve.addActionListener(e -> {
-            this.dispose();
-            SolveMenu solveMenu = null;
-            try {
-                solveMenu = new SolveMenu();
+                this.dispose();
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             } catch (TimeoutException ex) {
                 throw new RuntimeException(ex);
             }
-            SwingUtilities.invokeLater(solveMenu::display);
+        });
+
+        this.resolve.addActionListener(e -> {
+            this.screenManager.switchScreen("solveMenu");
         });
     }
 
@@ -145,11 +140,4 @@ public class Menu extends JFrame{
         this.add(this.panel);
     }
 
-    public void display(){
-        this.setVisible(true);
-    }
-
-    public void setViewController(ViewController viewController) {
-        this.viewController = viewController;
-    }
 }

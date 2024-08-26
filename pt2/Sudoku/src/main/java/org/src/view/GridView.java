@@ -54,15 +54,31 @@ public class GridView extends JFrame {
 
         //Listener to come back
         this.returnBack.addActionListener(e -> {
-            Menu menu = null;
+            ScreenManager screenManager = new ScreenManager();
+
+            JFrame login = new Login(screenManager);
+            JFrame menu = null;
             try {
-                menu = new Menu();
+                menu = new Menu(screenManager);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             } catch (TimeoutException ex) {
                 throw new RuntimeException(ex);
             }
-            SwingUtilities.invokeLater(menu::display);
+            JFrame solveMenu = null;
+            try {
+                solveMenu = new SolveMenu(screenManager);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            } catch (TimeoutException ex) {
+                throw new RuntimeException(ex);
+            }
+
+            screenManager.addScreen("login", login);
+            screenManager.addScreen("menu", menu);
+            screenManager.addScreen("solveMenu", solveMenu);
+
+            screenManager.switchScreen("menu");
             this.dispose();
         });
 
@@ -135,6 +151,7 @@ public class GridView extends JFrame {
 
         this.add(gridPanel, BorderLayout.CENTER);
         this.setSize(600, 600);
+        this.setLocationRelativeTo(null);
         this.setVisible(true);
     }
 
