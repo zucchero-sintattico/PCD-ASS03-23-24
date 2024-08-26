@@ -32,6 +32,12 @@ public class GridView extends JFrame implements Changeable {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
+    @Override
+    public void setVisible(boolean b) {
+        super.setVisible(b);
+        this.requestFocus();
+    }
+
     public void build(){
         this.setSize(600, 600);
         this.setLayout(new BorderLayout());
