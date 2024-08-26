@@ -193,7 +193,6 @@ public class GridImpl implements Grid {
             if (cellObject.has("number")) {
                 number = cellObject.get("number").isJsonNull() ? null : cellObject.get("number").getAsInt();
             }
-            List<Cell> newCellList= new ArrayList<>();
             for (Cell c : grid.getCells()) {
                 if(c.getPosition().x() == x && c.getPosition().y() == y){
                     if (selected != null){
@@ -206,9 +205,7 @@ public class GridImpl implements Grid {
                         c.setNumber(number);
                     }
                 }
-                newCellList.add(c);
             }
-            grid.updateGrid(newCellList);
         }
         return grid;
     }

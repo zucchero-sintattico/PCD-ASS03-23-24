@@ -40,7 +40,6 @@ public class Main {
         String queueName = channel.queueDeclare().getQueue();
 
         // Bind the queue to the exchange with the appropriate binding keys
-        channel.queueBind(queueName, gridId, MessageTopic.NEW_USER_JOINED.getTopic());
         channel.queueBind(queueName, gridId, MessageTopic.UPDATE_GRID.getTopic());
         channel.queueBind(queueName, gridId, MessageTopic.USER_LEFT.getTopic());
 
@@ -56,19 +55,19 @@ public class Main {
         }else{
             gridView.set(new GridView(logics, user, gridId, grid));
             viewIsSet.set(true);
+            channel.queueBind(queueName, gridId, MessageTopic.NEW_USER_JOINED.getTopic());
         }
 
         DeliverCallback deliverCallback = (consumerTag, delivery) -> {
             if(delivery.getEnvelope().getRoutingKey().equals(MessageTopic.NEW_USER_JOINED.getTopic())){
-                if(viewIsSet.get()){
                     logics.push(grid);
-                }
             }
 
             if (delivery.getEnvelope().getRoutingKey().equals(MessageTopic.UPDATE_GRID.getTopic())){
                 logics.pull(grid, new String(delivery.getBody()));
 
                 if(!viewIsSet.get()){
+                    channel.queueBind(queueName, gridId, MessageTopic.NEW_USER_JOINED.getTopic());
                     gridView.set(new GridView(logics, user, gridId, grid));
                     viewIsSet.set(true);
                 }
