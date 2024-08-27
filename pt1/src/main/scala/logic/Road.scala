@@ -126,10 +126,9 @@ object Road:
     CarPerception(car.carRecord.position, findNearestCarInFront(car, cars), findNearestTrafficLightInFront(car, trafficLights))
 
   private def findNearestCarInFront(car: CarRecord, cars: List[CarRecord]): Option[Car] =
-    val crs = cars.map(_.carRecord)
+    cars.map(_.carRecord)
       .filter(otherCar => otherCar.position > car.carRecord.position && otherCar.position - car.carRecord.position <= carDetectionRange)
       .sortBy(_.position).headOption
-    crs
 
   private def findNearestTrafficLightInFront(car: CarRecord, trafficLights: List[TrafficLightRecord]): Option[TrafficLight] =
     val tls = trafficLights.map(_.trafficLightRecord)

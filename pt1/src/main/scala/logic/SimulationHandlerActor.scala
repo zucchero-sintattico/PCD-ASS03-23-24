@@ -24,7 +24,7 @@ object SimulationHandlerActor:
         for v <- view do viewListenerRelayActor ! ViewListenerRelayActor.Add(v)
         val roadsBuildData = simulationType.simulationSetup
         val simulation = delayOpt match
-          case Some(delay) => context.spawnAnonymous(SimulationActor(dt, numSteps, delay, roadsBuildData, viewListenerRelayActor)) //todo check name conflict
+          case Some(delay) => context.spawn(SimulationActor(dt, numSteps, delay, roadsBuildData, viewListenerRelayActor), "simulationActor")
           case _ =>context.spawnAnonymous(SimulationActor(dt, numSteps, simulationType.simulationSetup, viewListenerRelayActor))
         context.watchWith(simulation, EndSimulation)
         viewListenerRelayActor ! ViewListenerRelayActor.Init(0, roadsBuildData.flatMap(_.cars))
@@ -50,7 +50,7 @@ case class SimulationHandlerActor(simulation: ActorRef[SimulationActor.Command],
   private def awaitSimulationTermination: Behavior[Command] =
     Behaviors.receivePartial { (context, message) => message match
       case EndSimulation =>
-        viewListenerRelayActor ! ViewListenerRelayActor.SimulationEnded((System.currentTimeMillis() - startTime).toInt) //todo is needed here?
+        viewListenerRelayActor ! ViewListenerRelayActor.SimulationEnded((System.currentTimeMillis() - startTime).toInt)
         SimulationHandlerActor(viewListenerRelayActor, viewToDispose)
     }
 

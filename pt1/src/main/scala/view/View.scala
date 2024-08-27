@@ -19,7 +19,6 @@ object ViewListenerRelayActor:
   final case class SimulationEnded(simulationDuration: Int) extends Command
   final case class Stat(averageSpeed: Double) extends Command
   def apply(): Behavior[Command] = ViewListenerRelayActor(List())
-  //todo improve QoS for Add and Remove replyingTo requester
   def apply(views: List[SimulationListener]): Behavior[Command] =
     Behaviors.receiveMessage {
       case Add(sl) =>

@@ -51,6 +51,7 @@ case class RoadSimView() extends JFrame("RoadSim View") with DisposableSimulatio
           case TrafficLightState.YELLOW => g.setColor(Color.YELLOW)
           case TrafficLightState.RED => g.setColor(Color.RED)
         g2.fillRect((tl.trafficLightPositionInfo.position.x-5).toInt, (tl.trafficLightPositionInfo.position.y-5).toInt, 10, 10);
+      g.setColor(Color.BLACK)
       for c <- cars do
         val pos = c.position
         val r = c.road

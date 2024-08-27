@@ -28,7 +28,7 @@ case class MoveForward(distance: Double) extends Action
 
 case class CarAgentConfiguration(acceleration: Double, deceleration: Double, maxSpeed: Double)
 
-case class CarPerception(roadPosition: Double, nearestCarInFront: Option[Car], nearestTrafficLight: Option[TrafficLight])
+case class CarPerception(roadPosition: Double, nearestCarInFront: Option[Car], nearestTrafficLightInFront: Option[TrafficLight])
 
 trait Car:
   val carNearDist = 15
@@ -81,9 +81,9 @@ enum ExtendedCarAgentState:
 case class ExtendedCarAgent(agentID: String, position: Double, road: Road, configuration: CarAgentConfiguration, selectedAction: Option[Action] = None, speed: Double = 0, private val state: ExtendedCarAgentState = ExtendedCarAgentState.STOPPED, private val waitingTime: Int = 0) extends Car:
   override def decide(dt: Int, carPerception: CarPerception): Car =
     val detectedNearCar = carPerception.nearestCarInFront.isDefined && ((carPerception.nearestCarInFront.get.position - carPerception.roadPosition) < carNearDist)
-    val detectedRedOrYellowNearTrafficLights = carPerception.nearestTrafficLight.isDefined && carPerception.nearestTrafficLight.get.state != TrafficLightState.GREEN && carPerception.nearestTrafficLight.get.trafficLightPositionInfo.roadPosition - carPerception.roadPosition < semNearDist && carPerception.nearestTrafficLight.get.trafficLightPositionInfo.roadPosition - carPerception.roadPosition > 0 //todo is > 0 needed?? i think no because perception find tl in front
+    val detectedRedOrYellowNearTrafficLights = carPerception.nearestTrafficLightInFront.isDefined && carPerception.nearestTrafficLightInFront.get.state != TrafficLightState.GREEN && carPerception.nearestTrafficLightInFront.get.trafficLightPositionInfo.roadPosition - carPerception.roadPosition < semNearDist
     val carFarEnough = carPerception.nearestCarInFront.isDefined && ((carPerception.nearestCarInFront.get.position - carPerception.roadPosition) > carFarEnoughDist)
-    val detectedGreenTrafficLights = carPerception.nearestTrafficLight.isDefined && carPerception.nearestTrafficLight.get.state == TrafficLightState.GREEN
+    val detectedGreenTrafficLights = carPerception.nearestTrafficLightInFront.isDefined && carPerception.nearestTrafficLightInFront.get.state == TrafficLightState.GREEN
     var car = this
     state match
       case ExtendedCarAgentState.STOPPED => if !detectedNearCar then car = car.copy(state = ExtendedCarAgentState.ACCELERATING)
