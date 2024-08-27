@@ -18,7 +18,9 @@ public interface Controller {
 
     void selectCell(Point2d cellPosition) throws RemoteException;
 
-    void updateCellNumber(Point2d cellPosition, int number) throws RemoteException;
+    void updateCellNumber(Point2d cellPosition, int number) throws RemoteException, IllegalArgumentException;
+
+    void removeCellNumber(Point2d cellPosition) throws RemoteException;
 
     void setView(SudokuView view);
 

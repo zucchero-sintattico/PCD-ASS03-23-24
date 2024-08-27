@@ -35,6 +35,10 @@ public class GridView extends JFrame implements Changeable {
     @Override
     public void setVisible(boolean b) {
         super.setVisible(b);
+        this.moveFocusToFrame();
+    }
+
+    private void moveFocusToFrame(){
         this.requestFocus();
     }
 
@@ -93,14 +97,30 @@ public class GridView extends JFrame implements Changeable {
             @Override
             public void keyTyped(KeyEvent e) {
                 char c = e.getKeyChar();
-                if (!((c >= '1' && c <= '9') || c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE)) {
-                    e.consume();
-                }else{
+                System.out.println(c == KeyEvent.VK_BACK_SPACE);
+                System.out.println(c == KeyEvent.VK_DELETE);
+                if (c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE){
+                    if(cellRender.getText().isEmpty()){
+                        try {
+                            controller.removeCellNumber(cellPosition);
+                            moveFocusToFrame();
+                        } catch (RemoteException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }else{
+                        e.consume();
+                    }
+                } else if (c >= '1' && c <= '9') {
                     try {
                         controller.updateCellNumber(cellPosition, Character.getNumericValue(c));
+                        moveFocusToFrame();
                     } catch (RemoteException ex) {
                         throw new RuntimeException(ex);
+                    } catch (IllegalArgumentException ex) {
+                        e.consume();
                     }
+                }else{
+                    e.consume();
                 }
             }
         });

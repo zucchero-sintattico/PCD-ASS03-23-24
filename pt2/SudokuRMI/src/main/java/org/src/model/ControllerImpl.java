@@ -6,7 +6,6 @@ import org.src.model.remoteSudoku.RemoteSudokuImpl;
 import org.src.model.remoteClient.RemoteClient;
 import org.src.model.remoteClient.RemoteClientImpl;
 import org.src.view.SudokuView;
-import org.src.view.SudokuViewImpl;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -62,8 +61,13 @@ public class ControllerImpl implements Controller {
     }
 
     @Override
-    public void updateCellNumber(Point2d cellPosition, int number) throws RemoteException {
-        this.remoteSudoku.updateCell(this.getUsername(), cellPosition, number);
+    public void updateCellNumber(Point2d cellPosition, int number) throws RemoteException, IllegalArgumentException {
+        this.remoteSudoku.updateCellNumber(this.getUsername(), cellPosition, number);
+    }
+
+    @Override
+    public void removeCellNumber(Point2d cellPosition) throws RemoteException {
+        this.remoteSudoku.removeCellNumber(this.getUsername(), cellPosition);
     }
 
     @Override

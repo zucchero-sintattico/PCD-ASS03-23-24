@@ -2,7 +2,6 @@ package org.src.model.remoteSudoku;
 
 
 import org.src.common.Point2d;
-import org.src.model.grid.SudokuGrid;
 
 
 import java.rmi.NotBoundException;
@@ -17,6 +16,7 @@ public interface RemoteSudoku extends Remote {
 
     void selectCell(String userId, Point2d position) throws RemoteException;
 
-    void updateCell(String userId, Point2d position, int number) throws RemoteException;
+    void updateCellNumber(String userId, Point2d position, int number) throws RemoteException, IllegalArgumentException;
 
+    void removeCellNumber(String username, Point2d position) throws RemoteException;
 }

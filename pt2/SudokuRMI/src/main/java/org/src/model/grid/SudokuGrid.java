@@ -1,8 +1,6 @@
 package org.src.model.grid;
 
-import org.src.common.Point2d;
 import org.src.model.grid.cell.Cell;
-
 import java.util.List;
 
 public class SudokuGrid implements Grid {
@@ -10,23 +8,8 @@ public class SudokuGrid implements Grid {
     private final Grid sudokuGrid;
 
     public SudokuGrid(List<Cell> grid) throws IllegalArgumentException {
-        if (!this.validateInput(grid)) {
-            throw new IllegalArgumentException("Invalid input");
-        }
+        if (!SudokuFactory.validateSudoku(grid)) throw new IllegalArgumentException("Invalid input");
         this.sudokuGrid = new GridImpl(grid);
-    }
-
-    private boolean validateInput(List<Cell> grid) throws IllegalArgumentException {
-        for (int i = 0; i < SudokuFactory.GRID_SIZE; i++) {
-            for (int j = 0; j < SudokuFactory.GRID_SIZE; j++) {
-                Point2d position = new Point2d(i, j);
-                long numberOfCellsAtPosition = grid.stream().filter(cell -> cell.position().equals(position)).count();
-                if(numberOfCellsAtPosition != 1){
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 
     @Override
@@ -67,4 +50,5 @@ public class SudokuGrid implements Grid {
             }
         });
     }
+
 }
