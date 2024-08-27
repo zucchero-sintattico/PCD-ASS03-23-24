@@ -17,12 +17,11 @@ public class SolveMenu extends JFrame {
     private final JLabel label = new JLabel("Insert session id");
     private final JTextField sessionId = new JTextField(15);
     private final JButton joinSession = new JButton("Join session");
-    private final ViewController viewController;
+    private ViewController viewController;
     private final ScreenManager screenManager;
 
     public SolveMenu(ScreenManager screenManager) throws IOException, TimeoutException {
         this.screenManager = screenManager;
-        this.viewController = new ViewController(Utils.getUsername());
         this.buildFrame();
         this.buildComponents();
         this.addComponentsInFrame();
@@ -68,10 +67,6 @@ public class SolveMenu extends JFrame {
         this.setResizable(false);
     }
 
-    public void display(){
-        this.setVisible(true);
-    }
-
     private void attachListener(){
         this.joinSession.addActionListener(e -> {
             if(Objects.equals(this.sessionId.getText(), "")){
@@ -79,11 +74,10 @@ public class SolveMenu extends JFrame {
             }else{
                 try {
                     SudokuGridView view = new SudokuGridView(this.screenManager);
+                    this.viewController = new ViewController(Utils.getUsername());
                     this.viewController.setGridListener(view);
                     this.viewController.joinInGrid(this.sessionId.getText());
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                } catch (TimeoutException ex) {
+                } catch (IOException | TimeoutException ex) {
                     throw new RuntimeException(ex);
                 }
             }

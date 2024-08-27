@@ -8,12 +8,6 @@ import java.util.concurrent.TimeoutException;
 public class MainGUI {
 
     public static void main(String[] args) throws IOException, TimeoutException {
-        /*
-        SwingUtilities.invokeLater(() -> {
-            Login login = new Login();
-            login.display();
-        });
-         */
         ScreenManager screenManager = new ScreenManager();
 
         JFrame login = new Login(screenManager);

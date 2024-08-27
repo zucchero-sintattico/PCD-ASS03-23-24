@@ -20,7 +20,6 @@ public class Menu extends JFrame{
 
     public Menu(ScreenManager screenManager) throws IOException, TimeoutException {
         this.screenManager = screenManager;
-        this.viewController = new ViewController(Utils.getUsername());
         this.buildFrame();
         this.buildComponents();
         this.addComponentsInFrame();
@@ -76,6 +75,7 @@ public class Menu extends JFrame{
         this.newGame.addActionListener(e -> {
             try {
                 SudokuGridView view = new SudokuGridView(this.screenManager);
+                this.viewController = new ViewController(Utils.getUsername());
                 this.viewController.setGridListener(view);
                 this.viewController.startNewGame();
                 this.dispose();

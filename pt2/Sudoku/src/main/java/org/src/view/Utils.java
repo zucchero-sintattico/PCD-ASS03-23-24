@@ -17,6 +17,7 @@ public class Utils {
 
     public static void setUsername(String nickname){
         username = nickname;
+        System.out.println("Username: " + nickname);
     }
 
     public static String getUsername(){

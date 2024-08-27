@@ -34,6 +34,7 @@ public class ViewController {
 
     public ViewController(String userId) throws IOException, TimeoutException {
         this.user = new UserImpl(userId);
+        System.out.println("User in controller: " + this.user.getName());
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
         this.connection = factory.newConnection();

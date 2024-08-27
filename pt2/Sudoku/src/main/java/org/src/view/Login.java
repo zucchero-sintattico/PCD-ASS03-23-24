@@ -6,9 +6,6 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import java.awt.*;
-import java.io.IOException;
-import java.util.Objects;
-import java.util.concurrent.TimeoutException;
 
 public class Login extends JFrame {
 
@@ -64,13 +61,9 @@ public class Login extends JFrame {
         this.setResizable(false);
     }
 
-    public void display(){
-        this.setVisible(true);
-    }
-
     private void attachListener(){
         this.login.addActionListener(e -> {
-            if(this.username.getText() != ""){
+            if(!this.username.getText().isEmpty()){
                 this.screenManager.switchScreen("menu");
                 Utils.setUsername(this.username.getText());
             }else{
