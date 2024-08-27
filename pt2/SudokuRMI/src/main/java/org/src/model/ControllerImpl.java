@@ -1,6 +1,8 @@
 package org.src.model;
 
+import org.src.RunRegistrationService;
 import org.src.common.Point2d;
+import org.src.model.registrationService.RegistrationService;
 import org.src.model.remoteSudoku.RemoteSudoku;
 import org.src.model.remoteSudoku.RemoteSudokuImpl;
 import org.src.model.remoteClient.RemoteClient;
@@ -18,15 +20,17 @@ public class ControllerImpl implements Controller {
     private String username;
     private SudokuView view;
     private RemoteSudoku remoteSudoku;
-    private final Registry registry =  LocateRegistry.getRegistry();
+    private final Registry registry;
+    private final RegistrationService registrationService;
 
-    public ControllerImpl() throws RemoteException {}
+    public ControllerImpl() throws RemoteException, NotBoundException {
+        this.registry = LocateRegistry.getRegistry();
+        this.registrationService = (RegistrationService) registry.lookup(RunRegistrationService.REGISTRATION_SERVICE_NAME);
+    }
 
     @Override
     public void createSudoku(String username, String sudokuId) throws RemoteException, NotBoundException {
-        RemoteSudoku sudoku = new RemoteSudokuImpl();
-        RemoteSudoku sudokuStub = (RemoteSudoku) UnicastRemoteObject.exportObject(sudoku, 0);
-        registry.rebind(sudokuId, sudokuStub);
+        this.registrationService.registerSudoku(sudokuId);
         this.joinSudoku(username, sudokuId);
     }
 
