@@ -4,7 +4,6 @@ import org.src.model.Controller;
 import org.src.model.grid.SudokuGrid;
 
 import javax.swing.*;
-import java.rmi.RemoteException;
 
 public class SudokuViewImpl implements SudokuView {
 
@@ -14,7 +13,7 @@ public class SudokuViewImpl implements SudokuView {
 
     private JFrame currentScreen;
 
-    public SudokuViewImpl(Controller controller) throws RemoteException {
+    public SudokuViewImpl(Controller controller) {
         this.controller = controller;
         this.menu = new Menu(this.controller);
         this.gridView = new GridView(this.controller);

@@ -10,9 +10,7 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class RemoteSudokuImpl implements RemoteSudoku {
@@ -35,15 +33,6 @@ public class RemoteSudokuImpl implements RemoteSudoku {
         this.clients.remove(username);
         this.removeSelection(username);
         this.sendUpdate();
-    }
-
-    private void removeSelection(String username) {
-        this.grid = SudokuFactory.createGrid(this.grid.cells().stream().map(cell -> {
-            if (cell.user().isPresent() && cell.user().get().name().equals(username)) {
-                return cell.removeUser();
-            }
-            return cell;
-        }).toList());
     }
 
     @Override
@@ -69,6 +58,15 @@ public class RemoteSudokuImpl implements RemoteSudoku {
             return cell;
         }).toList());
         this.sendUpdate();
+    }
+
+    private void removeSelection(String username) {
+        this.grid = SudokuFactory.createGrid(this.grid.cells().stream().map(cell -> {
+            if (cell.user().isPresent() && cell.user().get().name().equals(username)) {
+                return cell.removeUser();
+            }
+            return cell;
+        }).toList());
     }
 
     private void sendUpdate() {

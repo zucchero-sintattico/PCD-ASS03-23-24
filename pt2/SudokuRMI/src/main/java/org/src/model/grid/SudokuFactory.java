@@ -17,7 +17,7 @@ public class SudokuFactory {
     private static final int NUMBER_TO_REMOVE = 40;
 
     public static SudokuGrid createGrid(List<Cell> cells) throws IllegalArgumentException {
-        return new SudokuGrid(cells);
+        return new SudokuGridImpl(cells);
     }
 
     public static SudokuGrid createGrid() {

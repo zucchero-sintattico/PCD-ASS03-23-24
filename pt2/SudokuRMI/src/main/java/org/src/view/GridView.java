@@ -3,8 +3,8 @@ package org.src.view;
 import org.src.model.Controller;
 import org.src.common.Point2d;
 import org.src.model.grid.SudokuFactory;
-import org.src.model.grid.cell.Cell;
 import org.src.model.grid.SudokuGrid;
+import org.src.model.grid.cell.Cell;
 
 import javax.swing.*;
 import java.awt.*;
@@ -171,11 +171,15 @@ public class GridView extends JFrame implements Changeable {
                 grid.cells().forEach(this::initCell);
             }
             grid.cells().forEach(this::updateCell);
+            if(grid.won()){
+                grid.cells().forEach(cell -> getCellRender(cell).setEnabled(false));
+                JOptionPane.showMessageDialog(this, "You won!");
+            }
         });
     }
 
     private void updateCell(Cell cell) {
-        JTextField cellRender = this.cells[cell.position().x()][cell.position().y()];
+        JTextField cellRender = getCellRender(cell);
 
         Color background = Color.WHITE;
         if(cell.immutable()){
@@ -188,6 +192,10 @@ public class GridView extends JFrame implements Changeable {
 
         cellRender.setBackground(background);
         cellRender.setText(number);
+    }
+
+    private JTextField getCellRender(Cell cell){
+        return this.cells[cell.position().x()][cell.position().y()];
     }
 
 }
