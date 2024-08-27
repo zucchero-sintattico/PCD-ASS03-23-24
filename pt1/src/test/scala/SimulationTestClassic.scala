@@ -27,7 +27,7 @@ class SimulationTestClassic:
     def apply(simulationDone: CompletableFuture[Unit], dt: Int, step: Int, st: SimulationType): Behavior[NotUsed] =
       Behaviors.setup { context =>
         val controlView = new SimulationListener():
-          override def notifyInit(t: Int, agents: List[Car]): Unit = {}
+          override def notifyInit(): Unit = {}
           override def notifyStepDone(t: Int, roads: List[Road], agents: List[Car], trafficLights: List[TrafficLight]): Unit = {}
           override def notifySimulationEnded(simulationDuration: Int): Unit =
             simulationDone.complete(())

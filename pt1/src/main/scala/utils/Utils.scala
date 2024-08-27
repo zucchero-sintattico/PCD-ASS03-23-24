@@ -15,9 +15,3 @@ case class Vector2D(x: Double, y: Double):
     Vector2D(x / module, y / module)
 
   def mul(fact: Double): Vector2D = Vector2D(x * fact, y * fact)
-
-
-
-
-
-

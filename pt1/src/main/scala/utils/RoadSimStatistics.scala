@@ -17,7 +17,9 @@ case class RoadSimStatistics(consoleLog: Boolean = false) extends SimulationList
 
   override def notifySimulationEnded(simulationDuration: Int): Unit = {}
 
-  override def notifyStat(averageSpeed: Double): Unit = log("average speed: " + averageSpeed)
+  override def notifyStat(averageSpeed: Double): Unit =
+    _averageSpeed = averageSpeed
+    log("average speed: " + averageSpeed)
 
   def averageSpeed: Double = _averageSpeed
 
