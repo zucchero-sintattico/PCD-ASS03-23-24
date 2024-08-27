@@ -59,7 +59,11 @@ public class ControllerImpl implements Controller {
         RemoteClient remoteClient = new RemoteClientImpl(updateHandle);
         RemoteClient clientStub = (RemoteClient) UnicastRemoteObject.exportObject(remoteClient, 0);
         registry.rebind(username, clientStub);
-        this.remoteSudoku = (RemoteSudoku) registry.lookup(sudokuId);
+        try {
+            this.remoteSudoku = (RemoteSudoku) registry.lookup(sudokuId);
+        } catch (NotBoundException e) {
+            throw new IllegalArgumentException("This sudoku doesn't exist");
+        }
         this.remoteSudoku.addUser(username);
     }
 
