@@ -1,8 +1,6 @@
 package server.remoteSudoku;
 
-
 import common.Point2d;
-
 
 import java.rmi.NotBoundException;
 import java.rmi.Remote;

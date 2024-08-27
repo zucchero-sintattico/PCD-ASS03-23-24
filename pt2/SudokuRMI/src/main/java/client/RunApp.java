@@ -8,7 +8,6 @@ import client.view.SudokuViewImpl;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 
-
 public class RunApp {
 
     public static void main(String[] args) throws RemoteException, NotBoundException {

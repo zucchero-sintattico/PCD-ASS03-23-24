@@ -50,7 +50,7 @@ public class ControllerImpl implements Controller {
 //        }
 //    }
 //
-//    For dynamic binding solution updateHandle could be bind to this.update(SudokuGrid grid)
+//    For dynamic binding solution updateHandle could be bind to this.update(SudokuGrid sudokuGrid)
 //    and both this::setView and this::update must be synchronized.
 //
 //    However, considering the current use case, it's ok also to leave this::setView not synchronized

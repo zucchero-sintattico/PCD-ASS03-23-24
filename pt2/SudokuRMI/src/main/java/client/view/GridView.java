@@ -13,7 +13,7 @@ import javax.swing.border.Border;
 import java.awt.event.*;
 import java.rmi.RemoteException;
 
-public class GridView extends JFrame implements Changeable, SudokuView {
+public class GridView extends JFrame implements Changeable {
 
     private final Font numberFont = new Font("Arial", Font.BOLD, 20);
     private final JTextField[][] cells;
@@ -67,11 +67,6 @@ public class GridView extends JFrame implements Changeable, SudokuView {
                 JOptionPane.showMessageDialog(this, "You won!");
             }
         });
-    }
-
-    @Override
-    public void display() {
-
     }
 
     private void moveFocusToFrame(){
