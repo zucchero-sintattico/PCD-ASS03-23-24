@@ -33,10 +33,10 @@ case class RoadActor(road: Road, trafficLightActors: List[ActorRef[TrafficLightA
             aggregateReplies = replies => ProcessStep(dt, replyTo)
           )
         )
-        askForTrafficLightsRecords
+        askForTrafficLightRecords
     }
 
-  private def askForTrafficLightsRecords: Behavior[Command] =
+  private def askForTrafficLightRecords: Behavior[Command] =
     Behaviors.receivePartial { (context, message) => message match
       case p: ProcessStep =>
         context.spawnAnonymous(
