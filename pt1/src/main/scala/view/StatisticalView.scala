@@ -23,7 +23,7 @@ import logic.*
 import logic.SimulationType
 import scala.concurrent.duration.DurationInt
 
-case class StatisticalView() extends JFrame with SimulationListener with Clickable:
+case class StatisticalView() extends JFrame("Car simulator") with SimulationListener with Clickable:
   private val defaultSize = 1000
   private val simulationDelta = 1
   private val delay = 100.milliseconds
@@ -76,11 +76,11 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
       )
     )
 
-  override def notifyInit(t: Int, agents: List[Car]): Unit =
+  override def notifyInit(): Unit =
     SwingUtilities.invokeLater(() => updateView("[Simulation]: START simulation"))
 
-  override def notifyStepDone(t: Int, roads: List[Road], agents: List[Car], trafficLights: List[TrafficLight]): Unit =
-    SwingUtilities.invokeLater(() => updateView("[STAT] Steps: " + t))
+  override def notifyStepDone(step: Int, roads: List[Road], agents: List[Car], trafficLights: List[TrafficLight]): Unit =
+    SwingUtilities.invokeLater(() => updateView("[STAT] Steps: " + step))
 
   override def notifySimulationEnded(simulationDuration: Int): Unit =
     SwingUtilities.invokeLater(() =>
@@ -97,7 +97,6 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
 
   private def setFrameProperties(): Unit =
     setLayout(new GridBagLayout)
-    setTitle("Car simulator")
     setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
     setSize(defaultSize, defaultSize)
     setLocationRelativeTo(null)
@@ -210,5 +209,3 @@ case class StatisticalView() extends JFrame with SimulationListener with Clickab
     buttonReset.setEnabled(false)
     buttonStart.setText("Start simulation")
     simulationStarted = false
-
-

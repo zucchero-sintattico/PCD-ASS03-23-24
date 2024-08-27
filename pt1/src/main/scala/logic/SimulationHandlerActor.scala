@@ -27,7 +27,7 @@ object SimulationHandlerActor:
           case Some(delay) => context.spawn(SimulationActor(dt, numSteps, delay, roadsBuildData, viewListenerRelayActor), "simulationActor")
           case _ =>context.spawnAnonymous(SimulationActor(dt, numSteps, simulationType.simulationSetup, viewListenerRelayActor))
         context.watchWith(simulation, EndSimulation)
-        viewListenerRelayActor ! ViewListenerRelayActor.Init(0, roadsBuildData.flatMap(_.cars))
+        viewListenerRelayActor ! ViewListenerRelayActor.Init
         simulation ! SimulationActor.Start
         SimulationHandlerActor(simulation, viewListenerRelayActor, view).simulationRunning
     )

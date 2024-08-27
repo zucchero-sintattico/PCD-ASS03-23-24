@@ -14,18 +14,16 @@ case class RoadSimView() extends JFrame("RoadSim View") with DisposableSimulatio
   private val panel: RoadSimViewPanel = RoadSimViewPanel(1500, 600)
   setSize(1500, 600)
   panel.setSize(1500, 600)
-  val cp = new JPanel
+  private val cp = new JPanel
   cp.setLayout(new BorderLayout)
   cp.add(BorderLayout.CENTER, panel)
   setContentPane(cp)
   setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
-  display()
+  setVisible(true)
 
-  def display(): Unit = SwingUtilities.invokeLater(() => setVisible(true))
+  override def notifyInit(): Unit = {}
 
-  override def notifyInit(t: Int, agents: List[Car]): Unit = {}
-
-  override def notifyStepDone(t: Int, roads: List[Road], cars: List[Car], tl: List[TrafficLight]): Unit = 
+  override def notifyStepDone(step: Int, roads: List[Road], cars: List[Car], tl: List[TrafficLight]): Unit = 
     SwingUtilities.invokeLater(() => panel.update(roads, cars, tl))
 
   override def notifySimulationEnded(simulationDuration: Int): Unit = {}
@@ -63,8 +61,3 @@ case class RoadSimView() extends JFrame("RoadSim View") with DisposableSimulatio
       this.cars = cars
       this.trafficLights = trafficLights
       repaint()
-
-
-
-
-

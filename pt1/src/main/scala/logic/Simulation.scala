@@ -90,6 +90,12 @@ case class SimulationActor[R](dt: Int, roadActors: List[ActorRef[RoadActor.Comma
     if (agents.nonEmpty) avSpeed /= agents.size
     avSpeed
 
+trait SimulationListener:
+  def notifyInit(): Unit
+  def notifyStepDone(step: Int, roads: List[Road], agents: List[Car], trafficLights: List[TrafficLight]): Unit
+  def notifySimulationEnded(simulationDuration: Int): Unit
+  def notifyStat(averageSpeed: Double): Unit
+    
 enum SimulationType:
   case SINGLE_ROAD_TWO_CAR,
   SINGLE_ROAD_SEVERAL_CARS,
@@ -105,11 +111,7 @@ object SimulationType:
     case SimulationType.CROSS_ROADS => SimulationExample.trafficSimulationWithCrossRoads
     case SimulationType.MASSIVE_SIMULATION => SimulationExample.trafficSimulationMassiveTest
 
-trait SimulationListener:
-  def notifyInit(t: Int, agents: List[Car]): Unit
-  def notifyStepDone(t: Int, roads: List[Road], agents: List[Car], trafficLights: List[TrafficLight]): Unit
-  def notifySimulationEnded(simulationDuration: Int): Unit
-  def notifyStat(averageSpeed: Double): Unit
+
 
 
 object SimulationExample:

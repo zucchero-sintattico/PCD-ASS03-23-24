@@ -9,11 +9,11 @@ case class RoadSimStatistics(consoleLog: Boolean = false) extends SimulationList
   private var _averageSpeed = .0
   private val path = Paths.get("log.txt")
 
-  override def notifyInit(t: Int, agents: List[Car]): Unit =
+  override def notifyInit(): Unit =
     if Files.exists(path) then Files.delete(path)
     _averageSpeed = 0
 
-  override def notifyStepDone(t: Int, roads: List[Road], agents: List[Car], trafficLights: List[TrafficLight]): Unit = {}
+  override def notifyStepDone(step: Int, roads: List[Road], agents: List[Car], trafficLights: List[TrafficLight]): Unit = {}
 
   override def notifySimulationEnded(simulationDuration: Int): Unit = {}
 
@@ -31,9 +31,3 @@ case class RoadSimStatistics(consoleLog: Boolean = false) extends SimulationList
         fw.close()
     catch
       case e: Exception => e.printStackTrace()
-
-
-
-
-
-
