@@ -49,7 +49,7 @@ func handleGame(playerChannels []chan Message, fanIn []reflect.SelectCase, numbe
 		default:
 			if !isOpen {
 				closedChannels[ch] = true
-			} //Todo handle channel closure better, in this way the only assurance is the fairness of the select
+			} //in this way the only assurance to catch all channel closure event is the fairness of the select
 		}
 		if len(turnResponses) == len(playerChannels) {
 			for playerChannel, serverMessage := range turnResponses {
