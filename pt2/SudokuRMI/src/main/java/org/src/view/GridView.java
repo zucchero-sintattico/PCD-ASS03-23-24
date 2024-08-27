@@ -2,6 +2,7 @@ package org.src.view;
 
 import org.src.model.Controller;
 import org.src.common.Point2d;
+import org.src.model.grid.SudokuFactory;
 import org.src.model.grid.cell.Cell;
 import org.src.model.grid.SudokuGrid;
 
@@ -59,16 +60,19 @@ public class GridView extends JFrame implements Changeable {
 
     public JPanel buildGrid() {
         JPanel gridPanel = new JPanel();
-        gridPanel.setLayout(new GridLayout(9, 9));
+        gridPanel.setLayout(new GridLayout(SudokuFactory.GRID_SIZE, SudokuFactory.GRID_SIZE));
 
         for (int row = 0; row < 9; row++) {
             for (int col = 0; col < 9; col++) {
                 JTextField cellRender = new JTextField();
                 this.cells[row][col] = cellRender;
 
+
                 cellRender.setEnabled(false);
                 cellRender.setHorizontalAlignment(JTextField.CENTER);
                 cellRender.setFont(numberFont);
+                cellRender.setForeground(Color.BLACK);
+                cellRender.setSelectedTextColor(Color.BLACK);
                 cellRender.setDisabledTextColor(Color.BLACK);
 
                 // Set borders for 3x3 subgrid highlighting
@@ -99,18 +103,7 @@ public class GridView extends JFrame implements Changeable {
                 char c = e.getKeyChar();
                 System.out.println(c == KeyEvent.VK_BACK_SPACE);
                 System.out.println(c == KeyEvent.VK_DELETE);
-                if (c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE){
-                    if(cellRender.getText().isEmpty()){
-                        try {
-                            controller.removeCellNumber(cellPosition);
-                            moveFocusToFrame();
-                        } catch (RemoteException ex) {
-                            throw new RuntimeException(ex);
-                        }
-                    }else{
-                        e.consume();
-                    }
-                } else if (c >= '1' && c <= '9') {
+                if (c >= '1' && c <= '9') {
                     try {
                         controller.updateCellNumber(cellPosition, Character.getNumericValue(c));
                         moveFocusToFrame();

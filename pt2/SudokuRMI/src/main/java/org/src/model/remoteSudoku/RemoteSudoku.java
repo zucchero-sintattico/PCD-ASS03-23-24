@@ -14,9 +14,8 @@ public interface RemoteSudoku extends Remote {
 
     void removeUser(String userId) throws RemoteException;
 
-    void selectCell(String userId, Point2d position) throws RemoteException;
+    void selectCell(String userId, Point2d position) throws RemoteException, IllegalArgumentException;
 
     void updateCellNumber(String userId, Point2d position, int number) throws RemoteException, IllegalArgumentException;
 
-    void removeCellNumber(String username, Point2d position) throws RemoteException;
 }

@@ -16,49 +16,12 @@ public class SudokuFactory {
     private static final int SUBGRID_SIZE = 3;
     private static final int NUMBER_TO_REMOVE = 40;
 
-    public static SudokuGrid createGrid(List<Cell> cells){
+    public static SudokuGrid createGrid(List<Cell> cells) throws IllegalArgumentException {
         return new SudokuGrid(cells);
     }
 
     public static SudokuGrid createGrid() {
         return createPuzzle(getValidSudoku());
-    }
-
-    public static boolean validateSudoku(List<Cell> grid){
-        int[][] matrix = convertToMatrix(grid);
-
-        int[][] testMatrix = new int[GRID_SIZE][GRID_SIZE];
-        for (int i = 0; i < GRID_SIZE; i++) {
-            for (int j = 0; j < GRID_SIZE; j++) {
-                if (matrix[i][j] != 0 && !isValid(testMatrix, i, j, matrix[i][j])) {
-                    return false;
-                } else {
-                    testMatrix[i][j] = matrix[i][j];
-                }
-            }
-        }
-        return true;
-    }
-
-    public static boolean validateGridStructure(List<Cell> grid) {
-        int sudokuSize = GRID_SIZE * GRID_SIZE;
-        List<Cell> distinctCellByValidPosition = grid.stream()
-                .collect(Collectors.toMap(Cell::position, c -> c))
-                .values()
-                .stream()
-                .filter(cell -> validPosition(cell.position())).toList();
-        return distinctCellByValidPosition.size() == sudokuSize;
-    }
-
-    public static int[][] convertToMatrix(List<Cell> grid) {
-        if (!validateGridStructure(grid)) throw new IllegalArgumentException("Invalid input");
-        int[][] matrix = new int[GRID_SIZE][GRID_SIZE];
-        for (Cell cell : grid) {
-            Point2d position = cell.position();
-            Integer number = cell.number().orElse(0);
-            matrix[position.x()][position.y()] = number;
-        }
-        return matrix;
     }
 
     private static SudokuGrid createPuzzle(int[][] grid){
@@ -72,6 +35,24 @@ public class SudokuFactory {
             }
         }
         return convertToGrid(grid);
+    }
+
+    private static SudokuGrid convertToGrid(int[][] grid) {
+        List<Cell> cells = new ArrayList<>();
+        for (int i = 0; i < GRID_SIZE; i++) {
+            for (int j = 0; j < GRID_SIZE; j++) {
+                Point2d position = new Point2d(i, j);
+                int number = grid[i][j];
+                Cell cell;
+                if(number != 0){
+                    cell = new CellImpl(position, true).setNumber(number);
+                }else{
+                    cell = new CellImpl(position);
+                }
+                cells.add(cell);
+            }
+        }
+        return SudokuFactory.createGrid(cells);
     }
 
     private static int[][] getValidSudoku(){
@@ -101,11 +82,10 @@ public class SudokuFactory {
         return false;
     }
 
-    public static boolean isValid(int[][] grid, int row, int col, int num) {
+    private static boolean isValid(int[][] grid, int row, int col, int num) {
         boolean condition1 = num >= 1 && num <= 9;
         boolean condition2 = !isAlreadyPresentInRowOrColumn(grid, row, col, num);
         boolean condition3 = !isAlreadyPresentInSubGrid(grid, row, col, num);
-        System.out.println("isValid "+condition1+" "+condition2+" "+condition3);
         return condition1 && condition2 && condition3;
     }
 
@@ -121,7 +101,6 @@ public class SudokuFactory {
     private static boolean isAlreadyPresentInSubGrid(int[][] grid, int row, int col, int num) {
         int subgridRowStart = (row / SUBGRID_SIZE) * SUBGRID_SIZE;
         int subgridColStart = (col / SUBGRID_SIZE) * SUBGRID_SIZE;
-
         for (int i = subgridRowStart; i < subgridRowStart + SUBGRID_SIZE; i++) {
             for (int j = subgridColStart; j < subgridColStart + SUBGRID_SIZE; j++) {
                 if (grid[i][j] == num) {
@@ -132,22 +111,44 @@ public class SudokuFactory {
         return false;
     }
 
-    private static SudokuGrid convertToGrid(int[][] grid) {
-        List<Cell> cells = new ArrayList<>();
-        for (int i = 0; i < GRID_SIZE; i++) {
-            for (int j = 0; j < GRID_SIZE; j++) {
-                Point2d position = new Point2d(i, j);
-                int number = grid[i][j];
-                Cell cell;
-                if(number != 0){
-                    cell = new CellImpl(position, true).setNumber(number);
-                }else{
-                    cell = new CellImpl(position);
+    public static boolean validateSudoku(List<Cell> grid) {
+        try {
+            int[][] matrix = convertToMatrix(grid);
+            int[][] testMatrix = new int[GRID_SIZE][GRID_SIZE];
+            for (int i = 0; i < GRID_SIZE; i++) {
+                for (int j = 0; j < GRID_SIZE; j++) {
+                    if (matrix[i][j] != 0 && !isValid(testMatrix, i, j, matrix[i][j])) {
+                        return false;
+                    } else {
+                        testMatrix[i][j] = matrix[i][j];
+                    }
                 }
-                cells.add(cell);
             }
+            return true;
+        }catch (IllegalArgumentException e){
+            return false;
         }
-        return SudokuFactory.createGrid(cells);
+    }
+
+    private static int[][] convertToMatrix(List<Cell> grid) throws IllegalArgumentException {
+        if (!validateGridStructure(grid)) throw new IllegalArgumentException("Invalid input");
+        int[][] matrix = new int[GRID_SIZE][GRID_SIZE];
+        for (Cell cell : grid) {
+            Point2d position = cell.position();
+            Integer number = cell.number().orElse(0);
+            matrix[position.x()][position.y()] = number;
+        }
+        return matrix;
+    }
+
+    private static boolean validateGridStructure(List<Cell> grid) {
+        int sudokuSize = GRID_SIZE * GRID_SIZE;
+        List<Cell> distinctCellByValidPosition = grid.stream()
+                .collect(Collectors.toMap(Cell::position, c -> c))
+                .values()
+                .stream()
+                .filter(cell -> validPosition(cell.position())).toList();
+        return distinctCellByValidPosition.size() == sudokuSize;
     }
 
     private static boolean validPosition(Point2d position) {

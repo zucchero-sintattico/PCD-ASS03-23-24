@@ -47,7 +47,7 @@ public class RemoteSudokuImpl implements RemoteSudoku {
     }
 
     @Override
-    public synchronized void selectCell(String username, Point2d position) throws RemoteException {
+    public synchronized void selectCell(String username, Point2d position) throws RemoteException, IllegalArgumentException {
         this.removeSelection(username);
         this.grid = SudokuFactory.createGrid(this.grid.cells().stream().map(cell -> {
             if (cell.position().equals(position)) {
@@ -64,19 +64,6 @@ public class RemoteSudokuImpl implements RemoteSudoku {
             if (cell.position().equals(position) && cell.user().isPresent()) {
                 if (cell.user().get().name().equals(username)) {
                     return cell.setNumber(number).removeUser();
-                }
-            }
-            return cell;
-        }).toList());
-        this.sendUpdate();
-    }
-
-    @Override
-    public synchronized void removeCellNumber(String username, Point2d position) throws RemoteException{
-        this.grid = SudokuFactory.createGrid(this.grid.cells().stream().map(cell -> {
-            if (cell.position().equals(position) && cell.user().isPresent()){
-                if(cell.user().get().name().equals(username)){
-                    return cell.removeNumber().removeUser();
                 }
             }
             return cell;

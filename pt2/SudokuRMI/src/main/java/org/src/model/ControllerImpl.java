@@ -28,7 +28,6 @@ public class ControllerImpl implements Controller {
         RemoteSudoku sudokuStub = (RemoteSudoku) UnicastRemoteObject.exportObject(sudoku, 0);
         registry.rebind(sudokuId, sudokuStub);
         this.joinSudoku(username, sudokuId);
-
     }
 
     @Override
@@ -56,18 +55,13 @@ public class ControllerImpl implements Controller {
     }
 
     @Override
-    public void selectCell(Point2d cellPosition) throws RemoteException {
+    public void selectCell(Point2d cellPosition) throws RemoteException, IllegalArgumentException {
         this.remoteSudoku.selectCell(this.getUsername(), cellPosition);
     }
 
     @Override
     public void updateCellNumber(Point2d cellPosition, int number) throws RemoteException, IllegalArgumentException {
         this.remoteSudoku.updateCellNumber(this.getUsername(), cellPosition, number);
-    }
-
-    @Override
-    public void removeCellNumber(Point2d cellPosition) throws RemoteException {
-        this.remoteSudoku.removeCellNumber(this.getUsername(), cellPosition);
     }
 
     @Override
