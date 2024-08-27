@@ -13,13 +13,12 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.src.view.GridView;
-
 public class Main {
     private static final Scanner scanner = new Scanner(System.in);
 
 
     public static void main(String[] args) throws IOException, TimeoutException {
+        /*
         System.out.println("Enter your username: ");
         String username = scanner.nextLine();
 
@@ -79,5 +78,7 @@ public class Main {
         };
 
         channel.basicConsume(queueName, true, deliverCallback, consumerTag -> {});
+                 */
     }
+
 }

@@ -9,19 +9,18 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import java.awt.*;
 import java.io.IOException;
-import java.util.Objects;
 
-public class SolveMenu extends JFrame {
+public class GridIdView extends JFrame {
 
-    private final JLabel label = new JLabel("Insert session id");
-    private final JTextField sessionId = new JTextField(15);
-    private final JButton joinSession = new JButton("Join session");
-    private final Controller controller;
+    private final JLabel label = new JLabel("Insert gridId");
+    private final JTextField gridIdField = new JTextField(15);
+    private final JButton login = new JButton("Continue");
     private final ScreenManager screenManager;
+    private final Controller controller;
 
-    public SolveMenu(ScreenManager screenManager, Controller controller) {
-        this.screenManager = screenManager;
+    public GridIdView(ScreenManager screenManager, Controller controller){
         this.controller = controller;
+        this.screenManager = screenManager;
         this.buildFrame();
         this.buildComponents();
         this.addComponentsInFrame();
@@ -38,21 +37,21 @@ public class SolveMenu extends JFrame {
         this.add(label, gridBagConstraints);
 
         gridBagConstraints.gridy = 1;
-        this.add(sessionId, gridBagConstraints);
+        this.add(gridIdField, gridBagConstraints);
 
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = GridBagConstraints.NONE;
         gridBagConstraints.anchor = GridBagConstraints.CENTER;
-        this.add(joinSession, gridBagConstraints);
+        this.add(login, gridBagConstraints);
     }
 
     private void buildComponents() {
         Font arial = new Font("Arial", Font.PLAIN, 16);
         Font arialBold = new Font("Arial", Font.BOLD, 16);
         this.label.setFont(arialBold);
-        this.sessionId.setFont(arial);
-        this.joinSession.setFont(arial);
-        ((AbstractDocument) this.sessionId.getDocument()).setDocumentFilter(new LengthFilter(14));
+        this.gridIdField.setFont(arial);
+        this.login.setFont(arial);
+        ((AbstractDocument) this.gridIdField.getDocument()).setDocumentFilter(new LengthFilter(14));
     }
 
     private void spawnFrameAtCenter(){
@@ -68,21 +67,22 @@ public class SolveMenu extends JFrame {
     }
 
     private void attachListener(){
-        this.joinSession.addActionListener(e -> {
-            if(Objects.equals(this.sessionId.getText(), "")){
-                Utils.showErrorMessage(this, "Invalid Session ID", "Session Problem");
-            }else{
+        this.login.addActionListener(e -> {
+            if(!this.gridIdField.getText().isEmpty()){
+                this.controller.setGridId(this.gridIdField.getText());
                 try {
-                    this.controller.joinSudoku(this.controller.getUser().getName(), this.sessionId.getText());
+                    this.controller.createSudoku(this.controller.getUser().getName());
                     this.screenManager.switchScreen("grid");
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
+            }else{
+                Utils.showErrorMessage(this, "Username Invalid", "This username isn't valid");
             }
         });
     }
 
-    /* To limit the len of the textfield */
+    /* To limit the len of the textField */
     private static class LengthFilter extends DocumentFilter {
         private final int maxLength;
 

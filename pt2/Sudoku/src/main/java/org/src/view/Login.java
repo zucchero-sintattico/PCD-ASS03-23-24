@@ -1,5 +1,8 @@
 package org.src.view;
 
+import org.src.controller.Controller;
+import org.src.model.UserImpl;
+
 import javax.swing.*;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
@@ -13,8 +16,10 @@ public class Login extends JFrame {
     private final JTextField username = new JTextField(15);
     private final JButton login = new JButton("Login");
     private final ScreenManager screenManager;
+    private final Controller controller;
 
-    public Login(ScreenManager screenManager){
+    public Login(ScreenManager screenManager, Controller controller){
+        this.controller = controller;
         this.screenManager = screenManager;
         this.buildFrame();
         this.buildComponents();
@@ -64,8 +69,8 @@ public class Login extends JFrame {
     private void attachListener(){
         this.login.addActionListener(e -> {
             if(!this.username.getText().isEmpty()){
+                this.controller.setUser(new UserImpl(this.username.getText()));
                 this.screenManager.switchScreen("menu");
-                Utils.setUsername(this.username.getText());
             }else{
                 Utils.showErrorMessage(this, "Username Invalid", "This username isn't valid");
             }

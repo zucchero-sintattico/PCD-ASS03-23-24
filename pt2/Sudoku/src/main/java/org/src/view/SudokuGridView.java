@@ -3,9 +3,8 @@ package org.src.view;
 import org.src.common.Cell;
 import org.src.common.Grid;
 import org.src.common.User;
-import org.src.controller.GridController;
+import org.src.controller.Controller;
 import org.src.model.GridImpl;
-import org.src.model.LogicsImpl;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -18,31 +17,37 @@ import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.IntStream;
 
-public class SudokuGridView extends JFrame implements GridController {
+public class SudokuGridView extends JFrame implements SudokuView{
 
     private static final int GRID_SIZE = 9;
     private static final int FRAME_WIDTH = 600;
     private static final int FRAME_HEIGHT = 600;
     private JTextField[][] cells;
     private JPanel topPanel;
-    private JLabel labelUsername;
-    private JLabel gridIdLabel;
+    private JLabel labelUsername = new JLabel();
+    private JLabel gridIdLabel = new JLabel();
     private JButton backButton;
     private Grid grid;
-    private String gridId;
     private final ScreenManager screenManager;
     private JPanel gridPanel;
-    private LogicsImpl logics;
-    private User user;
+    private Controller controller;
 
-    public SudokuGridView(ScreenManager screenManager) throws IOException, TimeoutException {
+    @Override
+    public void setVisible(boolean b) {
+        super.setVisible(b);
+        this.requestFocus();
+    }
+
+    public SudokuGridView(ScreenManager screenManager, Controller controller) throws IOException, TimeoutException {
         this.screenManager = screenManager;
+        this.controller = controller;
         this.grid = new GridImpl();
         this.buildFrame();
         this.spawnFrameAtCenter();
         this.buildComponents();
         this.attachListener();
         this.addComponentsInFrame();
+        this.populateGrid();
     }
 
     private void buildFrame(){
@@ -59,8 +64,8 @@ public class SudokuGridView extends JFrame implements GridController {
 
     private void buildComponents(){
         this.cells = new JTextField[9][9];
-        this.labelUsername = new JLabel("Username: " + Utils.getUsername());
-        this.gridIdLabel = new JLabel("GridId: " + gridId);
+        this.labelUsername = new JLabel("Username: ");
+        this.gridIdLabel = new JLabel("GridID: ");
         this.backButton = new JButton("<-- Back");
         this.grid = new GridImpl();
         this.topPanel = new JPanel(new FlowLayout());
@@ -124,7 +129,7 @@ public class SudokuGridView extends JFrame implements GridController {
             @Override
             public void focusGained(FocusEvent e) {
                 try {
-                    logics.selectCell(grid, user, row, col);
+                    controller.selectCell(grid, controller.getUser(), row, col);
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
@@ -144,7 +149,7 @@ public class SudokuGridView extends JFrame implements GridController {
                     e.consume();
                 } else {
                     try {
-                        logics.makeMove(grid, user, Character.getNumericValue(c));
+                        controller.makeMove(grid, controller.getUser(), Character.getNumericValue(c));
                     } catch (IOException ex) {
                         throw new RuntimeException(ex);
                     }
@@ -167,20 +172,10 @@ public class SudokuGridView extends JFrame implements GridController {
     }
 
     @Override
-    public void onGridReady(LogicsImpl logics, User user, String gridId, Grid grid) {
-        this.logics = logics;
-        this.user = user;
-        this.gridId = gridId;
+    public void update(Grid grid) {
+        this.gridIdLabel.setText("GridID: " + this.controller.getGridId());
+        this.labelUsername.setText("Username: " + this.controller.getUser().getName());
         this.grid = grid;
-        this.gridIdLabel.setText("GridId: " + this.gridId);
-        this.populateGrid();
-        this.setVisible(true);
-    }
-
-    @Override
-    public void updateGrid(Grid grid) {
-        this.grid = grid;
-
         IntStream.range(0, GRID_SIZE).forEach(row ->
                 IntStream.range(0, GRID_SIZE).forEach(col -> {
                     JTextField cell = this.cells[row][col];
@@ -189,6 +184,7 @@ public class SudokuGridView extends JFrame implements GridController {
                     // Update cell color
                     if (cellInGrid.isImmutable()) {
                         cell.setBackground(Color.LIGHT_GRAY);
+                        cell.setFocusable(false);
                     } else {
                         cell.setBackground(this.determinateColor(row, col));
                     }
@@ -206,5 +202,16 @@ public class SudokuGridView extends JFrame implements GridController {
         this.gridPanel.revalidate();
         this.gridPanel.repaint();
     }
+
+    @Override
+    public void haveWon() {
+        Utils.showMessage(this, "Won", "You have won");
+    }
+
+    @Override
+    public void display() {
+        SwingUtilities.invokeLater(() -> this.setVisible(true));
+    }
+
 }
 

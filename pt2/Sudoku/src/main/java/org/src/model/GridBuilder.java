@@ -11,7 +11,7 @@ public class GridBuilder {
 
     private static final int SIZE = 9;
     private static final int SUBGRID_SIZE = 3;
-    private static final int NUMBER_OF_EMPTY_BLOCK = 40; //40 is the perfect number
+    private static final int NUMBER_OF_EMPTY_BLOCK = 2; //40 is the perfect number
 
     public GridBuilder(){
 
@@ -69,12 +69,6 @@ public class GridBuilder {
         int nextCol = (col + 1) % SIZE;
 
         Cell currentCell = grid.getCellAt(row, col);
-        /*
-        Cell currentCell = grid.getCellAt(row, col);
-        if (currentCell.getNumber().isPresent()) {
-            return solve(grid, nextRow, nextCol);
-        }
-        */
         Random random = new Random();
         int[] numbers = random.ints(1, SIZE + 1).distinct().limit(SIZE).toArray();
 

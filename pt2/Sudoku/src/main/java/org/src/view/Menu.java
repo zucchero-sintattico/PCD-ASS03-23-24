@@ -1,6 +1,6 @@
 package org.src.view;
 
-import org.src.controller.ViewController;
+import org.src.controller.Controller;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -10,12 +10,11 @@ import java.util.concurrent.TimeoutException;
 
 public class Menu extends JFrame{
 
-    private final JButton newGame = new JButton("New Game");
+    private final JButton gridIdButton = new JButton("New Game");
     private final JButton resolve = new JButton("Resolve Sudoku");
     private final JButton changeNickName = new JButton("Change Nickname");
     private final JPanel panel = new JPanel();
     private final JLabel title = new JLabel("Sudoku Game", SwingConstants.CENTER);
-    private ViewController viewController;
     private final ScreenManager screenManager;
 
     public Menu(ScreenManager screenManager) throws IOException, TimeoutException {
@@ -44,9 +43,9 @@ public class Menu extends JFrame{
         Font arial = new Font("Arial", Font.PLAIN, 16);
         Font serif = new Font("Serif", Font.BOLD, 24);
         Dimension buttonSize = new Dimension(300, 50);
-        this.newGame.setPreferredSize(buttonSize);
-        this.newGame.setFont(arial);
-        this.newGame.setFocusPainted(false);
+        this.gridIdButton.setPreferredSize(buttonSize);
+        this.gridIdButton.setFont(arial);
+        this.gridIdButton.setFocusPainted(false);
         this.changeNickName.setPreferredSize(buttonSize);
         this.changeNickName.setFont(arial);
         this.changeNickName.setFocusPainted(false);
@@ -60,7 +59,7 @@ public class Menu extends JFrame{
         gridBagConstraints.insets = new Insets(10, 10, 10, 10);
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        this.panel.add(this.newGame, gridBagConstraints);
+        this.panel.add(this.gridIdButton, gridBagConstraints);
         gridBagConstraints.gridy = 1;
         this.panel.add(this.resolve, gridBagConstraints);
         gridBagConstraints.gridy = 2;
@@ -72,18 +71,8 @@ public class Menu extends JFrame{
             this.screenManager.switchScreen("login");
         });
 
-        this.newGame.addActionListener(e -> {
-            try {
-                SudokuGridView view = new SudokuGridView(this.screenManager);
-                this.viewController = new ViewController(Utils.getUsername());
-                this.viewController.setGridListener(view);
-                this.viewController.startNewGame();
-                this.dispose();
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            } catch (TimeoutException ex) {
-                throw new RuntimeException(ex);
-            }
+        this.gridIdButton.addActionListener(e -> {
+            this.screenManager.switchScreen("gridId");
         });
 
         this.resolve.addActionListener(e -> {
@@ -92,17 +81,17 @@ public class Menu extends JFrame{
     }
 
     private void attachMouseAdapter(){
-        this.newGame.addMouseListener(new MouseAdapter() {
+        this.gridIdButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                newGame.setText("< New Game >");
-                newGame.setFont(new Font("Arial", Font.BOLD, 16));
+                gridIdButton.setText("< New Game >");
+                gridIdButton.setFont(new Font("Arial", Font.BOLD, 16));
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                newGame.setText("New Game");
-                newGame.setFont(new Font("Arial", Font.PLAIN, 16));
+                gridIdButton.setText("New Game");
+                gridIdButton.setFont(new Font("Arial", Font.PLAIN, 16));
             }
         });
 

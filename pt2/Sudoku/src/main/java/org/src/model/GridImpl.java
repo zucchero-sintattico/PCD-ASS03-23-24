@@ -56,6 +56,11 @@ public class GridImpl implements Grid {
     }
 
     @Override
+    public boolean haveWon() {
+        return this.checkWin();
+    }
+
+    @Override
     public void updateGrid(List<Cell> cells) {
         this.cells = cells;
     }
