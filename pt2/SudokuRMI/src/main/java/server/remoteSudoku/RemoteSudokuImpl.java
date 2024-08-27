@@ -3,10 +3,8 @@ package server.remoteSudoku;
 import common.Point2d;
 import common.grid.SudokuGrid;
 import common.grid.SudokuFactory;
-import client.model.remoteClient.RemoteClient;
+import client.logic.remoteClient.RemoteClient;
 import common.user.UserDataImpl;
-import server.RunRegistrationService;
-import server.registrationService.RegistrationService;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -14,16 +12,19 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class RemoteSudokuImpl implements RemoteSudoku {
 
     private final String sudokuId;
+    private final Consumer<String> unbindHandle;
     private SudokuGrid grid = SudokuFactory.createGrid();
     private final Map<String, RemoteClient> clients = new HashMap<>();
     private final Registry registry = LocateRegistry.getRegistry();
 
-    public RemoteSudokuImpl(String sudokuId) throws RemoteException {
+    public RemoteSudokuImpl(String sudokuId, Consumer<String> unbindHandle) throws RemoteException {
         this.sudokuId = sudokuId;
+        this.unbindHandle = unbindHandle;
     }
 
     @Override
@@ -34,11 +35,10 @@ public class RemoteSudokuImpl implements RemoteSudoku {
     }
 
     @Override
-    public synchronized void removeUser(String username) throws RemoteException, NotBoundException {
+    public synchronized void removeUser(String username) throws RemoteException {
         this.clients.remove(username);
         if(this.clients.isEmpty()){
-            RegistrationService registrationService = ((RegistrationService)this.registry.lookup(RunRegistrationService.REGISTRATION_SERVICE_NAME));
-            registrationService.unRegisterSudoku(this.sudokuId);
+            this.unbindHandle.accept(this.sudokuId);
         }else {
             this.removeSelection(username);
             this.sendUpdate();

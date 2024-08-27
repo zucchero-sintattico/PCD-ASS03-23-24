@@ -1,4 +1,4 @@
-package client.model.remoteClient;
+package client.logic.remoteClient;
 
 import common.grid.SudokuGrid;
 

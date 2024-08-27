@@ -1,6 +1,6 @@
 package client.view;
 
-import client.model.Controller;
+import client.logic.Controller;
 
 import javax.swing.*;
 import javax.swing.text.AbstractDocument;

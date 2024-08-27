@@ -1,12 +1,12 @@
-package client.model;
+package client.logic;
 
 import common.grid.SudokuGrid;
 import server.RunRegistrationService;
 import common.Point2d;
 import server.registrationService.RegistrationService;
 import server.remoteSudoku.RemoteSudoku;
-import client.model.remoteClient.RemoteClient;
-import client.model.remoteClient.RemoteClientImpl;
+import client.logic.remoteClient.RemoteClient;
+import client.logic.remoteClient.RemoteClientImpl;
 import client.view.SudokuView;
 
 import java.rmi.AlreadyBoundException;
@@ -69,7 +69,7 @@ public class ControllerImpl implements Controller {
     }
     
     @Override
-    public void leaveSudoku() throws RemoteException, NotBoundException {
+    public void leaveSudoku() throws RemoteException {
         this.remoteSudoku.removeUser(this.getUsername());
     }
 

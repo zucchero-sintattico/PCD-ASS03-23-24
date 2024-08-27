@@ -1,6 +1,6 @@
 package client.view;
 
-import client.model.Controller;
+import client.logic.Controller;
 import common.Point2d;
 import common.grid.SudokuFactory;
 import common.grid.SudokuGrid;
@@ -11,7 +11,6 @@ import java.awt.*;
 
 import javax.swing.border.Border;
 import java.awt.event.*;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 
 public class GridView extends JFrame implements Changeable, SudokuView {
@@ -37,7 +36,7 @@ public class GridView extends JFrame implements Changeable, SudokuView {
             public void windowClosing(WindowEvent e) {
                 try {
                     controller.leaveSudoku();
-                } catch (RemoteException | NotBoundException ex) {
+                } catch (RemoteException ex) {
                     throw new RuntimeException(ex);
                 }
             }
@@ -175,7 +174,7 @@ public class GridView extends JFrame implements Changeable, SudokuView {
             this.initialized = false;
             try {
                 this.controller.leaveSudoku();
-            } catch (RemoteException | NotBoundException ex) {
+            } catch (RemoteException ex) {
                 throw new RuntimeException(ex);
             }
             this.changeScreen.run();

@@ -12,7 +12,7 @@ public interface RemoteSudoku extends Remote {
 
     void addUser(String userId) throws RemoteException, NotBoundException;
 
-    void removeUser(String userId) throws RemoteException, NotBoundException;
+    void removeUser(String userId) throws RemoteException;
 
     void selectCell(String userId, Point2d position) throws RemoteException, IllegalArgumentException;
 

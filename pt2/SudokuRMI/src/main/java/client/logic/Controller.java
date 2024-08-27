@@ -1,4 +1,4 @@
-package client.model;
+package client.logic;
 
 import common.Point2d;
 import client.view.SudokuView;
@@ -15,7 +15,7 @@ public interface Controller {
 
     String getUsername();
 
-    void leaveSudoku() throws RemoteException, NotBoundException;
+    void leaveSudoku() throws RemoteException;
 
     void selectCell(Point2d cellPosition) throws RemoteException, IllegalArgumentException;
 

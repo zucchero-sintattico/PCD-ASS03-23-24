@@ -15,15 +15,18 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     public void registerSudoku(String sudokuId) throws RemoteException, AlreadyBoundException {
         Registry registry = LocateRegistry.getRegistry();
-        RemoteSudoku remoteSudoku = new RemoteSudokuImpl(sudokuId);
+        RemoteSudoku remoteSudoku = new RemoteSudokuImpl(sudokuId, this::unRegisterSudoku);
         RemoteSudoku stub = (RemoteSudoku) UnicastRemoteObject.exportObject(remoteSudoku, 0);
         registry.bind(sudokuId, stub);
     }
 
-    @Override
-    public void unRegisterSudoku(String sudokuId) throws RemoteException, NotBoundException {
-        Registry registry = LocateRegistry.getRegistry();
-        registry.unbind(sudokuId);
+    private void unRegisterSudoku(String sudokuId) {
+        try {
+            Registry registry = LocateRegistry.getRegistry();
+            registry.unbind(sudokuId);
+        } catch (RemoteException | NotBoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

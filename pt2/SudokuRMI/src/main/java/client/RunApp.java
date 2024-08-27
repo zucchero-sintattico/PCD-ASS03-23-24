@@ -1,7 +1,7 @@
 package client;
 
-import client.model.Controller;
-import client.model.ControllerImpl;
+import client.logic.Controller;
+import client.logic.ControllerImpl;
 import client.view.SudokuView;
 import client.view.SudokuViewImpl;
 

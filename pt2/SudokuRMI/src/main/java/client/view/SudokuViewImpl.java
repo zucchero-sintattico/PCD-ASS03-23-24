@@ -1,6 +1,6 @@
 package client.view;
 
-import client.model.Controller;
+import client.logic.Controller;
 import common.grid.SudokuGrid;
 
 import javax.swing.*;

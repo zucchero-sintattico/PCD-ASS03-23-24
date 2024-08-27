@@ -11,6 +11,4 @@ public interface RegistrationService extends Remote {
 
     void registerSudoku(String sudokuId) throws RemoteException, AlreadyBoundException;
 
-    void unRegisterSudoku(String sudokuId) throws RemoteException, NotBoundException;
-
 }
