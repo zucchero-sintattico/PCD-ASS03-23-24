@@ -10,7 +10,7 @@ import java.rmi.RemoteException;
 
 public interface RemoteSudoku extends Remote {
 
-    void addUser(String userId) throws RemoteException, NotBoundException;
+    void addUser(String userId) throws RemoteException, NotBoundException, IllegalArgumentException;
 
     void removeUser(String userId) throws RemoteException;
 

@@ -110,6 +110,8 @@ public class Menu extends JFrame implements Changeable{
                     this.changeScreen.run();
                 } catch (RemoteException | NotBoundException | AlreadyBoundException ex) {
                     throw new RuntimeException(ex);
+                } catch (IllegalArgumentException ex) {
+                    this.showErrorDialog(ex.getMessage());
                 }
             }
         });
@@ -120,6 +122,8 @@ public class Menu extends JFrame implements Changeable{
                     this.changeScreen.run();
                 } catch (RemoteException | NotBoundException ex) {
                     throw new RuntimeException(ex);
+                } catch (IllegalArgumentException ex) {
+                    this.showErrorDialog(ex.getMessage());
                 }
             }
         });

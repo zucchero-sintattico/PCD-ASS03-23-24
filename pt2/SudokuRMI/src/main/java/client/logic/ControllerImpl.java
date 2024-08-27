@@ -31,13 +31,13 @@ public class ControllerImpl implements Controller {
     }
 
     @Override
-    public void createSudoku(String username, String sudokuId) throws RemoteException, NotBoundException, AlreadyBoundException {
+    public void createSudoku(String username, String sudokuId) throws RemoteException, NotBoundException, AlreadyBoundException, IllegalArgumentException {
         this.registrationService.registerSudoku(sudokuId);
         this.joinSudoku(username, sudokuId);
     }
 
     @Override
-    public void joinSudoku(String username, String sudokuId) throws RemoteException, NotBoundException {
+    public void joinSudoku(String username, String sudokuId) throws RemoteException, NotBoundException, IllegalArgumentException {
         this.username = username;
 //    NB: using methodReference instead of lambda
 //    remoteClient bind to the current instance of

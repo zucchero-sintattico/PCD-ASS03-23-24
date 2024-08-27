@@ -28,8 +28,11 @@ public class RemoteSudokuImpl implements RemoteSudoku {
     }
 
     @Override
-    public synchronized void addUser(String username) throws RemoteException, NotBoundException {
+    public synchronized void addUser(String username) throws RemoteException, NotBoundException, IllegalArgumentException {
         RemoteClient remoteUser = (RemoteClient) registry.lookup(username);
+        if(this.clients.containsKey(username)){
+            throw new IllegalArgumentException("User already exists for this grid");
+        }
         this.clients.put(username, remoteUser);
         remoteUser.updateGrid(this.grid);
     }
@@ -43,7 +46,6 @@ public class RemoteSudokuImpl implements RemoteSudoku {
             this.removeSelection(username);
             this.sendUpdate();
         }
-
     }
 
     @Override

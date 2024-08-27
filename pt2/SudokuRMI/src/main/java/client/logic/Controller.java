@@ -9,7 +9,7 @@ import java.rmi.RemoteException;
 
 public interface Controller {
 
-    void createSudoku(String username, String sudokuId) throws RemoteException, NotBoundException, AlreadyBoundException;
+    void createSudoku(String username, String sudokuId) throws RemoteException, NotBoundException, AlreadyBoundException, IllegalArgumentException;
 
     void joinSudoku(String username, String sudokuId) throws RemoteException, NotBoundException;
 
