@@ -5,6 +5,8 @@ import common.grid.SudokuGrid;
 import common.grid.SudokuFactory;
 import client.model.remoteClient.RemoteClient;
 import common.user.UserDataImpl;
+import server.RunRegistrationService;
+import server.registrationService.RegistrationService;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -15,11 +17,14 @@ import java.util.Map;
 
 public class RemoteSudokuImpl implements RemoteSudoku {
 
+    private final String sudokuId;
     private SudokuGrid grid = SudokuFactory.createGrid();
     private final Map<String, RemoteClient> clients = new HashMap<>();
     private final Registry registry = LocateRegistry.getRegistry();
 
-    public RemoteSudokuImpl() throws RemoteException {}
+    public RemoteSudokuImpl(String sudokuId) throws RemoteException {
+        this.sudokuId = sudokuId;
+    }
 
     @Override
     public synchronized void addUser(String username) throws RemoteException, NotBoundException {
@@ -29,10 +34,16 @@ public class RemoteSudokuImpl implements RemoteSudoku {
     }
 
     @Override
-    public synchronized void removeUser(String username) throws RemoteException {
+    public synchronized void removeUser(String username) throws RemoteException, NotBoundException {
         this.clients.remove(username);
-        this.removeSelection(username);
-        this.sendUpdate();
+        if(this.clients.isEmpty()){
+            RegistrationService registrationService = ((RegistrationService)this.registry.lookup(RunRegistrationService.REGISTRATION_SERVICE_NAME));
+            registrationService.unRegisterSudoku(this.sudokuId);
+        }else {
+            this.removeSelection(username);
+            this.sendUpdate();
+        }
+
     }
 
     @Override
@@ -70,24 +81,13 @@ public class RemoteSudokuImpl implements RemoteSudoku {
     }
 
     private void sendUpdate() {
-        Map<String, RemoteClient> unresponsiveClient = tryToUpdateClients();
-        if(!unresponsiveClient.isEmpty()){
-            unresponsiveClient.forEach(this.clients::remove);
-            unresponsiveClient.keySet().forEach(this::removeSelection);
-            sendUpdate();
-        }
-    }
-
-    private Map<String, RemoteClient> tryToUpdateClients() {
-        Map<String, RemoteClient> unresponsiveClient = new HashMap<>();
         this.clients.forEach((username, client) -> {
             try {
                 client.updateGrid(this.grid);
-            } catch (RemoteException e) {
-                unresponsiveClient.put(username,client);
+            } catch (RemoteException ex) {
+                throw new RuntimeException(ex);
             }
         });
-        return unresponsiveClient;
     }
 
 }

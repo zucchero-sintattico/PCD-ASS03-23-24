@@ -9,6 +9,7 @@ import client.model.remoteClient.RemoteClient;
 import client.model.remoteClient.RemoteClientImpl;
 import client.view.SudokuView;
 
+import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -30,7 +31,7 @@ public class ControllerImpl implements Controller {
     }
 
     @Override
-    public void createSudoku(String username, String sudokuId) throws RemoteException, NotBoundException {
+    public void createSudoku(String username, String sudokuId) throws RemoteException, NotBoundException, AlreadyBoundException {
         this.registrationService.registerSudoku(sudokuId);
         this.joinSudoku(username, sudokuId);
     }
@@ -68,7 +69,7 @@ public class ControllerImpl implements Controller {
     }
     
     @Override
-    public void leaveSudoku() throws RemoteException {
+    public void leaveSudoku() throws RemoteException, NotBoundException {
         this.remoteSudoku.removeUser(this.getUsername());
     }
 

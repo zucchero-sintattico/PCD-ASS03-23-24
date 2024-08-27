@@ -14,7 +14,7 @@ public class RunApp {
     public static void main(String[] args) throws RemoteException, NotBoundException {
         Controller controller = new ControllerImpl();
         SudokuView view = new SudokuViewImpl(controller);
-//        controller.setView(view);
+        controller.setView(view);
         view.display();
     }
 

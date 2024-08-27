@@ -11,6 +11,7 @@ import java.awt.*;
 
 import javax.swing.border.Border;
 import java.awt.event.*;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 
 public class GridView extends JFrame implements Changeable, SudokuView {
@@ -36,7 +37,7 @@ public class GridView extends JFrame implements Changeable, SudokuView {
             public void windowClosing(WindowEvent e) {
                 try {
                     controller.leaveSudoku();
-                } catch (RemoteException ex) {
+                } catch (RemoteException | NotBoundException ex) {
                     throw new RuntimeException(ex);
                 }
             }
@@ -171,17 +172,13 @@ public class GridView extends JFrame implements Changeable, SudokuView {
 
     private void attachListener(){
         this.back.addActionListener(e -> {
-            GridView gv = new GridView(controller);
-            gv.setVisible(true
-            );
-            this.controller.setView(gv);
-//            this.initialized = false;
-//            try {
-//                this.controller.leaveSudoku();
-//            } catch (RemoteException ex) {
-//                throw new RuntimeException(ex);
-//            }
-//            this.changeScreen.run();
+            this.initialized = false;
+            try {
+                this.controller.leaveSudoku();
+            } catch (RemoteException | NotBoundException ex) {
+                throw new RuntimeException(ex);
+            }
+            this.changeScreen.run();
         });
     }
 
