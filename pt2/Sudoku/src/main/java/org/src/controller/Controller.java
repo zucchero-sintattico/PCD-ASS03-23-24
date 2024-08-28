@@ -5,12 +5,13 @@ import org.src.common.User;
 import org.src.view.SudokuView;
 
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 
 public interface Controller {
 
     void createSudoku(String username, String sudokuId) throws IOException;
     void joinSudoku(String username, String sudokuId) throws IOException;
-    void leave();
+    void leave() throws IOException, TimeoutException;
 
     void selectCell(int row, int col) throws IOException;
     void makeMove(int number) throws IOException;

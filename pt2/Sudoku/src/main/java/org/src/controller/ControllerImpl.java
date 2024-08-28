@@ -13,6 +13,7 @@ import org.src.view.SudokuView;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 public class ControllerImpl implements Controller{
@@ -36,14 +37,13 @@ public class ControllerImpl implements Controller{
     }
 
     public Grid pull(String receivedMessage) {
-        return  GridImpl.formJson(receivedMessage);
+        return GridImpl.formJson(receivedMessage);
     }
 
     private void createChannel() throws IOException {
         this.channel = this.connection.createChannel();
         this.channel.exchangeDeclare(this.gridId, "topic");
         this.queueName = this.channel.queueDeclare().getQueue();
-        this.channel.queueBind(this.queueName, gridId, MessageTopic.NEW_USER_JOINED.getTopic());
         this.channel.queueBind(this.queueName, gridId, MessageTopic.UPDATE_GRID.getTopic());
         this.channel.queueBind(this.queueName, gridId, MessageTopic.USER_LEFT.getTopic());
     }
@@ -52,16 +52,17 @@ public class ControllerImpl implements Controller{
         this.createChannel();
         DeliverCallback deliverCallback = (consumerTag, delivery) -> {
             if(delivery.getEnvelope().getRoutingKey().equals(MessageTopic.NEW_USER_JOINED.getTopic())){
-                if(this.grid != null){
-                    this.push(this.grid);
-                }
+                this.push(this.grid);
             }
 
             if (delivery.getEnvelope().getRoutingKey().equals(MessageTopic.UPDATE_GRID.getTopic())){
-                this.grid = this.pull(new String(delivery.getBody()));
+                if(this.grid == null){
+                    this.channel.queueBind(this.queueName, gridId, MessageTopic.NEW_USER_JOINED.getTopic());
+                    this.grid = new GridImpl();
+                }
+                this.grid.checkAndUpdateGrid(this.pull(new String(delivery.getBody())).getCells());
                 this.sudokuView.update(this.grid);
             }
-
             System.out.println(new String(delivery.getBody()));
         };
         this.channel.basicConsume(this.queueName, true, deliverCallback, consumerTag -> {});
@@ -100,8 +101,8 @@ public class ControllerImpl implements Controller{
     @Override
     public void selectCell(int x, int y) throws IOException {
         List<Cell> newCellList = new ArrayList<>();
-        Grid newGrid = new GridImpl();
-        for (Cell cell : grid.getCells()) {
+        Grid newGrid = new GridImpl(this.grid.getCells()); //todo unsafe access to this.grid
+        for (Cell cell : this.grid.getCells()) {
             Cell newCell = new CellImpl(cell.getPosition(), cell.isImmutable());
 
             if (cell.getNumber().isPresent()) {
@@ -118,7 +119,8 @@ public class ControllerImpl implements Controller{
             }
             newCellList.add(newCell);
         }
-        newGrid.updateGrid(newCellList);
+        //TODO non serve sto doppio controllo, che se tanto lo fai qua non mandi mai una griglia sbagliata, però pare pure brutto ave sta griglia che nse sa se è giusta o sbagliata? che ce famo? predict: sti cazzi niente (Forse a sto punto è meglio che se fidamo e teniamo na griglia che se la costruisci male ti lancia eccezione così che non la puoi pushare?)
+        newGrid.checkAndUpdateGrid(newCellList);
         push(newGrid);
     }
 
@@ -126,7 +128,7 @@ public class ControllerImpl implements Controller{
     public void makeMove(int number) throws IOException {
         List<Cell> newCellList = new ArrayList<>();
         Grid newGrid = new GridImpl();
-        for (Cell cell : grid.getCells()) {
+        for (Cell cell : this.grid.getCells()) {
             Cell newCell = new CellImpl(cell.getPosition(), cell.isImmutable());
             if (cell.getNumber().isPresent()) {
                 newCell.setNumber(cell.getNumber().get());
@@ -139,7 +141,8 @@ public class ControllerImpl implements Controller{
             }
             newCellList.add(newCell);
         }
-        newGrid.checkAndUpdateGrid(newCellList);
+//        newGrid.checkAndUpdateGrid(newCellList);
+        newGrid.updateGrid(newCellList);
         push(newGrid);
     }
 
@@ -149,8 +152,25 @@ public class ControllerImpl implements Controller{
     }
 
     @Override
-    public void leave(){
+    public void leave() throws IOException, TimeoutException {
+        this.push(new GridImpl(this.deselectCell()));
+        this.channel.close();
         this.grid = null;
+    }
+
+    private List<Cell> deselectCell() {
+        return this.grid.getCells()
+                .stream()
+                .map(c -> {
+                    if(c.isSelected().isPresent() && c.isSelected().get().getName().equals(user.getName())){
+                       Cell cell = new CellImpl(c.getPosition(), c.isImmutable());
+                       if (c.getNumber().isPresent()) {
+                           cell.setNumber(c.getNumber().get());
+                       }
+                       return cell;
+                    }
+                    return c;
+                }).toList();
     }
 
 }

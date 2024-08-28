@@ -11,9 +11,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GridImpl implements Grid {
 
-    List<Cell> cells = new ArrayList<>();
-    int GRID_SIZE = 9;
+    private List<Cell> cells = new ArrayList<>();
+    private final static int GRID_SIZE = 9;
 
+    public GridImpl(List<Cell> cells){
+        //todo check input?? could be nice, maybe
+        this.cells = new ArrayList<>(cells);
+    }
     public GridImpl() {
         // Initialize the grid with empty cells
         for (int i = 0; i < GRID_SIZE; i++) {

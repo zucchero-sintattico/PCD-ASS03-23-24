@@ -11,7 +11,7 @@ public class GridBuilder {
 
     private static final int SIZE = 9;
     private static final int SUBGRID_SIZE = 3;
-    private static final int NUMBER_OF_EMPTY_BLOCK = 1; //40 is the perfect number
+    private static final int NUMBER_OF_EMPTY_BLOCK = 40; //40 is the perfect number
 
     public GridBuilder(){
 
