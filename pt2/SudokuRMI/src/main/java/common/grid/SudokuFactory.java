@@ -4,9 +4,13 @@ import common.Point2d;
 import common.grid.cell.Cell;
 import common.grid.cell.CellImpl;
 
+import javax.swing.text.Position;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class SudokuFactory {
@@ -24,44 +28,30 @@ public class SudokuFactory {
         return createPuzzle(getValidSudoku());
     }
 
-    private static SudokuGrid createPuzzle(int[][] grid){
-        int numberToRemove = NUMBER_TO_REMOVE;
-        while(numberToRemove > 0){
+    private static SudokuGrid createPuzzle(List<Cell> cells){
+        AtomicInteger numberToRemove = new AtomicInteger(NUMBER_TO_REMOVE);
+        while(numberToRemove.get() > 0){
             int row = random.nextInt(GRID_SIZE);
             int col = random.nextInt(GRID_SIZE);
-            if(grid[row][col] != 0){
-                grid[row][col] = 0;
-                numberToRemove--;
-            }
-        }
-        return convertToGrid(grid);
-    }
-
-    private static SudokuGrid convertToGrid(int[][] grid) {
-        List<Cell> cells = new ArrayList<>();
-        for (int i = 0; i < GRID_SIZE; i++) {
-            for (int j = 0; j < GRID_SIZE; j++) {
-                Point2d position = new Point2d(i, j);
-                int number = grid[i][j];
-                Cell cell;
-                if(number != 0){
-                    cell = new CellImpl(position, true).setNumber(number);
-                }else{
-                    cell = new CellImpl(position);
+            Point2d position = new Point2d(row, col);
+            cells = cells.stream().map(cell -> {
+                if(cell.position().equals(position)){
+                    numberToRemove.getAndDecrement();
+                    return cell.removeNumber().setImmutable(false);
                 }
-                cells.add(cell);
-            }
+                return cell;
+            }).toList();
         }
-        return SudokuFactory.createGrid(cells);
+        return createGrid(cells);
     }
 
-    private static int[][] getValidSudoku(){
-        int[][] grid = new int[GRID_SIZE][GRID_SIZE];
-        fillGrid(grid,0, 0);
-        return grid;
+    private static List<Cell> getValidSudoku(){
+        List<Cell> cells = new ArrayList<>();
+        fillGrid(cells,0, 0);
+        return cells;
     }
 
-    private static boolean fillGrid(int[][] grid, int row, int col) {
+    private static boolean fillGrid(List<Cell> cells, int row, int col) {
         if (row == GRID_SIZE) return true;
 
         int nextRow = col == GRID_SIZE - 1 ? row + 1 : row;
@@ -71,74 +61,61 @@ public class SudokuFactory {
                 .distinct().limit(GRID_SIZE).boxed().toList();
 
         for (int n : numbers) {
-            if (isValid(grid, row, col, n)) {
-                grid[row][col] = n;
-                if (fillGrid(grid, nextRow, nextCol)){
+            if (isValid(cells, row, col, n)) {
+                Cell c = new CellImpl(new Point2d(row, col), true).setNumber(n);
+                cells.add(c);
+                if (fillGrid(cells, nextRow, nextCol)){
                     return true;
                 }
-                grid[row][col] = 0;
+                cells.remove(c);
             }
         }
         return false;
     }
 
-    private static boolean isValid(int[][] grid, int row, int col, int num) {
+    private static boolean isValid(List<Cell> cells, int row, int col, int num) {
         boolean condition1 = num >= 1 && num <= 9;
-        boolean condition2 = !isAlreadyPresentInRowOrColumn(grid, row, col, num);
-        boolean condition3 = !isAlreadyPresentInSubGrid(grid, row, col, num);
+        boolean condition2 = !isAlreadyPresentInRowOrColumn(cells, row, col, num);
+        boolean condition3 = !isAlreadyPresentInSubGrid(cells, row, col, num);
         return condition1 && condition2 && condition3;
     }
 
-    private static boolean isAlreadyPresentInRowOrColumn(int[][] grid, int row, int col, int num) {
-        for (int i = 0; i < GRID_SIZE; i++) {
-            if (grid[row][i] == num || grid[i][col] == num) {
-                return true;
-            }
-        }
-        return false;
+    private static boolean isAlreadyPresentInRowOrColumn(List<Cell> cells, int row, int col, int num) {
+        List<Cell> tempCells = removeCellAtPosition(cells, new Point2d(row, col));
+        List<Cell> cellWithSameNumberInRow = filterCellMatchingNum(tempCells, (cell -> cell.position().x() == row), num);
+        List<Cell> cellWithSameNumberInCol = filterCellMatchingNum(tempCells, (cell -> cell.position().y() == col), num);
+        return !cellWithSameNumberInRow.isEmpty() || !cellWithSameNumberInCol.isEmpty();
     }
 
-    private static boolean isAlreadyPresentInSubGrid(int[][] grid, int row, int col, int num) {
+    private static List<Cell> removeCellAtPosition(List<Cell> cells, Point2d position) {
+        return cells.stream().filter(cell -> !cell.position().equals(position)).toList();
+    }
+
+    private static List<Cell> filterCellMatchingNum(List<Cell> cells, Predicate<Cell> predicate, int num){
+        return cells.stream().filter(predicate).filter(cell -> cell.number().equals(Optional.of(num))).toList();
+    }
+
+    private static boolean isAlreadyPresentInSubGrid(List<Cell> cells, int row, int col, int num) {
         int subgridRowStart = (row / SUBGRID_SIZE) * SUBGRID_SIZE;
         int subgridColStart = (col / SUBGRID_SIZE) * SUBGRID_SIZE;
-        for (int i = subgridRowStart; i < subgridRowStart + SUBGRID_SIZE; i++) {
-            for (int j = subgridColStart; j < subgridColStart + SUBGRID_SIZE; j++) {
-                if (grid[i][j] == num) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        int subgridRowEnd = subgridRowStart + SUBGRID_SIZE;
+        int subgridColEnd = subgridColStart + SUBGRID_SIZE;
+        List<Cell> tempCells = removeCellAtPosition(cells, new Point2d(row, col));
+        List<Cell> subgrid = filterCellMatchingNum(tempCells, cell -> validPosition(cell.position(), subgridRowStart, subgridColStart, subgridRowEnd,subgridColEnd), num);
+        return !subgrid.isEmpty();
     }
 
     public static boolean validateSudoku(List<Cell> grid) {
-        try {
-            int[][] matrix = convertToMatrix(grid);
-            int[][] testMatrix = new int[GRID_SIZE][GRID_SIZE];
-            for (int i = 0; i < GRID_SIZE; i++) {
-                for (int j = 0; j < GRID_SIZE; j++) {
-                    if (matrix[i][j] != 0 && !isValid(testMatrix, i, j, matrix[i][j])) {
-                        return false;
-                    } else {
-                        testMatrix[i][j] = matrix[i][j];
-                    }
-                }
+        if (!validateGridStructure(grid)) return false;
+        List<Cell> testList = new ArrayList<>();
+        for(Cell cell: grid) {
+            if (cell.number().isPresent() && !isValid(testList, cell.position().x(), cell.position().y(), cell.number().get())) {
+                return false;
+            }else{
+                testList.add(cell);
             }
-            return true;
-        }catch (IllegalArgumentException e){
-            return false;
         }
-    }
-
-    private static int[][] convertToMatrix(List<Cell> grid) throws IllegalArgumentException {
-        if (!validateGridStructure(grid)) throw new IllegalArgumentException("Invalid input");
-        int[][] matrix = new int[GRID_SIZE][GRID_SIZE];
-        for (Cell cell : grid) {
-            Point2d position = cell.position();
-            Integer number = cell.number().orElse(0);
-            matrix[position.x()][position.y()] = number;
-        }
-        return matrix;
+        return true;
     }
 
     private static boolean validateGridStructure(List<Cell> grid) {
@@ -152,10 +129,14 @@ public class SudokuFactory {
     }
 
     private static boolean validPosition(Point2d position) {
-        return position.x() >= 0 &&
-                position.x() < GRID_SIZE &&
-                position.y() >= 0 &&
-                position.y() < GRID_SIZE;
+        return validPosition(position, 0, 0, GRID_SIZE, GRID_SIZE);
+    }
+
+    private static boolean validPosition(Point2d position, int minX, int minY, int maxX, int maxY) {
+        return position.x() >= minX &&
+                position.x() < maxX &&
+                position.y() >= minY &&
+                position.y() < maxY;
     }
 
 }

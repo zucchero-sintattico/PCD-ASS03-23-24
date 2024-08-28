@@ -23,16 +23,15 @@ public class ControllerImpl implements Controller {
     private SudokuView view;
     private RemoteSudoku remoteSudoku;
     private final Registry registry;
-    private final RegistrationService registrationService;
 
     public ControllerImpl() throws RemoteException, NotBoundException {
         this.registry = LocateRegistry.getRegistry();
-        this.registrationService = (RegistrationService) registry.lookup(RunRegistrationService.REGISTRATION_SERVICE_NAME);
     }
 
     @Override
     public void createSudoku(String username, String sudokuId) throws RemoteException, NotBoundException, AlreadyBoundException, IllegalArgumentException {
-        this.registrationService.registerSudoku(sudokuId);
+        RegistrationService registrationService = (RegistrationService) registry.lookup(RunRegistrationService.REGISTRATION_SERVICE_NAME);
+        registrationService.registerSudoku(sudokuId);
         this.joinSudoku(username, sudokuId);
     }
 
