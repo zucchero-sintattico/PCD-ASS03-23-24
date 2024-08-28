@@ -67,9 +67,15 @@ public class GridImpl implements Grid {
 
     private boolean isValidCell(List<Cell> cells, Cell currentCell) {
         //Check if the number is unique in row, column and in the subgrid 3x3
-        return isUniqueInRow(cells, currentCell) &&
+        return isPositive(currentCell) &&
+                isUniqueInRow(cells, currentCell) &&
                 isUniqueInColumn(cells, currentCell) &&
                 isUniqueInSubgrid(cells, currentCell);
+    }
+
+    private boolean isPositive(Cell currentCell){
+        Optional<Integer> currentNumber = currentCell.getNumber();
+        return currentNumber.isEmpty() || currentNumber.get() >= 0;
     }
 
     private boolean isUniqueInRow(List<Cell> cells, Cell currentCell) {
