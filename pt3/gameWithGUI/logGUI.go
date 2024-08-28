@@ -10,7 +10,7 @@ func showGUI(name string, logChannel chan string) {
 	window.Resize(fyne.NewSize(400, 400))
 
 	multilineEntry := widget.NewMultiLineEntry()
-	multilineEntry.SetText("StartLogging")
+	multilineEntry.SetText("Start Logging")
 
 	go guiUpdater(multilineEntry, logChannel)
 

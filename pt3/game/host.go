@@ -49,7 +49,7 @@ func handleGame(playerChannels []chan Message, fanIn []reflect.SelectCase, numbe
 		default:
 			if !isOpen {
 				closedChannels[ch] = true
-			} //in this way the only assurance to catch all channel closure event is the fairness of the select
+			}
 		}
 		if len(turnResponses) == len(playerChannels) {
 			for playerChannel, serverMessage := range turnResponses {
@@ -75,22 +75,3 @@ func handleClientMessage(msg ClientMessage, numberToGuess int, win *bool) Server
 		return ServerMessage{hint: Win}
 	}
 }
-
-/*
-alternative to make a fanInChannel that cause deadlock:
-for redirect message and listen for a server response concurrency come to play, so two channels are needed
-
-agg := make(chan string)
-for _, ch := range chans {
-  go func(c chan string) {
-    for msg := range c {
-      agg <- msg
-    }
-  }(ch)
-}
-
-select {
-case msg <- agg:
-    fmt.Println("received ", msg)
-}
-*/
