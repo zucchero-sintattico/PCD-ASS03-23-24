@@ -8,10 +8,7 @@ import org.src.controller.Controller;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.IntStream;
@@ -50,6 +47,16 @@ public class SudokuGridView extends JFrame implements SudokuView{
     private void buildFrame(){
         this.setTitle("Sudoku Grid");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                try {
+                    controller.leave();
+                } catch (IOException | TimeoutException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        });
         this.setSize(FRAME_WIDTH, FRAME_HEIGHT);
         this.setLayout(new BorderLayout());
         this.setResizable(false);
