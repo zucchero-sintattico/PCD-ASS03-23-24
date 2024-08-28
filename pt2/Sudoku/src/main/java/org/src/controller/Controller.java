@@ -16,5 +16,4 @@ public interface Controller {
     void selectCell(Grid grid, User user, int row, int col) throws IOException;
     void makeMove(Grid grid, User user, int number) throws IOException;
     void setView(SudokuView view);
-    void haveWon();
 }

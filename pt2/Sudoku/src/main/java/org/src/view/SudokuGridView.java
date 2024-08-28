@@ -150,6 +150,7 @@ public class SudokuGridView extends JFrame implements SudokuView{
                 } else {
                     try {
                         controller.makeMove(grid, controller.getUser(), Character.getNumericValue(c));
+                        requestFocus();
                     } catch (IOException ex) {
                         throw new RuntimeException(ex);
                     }

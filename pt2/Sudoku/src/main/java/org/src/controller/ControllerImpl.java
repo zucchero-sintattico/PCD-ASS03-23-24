@@ -161,19 +161,11 @@ public class ControllerImpl implements Controller{
         }
         grid.checkAndUpdateGrid(newCellList);
         push(grid);
-        this.haveWon();
     }
 
     @Override
     public void setView(SudokuView view) {
         this.sudokuView = view;
-    }
-
-    @Override
-    public void haveWon() {
-        if(this.grid.haveWon()){
-            this.sudokuView.haveWon();
-        }
     }
 
 }
