@@ -49,15 +49,6 @@ public class GridImpl implements Grid {
         }else {
             System.out.println("Invalid Move");
         }
-
-        if(checkWin()){
-            System.out.println("You have won");
-        }
-    }
-
-    @Override
-    public boolean haveWon() {
-        return this.checkWin();
     }
 
     @Override
@@ -128,12 +119,6 @@ public class GridImpl implements Grid {
         int x = cell.getPosition().x();
         int y = cell.getPosition().y();
         return x >= startRow && x < startRow + 3 && y >= startCol && y < startCol + 3;
-    }
-
-    private boolean checkWin() {
-        //Check if all cells are not empty with correct number
-        return cells.stream()
-                .allMatch(cell -> cell.getNumber().isPresent() && this.isValidCell(cells, cell));
     }
 
     @Override

@@ -14,6 +14,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.IntStream;
 
@@ -202,11 +203,9 @@ public class SudokuGridView extends JFrame implements SudokuView{
         // Update UI
         this.gridPanel.revalidate();
         this.gridPanel.repaint();
-    }
-
-    @Override
-    public void haveWon() {
-        Utils.showMessage(this, "Won", "You have won");
+        if(this.haveWon(grid)){
+            Utils.showMessage(this, "You have won", "You have won");
+        }
     }
 
     @Override
@@ -214,5 +213,8 @@ public class SudokuGridView extends JFrame implements SudokuView{
         SwingUtilities.invokeLater(() -> this.setVisible(true));
     }
 
-}
+    private boolean haveWon(Grid grid){
+        return grid.getCells().stream().allMatch(c -> c.getNumber().isPresent());
+    }
 
+}

@@ -18,6 +18,4 @@ public interface Grid {
     void setNew(boolean isNew);
 
     void checkAndUpdateGrid(List<Cell> newCellList);
-
-    boolean haveWon();
 }
