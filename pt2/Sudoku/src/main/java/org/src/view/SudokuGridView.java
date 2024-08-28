@@ -4,7 +4,6 @@ import org.src.common.Cell;
 import org.src.common.Grid;
 import org.src.common.User;
 import org.src.controller.Controller;
-import org.src.model.GridImpl;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -14,8 +13,6 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.IntStream;
 
 public class SudokuGridView extends JFrame implements SudokuView{
@@ -28,10 +25,9 @@ public class SudokuGridView extends JFrame implements SudokuView{
     private JLabel labelUsername = new JLabel();
     private JLabel gridIdLabel = new JLabel();
     private JButton backButton;
-    private Grid grid;
     private final ScreenManager screenManager;
     private JPanel gridPanel;
-    private Controller controller;
+    private final Controller controller;
 
     @Override
     public void setVisible(boolean b) {
@@ -39,10 +35,9 @@ public class SudokuGridView extends JFrame implements SudokuView{
         this.requestFocus();
     }
 
-    public SudokuGridView(ScreenManager screenManager, Controller controller) throws IOException, TimeoutException {
+    public SudokuGridView(ScreenManager screenManager, Controller controller) {
         this.screenManager = screenManager;
         this.controller = controller;
-        this.grid = new GridImpl();
         this.buildFrame();
         this.spawnFrameAtCenter();
         this.buildComponents();
@@ -68,7 +63,6 @@ public class SudokuGridView extends JFrame implements SudokuView{
         this.labelUsername = new JLabel("Username: ");
         this.gridIdLabel = new JLabel("GridID: ");
         this.backButton = new JButton("<-- Back");
-        this.grid = new GridImpl();
         this.topPanel = new JPanel(new FlowLayout());
         this.gridPanel = new JPanel(new GridLayout(GRID_SIZE, GRID_SIZE));
         this.topPanel.add(labelUsername);
@@ -78,6 +72,12 @@ public class SudokuGridView extends JFrame implements SudokuView{
     private void attachListener(){
         this.backButton.addActionListener(e -> {
             this.screenManager.switchScreen("menu");
+            IntStream.range(0, 9).forEach(row ->
+                    IntStream.range(0, 9).forEach(col -> {
+                        cells[row][col].setBackground(Color.WHITE);
+                        cells[row][col].setText("");
+                    }));
+            controller.leave();
             this.dispose();
         });
     }
@@ -99,27 +99,14 @@ public class SudokuGridView extends JFrame implements SudokuView{
     private void createAndConfigureCell(int row, int col){
         JTextField cell = new JTextField();
         this.cells[row][col] = cell;
-        Cell cellInGrid = this.grid.getCells().get(row * GRID_SIZE + col);
-
-        //Set colors of cells
-        if(cellInGrid.isImmutable()){
-            cell.setBackground(Color.LIGHT_GRAY);
-        }else{
-            cell.setBackground(this.determinateColor(row, col));
-        }
-
-        //Set numbers in cells
-        if(cellInGrid.getNumber().isPresent()){
-            cell.setText(String.valueOf(cellInGrid.getNumber().get()));
-        }
-
+        cell.setBackground(Color.WHITE);
         this.addListenersToCell(cell, row, col);
-        this.configureCellApparence(cell, row, col);
+        this.configureCellAppearance(cell, row, col);
     }
 
     //Evaluate color of the cell
-    private Color determinateColor(int row, int col){
-        return this.grid.getCells().get(row * GRID_SIZE + col).isSelected()
+    private Color determinateColor(Grid grid, int row, int col){
+        return grid.getCells().get(row * GRID_SIZE + col).isSelected()
                 .map(User::getColor)
                 .orElse(Color.WHITE);
     }
@@ -130,7 +117,7 @@ public class SudokuGridView extends JFrame implements SudokuView{
             @Override
             public void focusGained(FocusEvent e) {
                 try {
-                    controller.selectCell(grid, controller.getUser(), row, col);
+                    controller.selectCell(row, col);
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
@@ -138,7 +125,7 @@ public class SudokuGridView extends JFrame implements SudokuView{
 
             @Override
             public void focusLost(FocusEvent e) {
-
+                //nothing to do
             }
         });
 
@@ -146,21 +133,21 @@ public class SudokuGridView extends JFrame implements SudokuView{
             @Override
             public void keyTyped(KeyEvent e) {
                 char c = e.getKeyChar();
-                if (!((c >= '1' && c <= '9') || c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE)) {
-                    e.consume();
-                } else {
+                if ((c >= '1' && c <= '9')) {
                     try {
-                        controller.makeMove(grid, controller.getUser(), Character.getNumericValue(c));
+                        controller.makeMove(Character.getNumericValue(c));
                         requestFocus();
                     } catch (IOException ex) {
                         throw new RuntimeException(ex);
                     }
+                } else {
+                    e.consume();
                 }
             }
         });
     }
 
-    private void configureCellApparence(JTextField cell, int row, int col){
+    private void configureCellAppearance(JTextField cell, int row, int col){
         cell.setHorizontalAlignment(JTextField.CENTER);
         cell.setFont(new Font("Arial", Font.BOLD, 20));
 
@@ -175,46 +162,49 @@ public class SudokuGridView extends JFrame implements SudokuView{
 
     @Override
     public void update(Grid grid) {
-        this.gridIdLabel.setText("GridID: " + this.controller.getGridId());
-        this.labelUsername.setText("Username: " + this.controller.getUser().getName());
-        this.grid = grid;
-        IntStream.range(0, GRID_SIZE).forEach(row ->
-                IntStream.range(0, GRID_SIZE).forEach(col -> {
-                    JTextField cell = this.cells[row][col];
-                    Cell cellInGrid = this.grid.getCells().get(row * GRID_SIZE + col);
+        SwingUtilities.invokeLater(()-> {
+            this.gridIdLabel.setText("GridID: " + this.controller.getGridId());
+            this.labelUsername.setText("Username: " + this.controller.getUser().getName());
+            IntStream.range(0, GRID_SIZE).forEach(row ->
+                    IntStream.range(0, GRID_SIZE).forEach(col -> {
+                        JTextField cell = this.cells[row][col];
+                        Cell cellInGrid = grid.getCells().get(row * GRID_SIZE + col);
 
-                    // Update cell color
-                    if (cellInGrid.isImmutable()) {
-                        cell.setBackground(Color.LIGHT_GRAY);
-                        cell.setFocusable(false);
-                    } else {
-                        cell.setBackground(this.determinateColor(row, col));
-                    }
+                        // Update cell color
+                        if (cellInGrid.isImmutable()) {
+                            cell.setBackground(Color.LIGHT_GRAY);
+                            cell.setFocusable(false);
+                        } else {
+                            cell.setBackground(this.determinateColor(grid, row, col));
+                        }
 
-                    // Update number of cell if is present
-                    if (cellInGrid.getNumber().isPresent()) {
-                        cell.setText(String.valueOf(cellInGrid.getNumber().get()));
-                    } else {
-                        cell.setText("");
-                    }
-                })
-        );
+                        // Update number of cell if is present
+                        if (cellInGrid.getNumber().isPresent()) {
+                            cell.setText(String.valueOf(cellInGrid.getNumber().get()));
+                        } else {
+                            cell.setText("");
+                        }
+                    })
+            );
 
-        // Update UI
-        this.gridPanel.revalidate();
-        this.gridPanel.repaint();
-        if(this.haveWon(grid)){
-            Utils.showMessage(this, "You have won", "You have won");
-        }
+            if (grid.haveWon()) {
+                MessageDialog.showMessage(this, "Victory", "You have won");
+                this.disableAllCells();
+            }
+        });
+    }
+
+    private void disableAllCells(){
+        IntStream.range(0, 9).forEach(row ->
+                IntStream.range(0, 9).forEach(col -> {
+                    this.cells[row][col].setBackground(Color.LIGHT_GRAY);
+                    this.cells[row][col].setFocusable(false);
+                }));
     }
 
     @Override
     public void display() {
         SwingUtilities.invokeLater(() -> this.setVisible(true));
-    }
-
-    private boolean haveWon(Grid grid){
-        return grid.getCells().stream().allMatch(c -> c.getNumber().isPresent());
     }
 
 }

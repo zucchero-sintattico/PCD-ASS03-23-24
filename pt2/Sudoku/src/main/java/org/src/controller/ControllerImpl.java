@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ControllerImpl implements Controller{
 
@@ -25,7 +24,6 @@ public class ControllerImpl implements Controller{
     private final Connection connection;
     private Grid grid;
     private SudokuView sudokuView;
-    private final AtomicBoolean viewIsSet = new AtomicBoolean(false);
 
     public ControllerImpl() throws IOException, TimeoutException {
         ConnectionFactory factory = new ConnectionFactory();
@@ -34,13 +32,11 @@ public class ControllerImpl implements Controller{
     }
 
     public void push(Grid grid) throws IOException {
-        channel.basicPublish(gridId, MessageTopic.UPDATE_GRID.getTopic(), null, grid.toJson().getBytes());
+        this.channel.basicPublish(gridId, MessageTopic.UPDATE_GRID.getTopic(), null, GridImpl.toJson(grid).getBytes());
     }
 
-    public void pull(Grid grid, String receivedMessage) {
-        Grid newGrid = grid.formJson(receivedMessage);
-        grid.updateGrid(newGrid.getCells());
-        System.out.println(grid);
+    public Grid pull(String receivedMessage) {
+        return  GridImpl.formJson(receivedMessage);
     }
 
     private void createChannel() throws IOException {
@@ -54,41 +50,29 @@ public class ControllerImpl implements Controller{
 
     private void setupChannel() throws IOException {
         this.createChannel();
-        GridBuilder gridBuilder = new GridBuilder();
-        this.grid = gridBuilder.generatePartialSolution();
-
         DeliverCallback deliverCallback = (consumerTag, delivery) -> {
             if(delivery.getEnvelope().getRoutingKey().equals(MessageTopic.NEW_USER_JOINED.getTopic())){
-                if(this.viewIsSet.get()){
+                if(this.grid != null){
                     this.push(this.grid);
                 }
             }
 
             if (delivery.getEnvelope().getRoutingKey().equals(MessageTopic.UPDATE_GRID.getTopic())){
-                this.pull(this.grid, new String(delivery.getBody()));
-
-                if(!this.viewIsSet.get()){
-                    this.sudokuView.update(this.grid);
-                    this.viewIsSet.set(true);
-                }
-            }
-
-            if(this.viewIsSet.get()){
+                this.grid = this.pull(new String(delivery.getBody()));
                 this.sudokuView.update(this.grid);
             }
+
             System.out.println(new String(delivery.getBody()));
         };
         this.channel.basicConsume(this.queueName, true, deliverCallback, consumerTag -> {});
     }
 
     @Override
-    public void createSudoku(String username) throws IOException {
-        this.gridId = this.getGridId();
+    public void createSudoku(String username, String sudokuId) throws IOException {
+        this.gridId = sudokuId;
+        Grid grid = new GridBuilder().generatePartialSolution();
         this.setupChannel();
-        if(this.sudokuView != null){
-            this.sudokuView.update(this.grid);
-        }
-        this.viewIsSet.set(true);
+        this.channel.basicPublish(gridId, MessageTopic.UPDATE_GRID.getTopic(), null, GridImpl.toJson(grid).getBytes());
     }
 
     @Override
@@ -109,18 +93,14 @@ public class ControllerImpl implements Controller{
     }
 
     @Override
-    public void setGridId(String gridId) {
-        this.gridId = gridId;
-    }
-
-    @Override
     public String getGridId() {
         return this.gridId;
     }
 
     @Override
-    public void selectCell(Grid grid, User user, int x, int y) throws IOException {
+    public void selectCell(int x, int y) throws IOException {
         List<Cell> newCellList = new ArrayList<>();
+        Grid newGrid = new GridImpl();
         for (Cell cell : grid.getCells()) {
             Cell newCell = new CellImpl(cell.getPosition(), cell.isImmutable());
 
@@ -138,14 +118,14 @@ public class ControllerImpl implements Controller{
             }
             newCellList.add(newCell);
         }
-        grid.updateGrid(newCellList);
-        push(grid);
+        newGrid.updateGrid(newCellList);
+        push(newGrid);
     }
 
     @Override
-    public void makeMove(Grid grid, User user, int number) throws IOException {
+    public void makeMove(int number) throws IOException {
         List<Cell> newCellList = new ArrayList<>();
-
+        Grid newGrid = new GridImpl();
         for (Cell cell : grid.getCells()) {
             Cell newCell = new CellImpl(cell.getPosition(), cell.isImmutable());
             if (cell.getNumber().isPresent()) {
@@ -159,13 +139,18 @@ public class ControllerImpl implements Controller{
             }
             newCellList.add(newCell);
         }
-        grid.checkAndUpdateGrid(newCellList);
-        push(grid);
+        newGrid.checkAndUpdateGrid(newCellList);
+        push(newGrid);
     }
 
     @Override
     public void setView(SudokuView view) {
         this.sudokuView = view;
+    }
+
+    @Override
+    public void leave(){
+        this.grid = null;
     }
 
 }

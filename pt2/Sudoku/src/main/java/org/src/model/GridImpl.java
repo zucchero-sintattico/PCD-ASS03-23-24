@@ -12,7 +12,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class GridImpl implements Grid {
 
     List<Cell> cells = new ArrayList<>();
-    private boolean isNew = true;
     int GRID_SIZE = 9;
 
     public GridImpl() {
@@ -49,6 +48,11 @@ public class GridImpl implements Grid {
         }else {
             System.out.println("Invalid Move");
         }
+    }
+
+    @Override
+    public boolean haveWon() {
+        return cells.stream().allMatch(cell -> cell.getNumber().isPresent());
     }
 
     @Override
@@ -151,10 +155,9 @@ public class GridImpl implements Grid {
         return s.toString();
     }
 
-    @Override
-    public String toJson() {
+    public static String toJson(Grid grid) {
         JsonArray jsonArray = new JsonArray();
-        for (Cell cell : cells) {
+        for (Cell cell : grid.getCells()) {
             JsonObject cellObject = new JsonObject();
             JsonObject positionObject = new JsonObject();
             positionObject.addProperty("x", cell.getPosition().x());
@@ -168,8 +171,7 @@ public class GridImpl implements Grid {
         return new Gson().toJson(jsonArray);
     }
 
-    @Override
-    public Grid formJson(String json) {
+    public static Grid formJson(String json) {
         Grid grid = new GridImpl();
         JsonArray jsonArray = JsonParser.parseString(json).getAsJsonArray();
         for (JsonElement jsonElement : jsonArray) {
@@ -220,13 +222,4 @@ public class GridImpl implements Grid {
         return cells.stream().noneMatch(e -> e.getNumber().isPresent());
     }
 
-    @Override
-    public boolean isNew() {
-        return isNew;
-    }
-
-    @Override
-    public void setNew(boolean isNew) {
-        this.isNew = isNew;
-    }
 }

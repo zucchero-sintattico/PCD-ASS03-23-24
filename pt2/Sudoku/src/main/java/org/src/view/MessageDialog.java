@@ -2,7 +2,7 @@ package org.src.view;
 
 import javax.swing.*;
 
-public class Utils {
+public class MessageDialog {
 
     public static void showErrorMessage(JFrame frame, String title, String message){
         JOptionPane.showMessageDialog(frame, title, message, JOptionPane.ERROR_MESSAGE);

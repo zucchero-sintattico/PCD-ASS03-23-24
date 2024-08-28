@@ -8,24 +8,42 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import java.awt.*;
-import java.io.IOException;
 
-public class GridIdView extends JFrame {
+public abstract class AbstractInputView extends JFrame {
+    protected final JLabel label;
+    protected final JTextField inputField = new JTextField(15);
+    protected final JButton actionButton;
+    protected final Controller controller;
+    protected final ScreenManager screenManager;
 
-    private final JLabel label = new JLabel("Insert gridId");
-    private final JTextField gridIdField = new JTextField(15);
-    private final JButton login = new JButton("Continue");
-    private final ScreenManager screenManager;
-    private final Controller controller;
-
-    public GridIdView(ScreenManager screenManager, Controller controller){
-        this.controller = controller;
+    public AbstractInputView(ScreenManager screenManager, Controller controller, String title, String textLabel, String buttonText) {
         this.screenManager = screenManager;
-        this.buildFrame();
+        this.controller = controller;
+        this.label = new JLabel(textLabel);
+        this.actionButton = new JButton(buttonText);
+        this.buildFrame(title);
         this.buildComponents();
         this.addComponentsInFrame();
         this.attachListener();
         this.spawnFrameAtCenter();
+
+    }
+
+    private void buildFrame(String title) {
+        this.setTitle(title);
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setSize(300, 200);
+        this.setLayout(new GridBagLayout());
+        this.setResizable(false);
+    }
+
+    private void buildComponents() {
+        Font arial = new Font("Arial", Font.PLAIN, 16);
+        Font arialBold = new Font("Arial", Font.BOLD, 16);
+        this.label.setFont(arialBold);
+        this.inputField.setFont(arial);
+        this.actionButton.setFont(arial);
+        ((AbstractDocument) this.inputField.getDocument()).setDocumentFilter(new LengthFilter(14));
     }
 
     private void addComponentsInFrame() {
@@ -37,52 +55,31 @@ public class GridIdView extends JFrame {
         this.add(label, gridBagConstraints);
 
         gridBagConstraints.gridy = 1;
-        this.add(gridIdField, gridBagConstraints);
+        this.add(inputField, gridBagConstraints);
 
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = GridBagConstraints.NONE;
         gridBagConstraints.anchor = GridBagConstraints.CENTER;
-        this.add(login, gridBagConstraints);
+        this.add(actionButton, gridBagConstraints);
     }
 
-    private void buildComponents() {
-        Font arial = new Font("Arial", Font.PLAIN, 16);
-        Font arialBold = new Font("Arial", Font.BOLD, 16);
-        this.label.setFont(arialBold);
-        this.gridIdField.setFont(arial);
-        this.login.setFont(arial);
-        ((AbstractDocument) this.gridIdField.getDocument()).setDocumentFilter(new LengthFilter(14));
-    }
-
-    private void spawnFrameAtCenter(){
+    private void spawnFrameAtCenter() {
         this.setLocationRelativeTo(null);
     }
 
-    private void buildFrame() {
-        this.setTitle("Login");
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setSize(300, 200);
-        this.setLayout(new GridBagLayout());
-        this.setResizable(false);
-    }
 
-    private void attachListener(){
-        this.login.addActionListener(e -> {
-            if(!this.gridIdField.getText().isEmpty()){
-                this.controller.setGridId(this.gridIdField.getText());
-                try {
-                    this.controller.createSudoku(this.controller.getUser().getName());
-                    this.screenManager.switchScreen("grid");
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }else{
-                Utils.showErrorMessage(this, "Username Invalid", "This username isn't valid");
+    private void attachListener() {
+        this.actionButton.addActionListener(e -> {
+            if (inputField.getText().isEmpty()) {
+                MessageDialog.showErrorMessage(this, "Error", "Invalid input");
+            } else {
+                handleAction();
             }
         });
     }
 
-    /* To limit the len of the textField */
+    protected abstract void handleAction();
+
     private static class LengthFilter extends DocumentFilter {
         private final int maxLength;
 
