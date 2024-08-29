@@ -12,7 +12,7 @@ public class GridBuilder {
 
     public static final int GRID_SIZE = 9;
     public static final int SUBGRID_SIZE = 3;
-    private static final int NUMBER_OF_EMPTY_BLOCK = 1; //40 is the perfect number
+    private static final int NUMBER_OF_EMPTY_BLOCK = 40;
 
     public static Grid generatePartialSolution(){
         return generateGrid();
