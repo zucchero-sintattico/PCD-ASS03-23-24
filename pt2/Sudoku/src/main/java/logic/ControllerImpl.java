@@ -4,7 +4,6 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
-import common.Point2d;
 import logic.grid.Grid;
 import logic.grid.GridBuilder;
 import logic.grid.GridImpl;
@@ -25,7 +24,7 @@ public class ControllerImpl implements Controller{
     private String queueName;
     private User user;
     private final Connection connection;
-    private Grid grid;
+    private volatile Grid grid;
     private SudokuView sudokuView;
 
     public ControllerImpl() throws IOException, TimeoutException {
@@ -45,34 +44,30 @@ public class ControllerImpl implements Controller{
         this.createChannel();
         DeliverCallback deliverCallback = (consumerTag, delivery) -> {
             if(delivery.getEnvelope().getRoutingKey().equals(MessageTopic.NEW_USER_JOINED.getTopic())){
-                this.pushLocalGrid();
+                this.push(this.grid);
             }
             if (delivery.getEnvelope().getRoutingKey().equals(MessageTopic.UPDATE_GRID.getTopic())){
-                this.update(new String(delivery.getBody()));
+                this.pull(new String(delivery.getBody()));
             }
         };
         this.channel.basicConsume(this.queueName, true, deliverCallback, consumerTag -> {});
     }
 
-    private synchronized void pushLocalGrid() throws IOException {
-        this.push(this.grid);
+    private void push(Grid grid) throws IOException {
+        this.channel.basicPublish(this.gridId, MessageTopic.UPDATE_GRID.getTopic(), null, GridBuilder.toJson(grid).getBytes());
     }
 
-    private synchronized void update(String receivedMessage) throws IOException {
-        if(this.grid == null){
-            this.channel.queueBind(this.queueName, this.gridId, MessageTopic.NEW_USER_JOINED.getTopic());
-            this.grid = new GridImpl();
-        }
+    private void pull(String receivedMessage) throws IOException {
         try {
-            this.grid.checkAndUpdateGrid(GridBuilder.formJson(receivedMessage).getCells());
+            Grid newGrid = GridBuilder.formJson(receivedMessage);
+            if(this.grid == null){
+                this.channel.queueBind(this.queueName, this.gridId, MessageTopic.NEW_USER_JOINED.getTopic());
+            }
+            this.grid = newGrid;
             this.sudokuView.update(this.grid);
         } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
         }
-    }
-
-    private void push(Grid grid) throws IOException {
-        this.channel.basicPublish(this.gridId, MessageTopic.UPDATE_GRID.getTopic(), null, GridBuilder.toJson(grid).getBytes());
     }
 
     @Override
@@ -106,7 +101,7 @@ public class ControllerImpl implements Controller{
     }
 
     @Override
-    public synchronized void selectCell(int x, int y) throws IOException, IllegalArgumentException {
+    public void selectCell(int x, int y) throws IOException, IllegalArgumentException, NullPointerException {
         List<Cell> newCellList = new ArrayList<>();
         Grid newGrid = new GridImpl();
         for (Cell cell : this.grid.getCells()) {
@@ -131,7 +126,7 @@ public class ControllerImpl implements Controller{
     }
 
     @Override
-    public synchronized void makeMove(int number) throws IOException, IllegalArgumentException {
+    public void makeMove(int number) throws IOException, IllegalArgumentException, NullPointerException {
         List<Cell> newCellList = new ArrayList<>();
         Grid newGrid = new GridImpl();
         for (Cell cell : this.grid.getCells()) {
@@ -157,13 +152,13 @@ public class ControllerImpl implements Controller{
     }
 
     @Override
-    public void leave() throws IOException, TimeoutException {
+    public void leave() throws IOException, TimeoutException, NullPointerException {
         this.push(new GridImpl(this.deselectCell()));
         this.channel.close();
         this.grid = null;
     }
 
-    private synchronized List<Cell> deselectCell() {
+    private List<Cell> deselectCell() {
         return this.grid.getCells()
                 .stream()
                 .map(c -> {

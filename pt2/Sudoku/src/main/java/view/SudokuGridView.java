@@ -30,6 +30,8 @@ public class SudokuGridView extends JFrame implements SudokuView {
     @Override
     public void setVisible(boolean b) {
         super.setVisible(b);
+        this.gridIdLabel.setText("GridID: " + this.controller.getGridId());
+        this.labelUsername.setText("Username: " + this.controller.getUser().name());
         this.requestFocus();
     }
 
@@ -173,8 +175,6 @@ public class SudokuGridView extends JFrame implements SudokuView {
     @Override
     public void update(Grid grid) {
         SwingUtilities.invokeLater(()-> {
-            this.gridIdLabel.setText("GridID: " + this.controller.getGridId());
-            this.labelUsername.setText("Username: " + this.controller.getUser().name());
             IntStream.range(0, GRID_SIZE).forEach(row ->
                     IntStream.range(0, GRID_SIZE).forEach(col -> {
                         JTextField cell = this.cells[row][col];

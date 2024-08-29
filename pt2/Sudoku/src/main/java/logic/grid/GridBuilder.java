@@ -149,7 +149,7 @@ public class GridBuilder {
                 }
             }
         }
-        return grid;
+        return new GridImpl(grid.getCells());
     }
 
 }

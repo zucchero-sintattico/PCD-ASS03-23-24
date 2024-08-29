@@ -8,7 +8,23 @@ import java.util.concurrent.TimeoutException;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException, TimeoutException {
+    public static void main(String[] args) throws IOException, TimeoutException, InterruptedException {
+//        Counter counter = new Counter();
+//        new Thread(() ->{
+//            for (int i = 0; i < 10; i++) {
+//                try {
+//                    counter.setValue();
+//                } catch (InterruptedException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            }
+//        }).start();
+//        int i = 0;
+//        while (i < 9000000){
+////            Thread.sleep(1);
+//            System.out.println("Value "+i+" is "+System.currentTimeMillis()+": " + counter.getValue());
+//            i++;
+//        }
         ScreenManager screenManager = new ScreenManager();
         Controller controller = new ControllerImpl();
         JFrame login = new LoginView(screenManager, controller);
