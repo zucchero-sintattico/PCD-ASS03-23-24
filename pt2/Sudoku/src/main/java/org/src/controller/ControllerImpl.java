@@ -101,7 +101,7 @@ public class ControllerImpl implements Controller{
     @Override
     public void selectCell(int x, int y) throws IOException {
         List<Cell> newCellList = new ArrayList<>();
-        Grid newGrid = new GridImpl(this.grid.getCells()); //todo unsafe access to this.grid
+        Grid newGrid = new GridImpl();
         for (Cell cell : this.grid.getCells()) {
             Cell newCell = new CellImpl(cell.getPosition(), cell.isImmutable());
 
@@ -119,7 +119,6 @@ public class ControllerImpl implements Controller{
             }
             newCellList.add(newCell);
         }
-        //TODO non serve sto doppio controllo, che se tanto lo fai qua non mandi mai una griglia sbagliata, però pare pure brutto ave sta griglia che nse sa se è giusta o sbagliata? che ce famo? predict: sti cazzi niente (Forse a sto punto è meglio che se fidamo e teniamo na griglia che se la costruisci male ti lancia eccezione così che non la puoi pushare?)
         newGrid.checkAndUpdateGrid(newCellList);
         push(newGrid);
     }
@@ -141,8 +140,7 @@ public class ControllerImpl implements Controller{
             }
             newCellList.add(newCell);
         }
-//        newGrid.checkAndUpdateGrid(newCellList);
-        newGrid.updateGrid(newCellList);
+        newGrid.checkAndUpdateGrid(newCellList);
         push(newGrid);
     }
 

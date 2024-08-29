@@ -151,6 +151,8 @@ public class SudokuGridView extends JFrame implements SudokuView{
                         requestFocus();
                     } catch (IOException ex) {
                         throw new RuntimeException(ex);
+                    } catch (IllegalArgumentException ex){
+                        e.consume();
                     }
                 } else {
                     e.consume();

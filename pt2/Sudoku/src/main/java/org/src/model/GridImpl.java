@@ -15,8 +15,7 @@ public class GridImpl implements Grid {
     private final static int GRID_SIZE = 9;
 
     public GridImpl(List<Cell> cells){
-        //todo check input?? could be nice, maybe
-        this.cells = new ArrayList<>(cells);
+        checkAndUpdateGrid(cells);
     }
     public GridImpl() {
         // Initialize the grid with empty cells
@@ -50,7 +49,7 @@ public class GridImpl implements Grid {
             this.cells = cells;
             System.out.println("Valid move");
         }else {
-            System.out.println("Invalid Move");
+            throw new IllegalArgumentException("Invalid move");
         }
     }
 
