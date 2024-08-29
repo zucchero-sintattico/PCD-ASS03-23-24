@@ -26,6 +26,7 @@ public class SudokuGridView extends JFrame implements SudokuView {
     private final ScreenManager screenManager;
     private JPanel gridPanel;
     private final Controller controller;
+    private boolean won;
 
     @Override
     public void setVisible(boolean b) {
@@ -54,9 +55,7 @@ public class SudokuGridView extends JFrame implements SudokuView {
             public void windowClosing(WindowEvent e) {
                 try {
                     controller.leave();
-                } catch (IOException | TimeoutException ex) {
-                    throw new RuntimeException(ex);
-                }
+                } catch (IOException | TimeoutException | NullPointerException ignored) {}
             }
         });
         this.setSize(FRAME_WIDTH, FRAME_HEIGHT);
@@ -82,6 +81,7 @@ public class SudokuGridView extends JFrame implements SudokuView {
     private void attachListener(){
         this.backButton.addActionListener(e -> {
             this.screenManager.switchScreen(Screen.MENU);
+            this.won = false;
             IntStream.range(0, 9).forEach(row ->
                     IntStream.range(0, 9).forEach(col -> {
                         cells[row][col].setBackground(Color.WHITE);
@@ -89,9 +89,7 @@ public class SudokuGridView extends JFrame implements SudokuView {
                     }));
             try {
                 this.controller.leave();
-            } catch (IOException | TimeoutException ex) {
-                throw new RuntimeException(ex);
-            }
+            } catch (IOException | TimeoutException | NullPointerException ignored) {}
             this.dispose();
         });
     }
@@ -114,6 +112,11 @@ public class SudokuGridView extends JFrame implements SudokuView {
         JTextField cell = new JTextField();
         this.cells[row][col] = cell;
         cell.setBackground(Color.WHITE);
+        cell.setForeground(Color.BLACK);
+        cell.setEnabled(false);
+        cell.setDisabledTextColor(Color.BLACK);
+        cell.setSelectedTextColor(Color.BLACK);
+        cell.setBackground(Color.LIGHT_GRAY);
         this.addListenersToCell(cell, row, col);
         this.configureCellAppearance(cell, row, col);
     }
@@ -182,10 +185,10 @@ public class SudokuGridView extends JFrame implements SudokuView {
 
                         if (cellInGrid.isImmutable()) {
                             cell.setBackground(Color.LIGHT_GRAY);
-                            cell.setFocusable(false);
+                            cell.setEnabled(false);
                         } else {
                             cell.setBackground(Color.WHITE);
-                            cell.setFocusable(true);
+                            cell.setEnabled(true);
                             cell.setBackground(this.determinateColor(grid, row, col));
                         }
                         
@@ -199,7 +202,10 @@ public class SudokuGridView extends JFrame implements SudokuView {
 
             if (grid.haveWon()) {
                 this.disableAllCells();
-                MessageDialog.showMessage(this, "Victory", "You have won");
+                if(!this.won){
+                    this.won = true;
+                    MessageDialog.showMessage(this, "Victory", "You have won");
+                }
             }
         });
     }
@@ -207,7 +213,7 @@ public class SudokuGridView extends JFrame implements SudokuView {
     private void disableAllCells(){
         IntStream.range(0, 9).forEach(row ->
                 IntStream.range(0, 9).forEach(col -> {
-                    this.cells[row][col].setFocusable(false);
+                    this.cells[row][col].setEnabled(false);
                 }));
     }
     

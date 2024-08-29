@@ -158,7 +158,7 @@ public class ControllerImpl implements Controller{
         this.grid = null;
     }
 
-    private List<Cell> deselectCell() {
+    private List<Cell> deselectCell() throws NullPointerException{
         return this.grid.getCells()
                 .stream()
                 .map(c -> {
