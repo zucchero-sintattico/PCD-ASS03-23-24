@@ -1,11 +1,11 @@
-package org.src.view;
+package view;
 
-import org.src.controller.Controller;
-import org.src.model.UserImpl;
+import logic.Controller;
+import logic.user.UserImpl;
 
-public class Login extends AbstractInputView {
+public class LoginView extends AbstractInputView {
 
-    public Login(ScreenManager screenManager, Controller controller){
+    public LoginView(ScreenManager screenManager, Controller controller){
         super(screenManager, controller, "Login", "Insert username", "Create User");
     }
 
@@ -13,7 +13,7 @@ public class Login extends AbstractInputView {
     protected void handleAction() {
         if(!this.inputField.getText().isEmpty()){
             this.controller.setUser(new UserImpl(this.inputField.getText()));
-            this.screenManager.switchScreen("menu");
+            this.screenManager.switchScreen(Screen.MENU);
         }else{
             MessageDialog.showErrorMessage(this, "Username Invalid", "This username isn't valid");
         }

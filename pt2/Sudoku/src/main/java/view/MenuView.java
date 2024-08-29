@@ -1,6 +1,5 @@
-package org.src.view;
+package view;
 
-import org.src.controller.Controller;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -8,7 +7,7 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
-public class Menu extends JFrame{
+public class MenuView extends JFrame{
 
     private final JButton gridIdButton = new JButton("New Game");
     private final JButton resolve = new JButton("Resolve Sudoku");
@@ -17,7 +16,7 @@ public class Menu extends JFrame{
     private final JLabel title = new JLabel("Sudoku Game", SwingConstants.CENTER);
     private final ScreenManager screenManager;
 
-    public Menu(ScreenManager screenManager) throws IOException, TimeoutException {
+    public MenuView(ScreenManager screenManager) {
         this.screenManager = screenManager;
         this.buildFrame();
         this.buildComponents();
@@ -68,15 +67,15 @@ public class Menu extends JFrame{
 
     private void attachListener(){
         this.changeNickName.addActionListener(e -> {
-            this.screenManager.switchScreen("login");
+            this.screenManager.switchScreen(Screen.LOGIN);
         });
 
         this.gridIdButton.addActionListener(e -> {
-            this.screenManager.switchScreen("gridId");
+            this.screenManager.switchScreen(Screen.NEW_GAME);
         });
 
         this.resolve.addActionListener(e -> {
-            this.screenManager.switchScreen("solveMenu");
+            this.screenManager.switchScreen(Screen.JOIN_GAME);
         });
     }
 

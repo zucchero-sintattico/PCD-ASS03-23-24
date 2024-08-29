@@ -1,8 +1,7 @@
-package org.src.controller;
+package logic;
 
-import org.src.common.Grid;
-import org.src.common.User;
-import org.src.view.SudokuView;
+import logic.user.User;
+import view.SudokuView;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;

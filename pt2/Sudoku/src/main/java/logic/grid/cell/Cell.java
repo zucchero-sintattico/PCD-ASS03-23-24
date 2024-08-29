@@ -1,4 +1,7 @@
-package org.src.common;
+package logic.grid.cell;
+
+import common.Point2d;
+import logic.user.User;
 
 import java.util.Optional;
 
@@ -14,6 +17,6 @@ public interface Cell {
     void setAtEmpty();
 
     boolean isImmutable();
-
-    void isImmutable(boolean immutable);
+    void setImmutable(boolean immutable);
+    
 }

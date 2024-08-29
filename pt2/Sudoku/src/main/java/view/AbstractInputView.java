@@ -1,6 +1,6 @@
-package org.src.view;
+package view;
 
-import org.src.controller.Controller;
+import logic.Controller;
 
 import javax.swing.*;
 import javax.swing.text.AbstractDocument;
@@ -26,7 +26,6 @@ public abstract class AbstractInputView extends JFrame {
         this.addComponentsInFrame();
         this.attachListener();
         this.spawnFrameAtCenter();
-
     }
 
     private void buildFrame(String title) {
@@ -106,4 +105,5 @@ public abstract class AbstractInputView extends JFrame {
             super.remove(fb, offset, length);
         }
     }
+    
 }

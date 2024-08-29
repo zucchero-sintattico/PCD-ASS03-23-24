@@ -1,19 +1,21 @@
-package org.src.controller;
+package logic;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
-import org.src.common.Cell;
-import org.src.common.Grid;
-import org.src.common.User;
-import org.src.model.*;
-import org.src.view.SudokuView;
+import common.Point2d;
+import logic.grid.Grid;
+import logic.grid.GridBuilder;
+import logic.grid.GridImpl;
+import logic.grid.cell.Cell;
+import logic.grid.cell.CellImpl;
+import logic.user.User;
+import view.SudokuView;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 public class ControllerImpl implements Controller{
@@ -32,55 +34,60 @@ public class ControllerImpl implements Controller{
         this.connection = factory.newConnection();
     }
 
-    public void push(Grid grid) throws IOException {
-        this.channel.basicPublish(gridId, MessageTopic.UPDATE_GRID.getTopic(), null, GridImpl.toJson(grid).getBytes());
-    }
-
-    public Grid pull(String receivedMessage) {
-        return GridImpl.formJson(receivedMessage);
-    }
-
     private void createChannel() throws IOException {
         this.channel = this.connection.createChannel();
         this.channel.exchangeDeclare(this.gridId, "topic");
         this.queueName = this.channel.queueDeclare().getQueue();
-        this.channel.queueBind(this.queueName, gridId, MessageTopic.UPDATE_GRID.getTopic());
-        this.channel.queueBind(this.queueName, gridId, MessageTopic.USER_LEFT.getTopic());
+        this.channel.queueBind(this.queueName, this.gridId, MessageTopic.UPDATE_GRID.getTopic());
     }
 
     private void setupChannel() throws IOException {
         this.createChannel();
         DeliverCallback deliverCallback = (consumerTag, delivery) -> {
             if(delivery.getEnvelope().getRoutingKey().equals(MessageTopic.NEW_USER_JOINED.getTopic())){
-                this.push(this.grid);
+                this.pushLocalGrid();
             }
-
             if (delivery.getEnvelope().getRoutingKey().equals(MessageTopic.UPDATE_GRID.getTopic())){
-                if(this.grid == null){
-                    this.channel.queueBind(this.queueName, gridId, MessageTopic.NEW_USER_JOINED.getTopic());
-                    this.grid = new GridImpl();
-                }
-                this.grid.checkAndUpdateGrid(this.pull(new String(delivery.getBody())).getCells());
-                this.sudokuView.update(this.grid);
+                this.update(new String(delivery.getBody()));
             }
-            System.out.println(new String(delivery.getBody()));
         };
         this.channel.basicConsume(this.queueName, true, deliverCallback, consumerTag -> {});
+    }
+
+    private synchronized void pushLocalGrid() throws IOException {
+        this.push(this.grid);
+    }
+
+    private synchronized void update(String receivedMessage) throws IOException {
+        if(this.grid == null){
+            this.channel.queueBind(this.queueName, this.gridId, MessageTopic.NEW_USER_JOINED.getTopic());
+            this.grid = new GridImpl();
+        }
+        try {
+            this.grid.checkAndUpdateGrid(GridBuilder.formJson(receivedMessage).getCells());
+            this.sudokuView.update(this.grid);
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void push(Grid grid) throws IOException {
+        this.channel.basicPublish(this.gridId, MessageTopic.UPDATE_GRID.getTopic(), null, GridBuilder.toJson(grid).getBytes());
     }
 
     @Override
     public void createSudoku(String username, String sudokuId) throws IOException {
         this.gridId = sudokuId;
-        Grid grid = new GridBuilder().generatePartialSolution();
         this.setupChannel();
-        this.channel.basicPublish(gridId, MessageTopic.UPDATE_GRID.getTopic(), null, GridImpl.toJson(grid).getBytes());
+        Grid grid = GridBuilder.generatePartialSolution();
+        this.channel.basicPublish(this.gridId, MessageTopic.UPDATE_GRID.getTopic(), null, GridBuilder.toJson(grid).getBytes());
     }
 
     @Override
     public void joinSudoku(String username, String sudokuId) throws IOException {
         this.gridId = sudokuId;
         this.setupChannel();
-        this.channel.basicPublish(gridId, MessageTopic.NEW_USER_JOINED.getTopic(), null, user.getName().getBytes());
+        this.channel.basicPublish(this.gridId, MessageTopic.NEW_USER_JOINED.getTopic(), null, this.user.name().getBytes());
     }
 
     @Override
@@ -99,7 +106,7 @@ public class ControllerImpl implements Controller{
     }
 
     @Override
-    public void selectCell(int x, int y) throws IOException {
+    public synchronized void selectCell(int x, int y) throws IOException, IllegalArgumentException {
         List<Cell> newCellList = new ArrayList<>();
         Grid newGrid = new GridImpl();
         for (Cell cell : this.grid.getCells()) {
@@ -108,13 +115,13 @@ public class ControllerImpl implements Controller{
             if (cell.getNumber().isPresent()) {
                 newCell.setNumber(cell.getNumber().get());
             }
-
-            if (cell.isSelected().isPresent() && !cell.isSelected().get().getName().equals(user.getName())) {
+            //todo modify using user equality
+            if (cell.isSelected().isPresent() && !cell.isSelected().get().name().equals(this.user.name())) {
                 newCell.selectCell(cell.isSelected().get());
             }
 
             if (cell.getPosition().x() == x && cell.getPosition().y() == y && !cell.isImmutable()) {
-                newCell.selectCell(user);
+                newCell.selectCell(this.user);
                 newCellList.add(newCell);
             }
             newCellList.add(newCell);
@@ -124,7 +131,7 @@ public class ControllerImpl implements Controller{
     }
 
     @Override
-    public void makeMove(int number) throws IOException {
+    public synchronized void makeMove(int number) throws IOException, IllegalArgumentException {
         List<Cell> newCellList = new ArrayList<>();
         Grid newGrid = new GridImpl();
         for (Cell cell : this.grid.getCells()) {
@@ -132,10 +139,10 @@ public class ControllerImpl implements Controller{
             if (cell.getNumber().isPresent()) {
                 newCell.setNumber(cell.getNumber().get());
             }
-            if (cell.isSelected().isPresent() && cell.isSelected().get().getName().equals(user.getName())) {
+            if (cell.isSelected().isPresent() && cell.isSelected().get().name().equals(this.user.name())) {
                 newCell.setNumber(number);
             }
-            if (cell.isSelected().isPresent() && !cell.isSelected().get().getName().equals(user.getName())) {
+            if (cell.isSelected().isPresent() && !cell.isSelected().get().name().equals(this.user.name())) {
                 newCell.selectCell(cell.isSelected().get());
             }
             newCellList.add(newCell);
@@ -156,11 +163,11 @@ public class ControllerImpl implements Controller{
         this.grid = null;
     }
 
-    private List<Cell> deselectCell() {
+    private synchronized List<Cell> deselectCell() {
         return this.grid.getCells()
                 .stream()
                 .map(c -> {
-                    if(c.isSelected().isPresent() && c.isSelected().get().getName().equals(user.getName())){
+                    if(c.isSelected().isPresent() && c.isSelected().get().name().equals(this.user.name())){
                        Cell cell = new CellImpl(c.getPosition(), c.isImmutable());
                        if (c.getNumber().isPresent()) {
                            cell.setNumber(c.getNumber().get());

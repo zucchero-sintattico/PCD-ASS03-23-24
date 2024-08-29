@@ -1,8 +1,8 @@
-package org.src.model;
+package logic;
 
 public enum MessageTopic {
+
     NEW_USER_JOINED("grid.user.join"),
-    USER_LEFT("grid.user.left"),
     UPDATE_GRID("grid.update");
 
     private final String topic;
@@ -12,7 +12,7 @@ public enum MessageTopic {
     }
 
     public String getTopic() {
-        return topic;
+        return this.topic;
     }
 
 }

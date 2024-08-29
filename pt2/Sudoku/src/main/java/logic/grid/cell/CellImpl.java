@@ -1,45 +1,44 @@
-package org.src.model;
+package logic.grid.cell;
 
-import org.src.common.Cell;
-import org.src.common.Point2d;
-import org.src.common.User;
+import common.Point2d;
+import logic.user.User;
 
 import java.util.Optional;
 
 public class CellImpl implements Cell {
 
     private final Point2d position;
-    User userHowSelected = null;
+    private User user;
     private Integer number;
-    private boolean isImmutable = false;
-
+    private boolean immutable;
 
     public CellImpl(Point2d point2d) {
         this.position = point2d;
     }
+
     public CellImpl(Point2d point2d, boolean isImmutable) {
         this.position = point2d;
-        this.isImmutable = isImmutable;
+        this.immutable = isImmutable;
     }
 
     @Override
     public Point2d getPosition() {
-        return position;
+        return this.position;
     }
 
     @Override
     public Optional<User> isSelected() {
-        return Optional.ofNullable(userHowSelected);
+        return Optional.ofNullable(this.user);
     }
 
     @Override
     public void selectCell(User user) {
-        userHowSelected = user;
+        this.user = user;
     }
 
     @Override
     public Optional<Integer> getNumber() {
-        return Optional.ofNullable(number);
+        return Optional.ofNullable(this.number);
     }
 
     @Override
@@ -54,11 +53,12 @@ public class CellImpl implements Cell {
 
     @Override
     public boolean isImmutable() {
-        return this.isImmutable;
+        return this.immutable;
     }
 
     @Override
-    public void isImmutable(boolean immutable) {
-        this.isImmutable = immutable;
+    public void setImmutable(boolean immutable) {
+        this.immutable = immutable;
     }
+
 }

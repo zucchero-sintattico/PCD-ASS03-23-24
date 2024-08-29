@@ -1,9 +1,9 @@
-package org.src.view;
+package view;
 
-import org.src.common.Cell;
-import org.src.common.Grid;
-import org.src.common.User;
-import org.src.controller.Controller;
+import logic.grid.cell.Cell;
+import logic.grid.Grid;
+import logic.user.User;
+import logic.Controller;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.IntStream;
 
-public class SudokuGridView extends JFrame implements SudokuView{
+public class SudokuGridView extends JFrame implements SudokuView {
 
     private static final int GRID_SIZE = 9;
     private static final int FRAME_WIDTH = 600;
@@ -79,7 +79,7 @@ public class SudokuGridView extends JFrame implements SudokuView{
 
     private void attachListener(){
         this.backButton.addActionListener(e -> {
-            this.screenManager.switchScreen("menu");
+            this.screenManager.switchScreen(Screen.MENU);
             IntStream.range(0, 9).forEach(row ->
                     IntStream.range(0, 9).forEach(col -> {
                         cells[row][col].setBackground(Color.WHITE);
@@ -116,14 +116,12 @@ public class SudokuGridView extends JFrame implements SudokuView{
         this.configureCellAppearance(cell, row, col);
     }
 
-    //Evaluate color of the cell
     private Color determinateColor(Grid grid, int row, int col){
         return grid.getCells().get(row * GRID_SIZE + col).isSelected()
-                .map(User::getColor)
+                .map(User::color)
                 .orElse(Color.WHITE);
     }
 
-    //Add Listeners for the cells in grid
     private void addListenersToCell(JTextField cell, int row, int col){
         cell.addFocusListener(new FocusListener() {
             @Override
@@ -136,9 +134,7 @@ public class SudokuGridView extends JFrame implements SudokuView{
             }
 
             @Override
-            public void focusLost(FocusEvent e) {
-                //nothing to do
-            }
+            public void focusLost(FocusEvent e) {}
         });
 
         cell.addKeyListener(new KeyAdapter() {
@@ -176,16 +172,14 @@ public class SudokuGridView extends JFrame implements SudokuView{
 
     @Override
     public void update(Grid grid) {
-        System.out.println("UPDATE");
         SwingUtilities.invokeLater(()-> {
             this.gridIdLabel.setText("GridID: " + this.controller.getGridId());
-            this.labelUsername.setText("Username: " + this.controller.getUser().getName());
+            this.labelUsername.setText("Username: " + this.controller.getUser().name());
             IntStream.range(0, GRID_SIZE).forEach(row ->
                     IntStream.range(0, GRID_SIZE).forEach(col -> {
                         JTextField cell = this.cells[row][col];
                         Cell cellInGrid = grid.getCells().get(row * GRID_SIZE + col);
 
-                        // Update cell color
                         if (cellInGrid.isImmutable()) {
                             cell.setBackground(Color.LIGHT_GRAY);
                             cell.setFocusable(false);
@@ -194,8 +188,7 @@ public class SudokuGridView extends JFrame implements SudokuView{
                             cell.setFocusable(true);
                             cell.setBackground(this.determinateColor(grid, row, col));
                         }
-
-                        // Update number of cell if is present
+                        
                         if (cellInGrid.getNumber().isPresent()) {
                             cell.setText(String.valueOf(cellInGrid.getNumber().get()));
                         } else {
@@ -217,10 +210,5 @@ public class SudokuGridView extends JFrame implements SudokuView{
                     this.cells[row][col].setFocusable(false);
                 }));
     }
-
-    @Override
-    public void display() {
-        SwingUtilities.invokeLater(() -> this.setVisible(true));
-    }
-
+    
 }
