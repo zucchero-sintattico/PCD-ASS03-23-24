@@ -116,7 +116,7 @@ public class SudokuGridView extends JFrame implements SudokuView {
         cell.setEnabled(false);
         cell.setDisabledTextColor(Color.BLACK);
         cell.setSelectedTextColor(Color.BLACK);
-        cell.setBackground(Color.LIGHT_GRAY);
+        cell.setBackground(Color.WHITE);
         this.addListenersToCell(cell, row, col);
         this.configureCellAppearance(cell, row, col);
     }
