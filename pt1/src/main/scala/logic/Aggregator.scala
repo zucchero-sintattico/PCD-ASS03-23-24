@@ -1,48 +1,37 @@
 package logic
 
 import scala.collection.immutable
-import scala.concurrent.duration.FiniteDuration
 import scala.reflect.ClassTag
-
 import akka.actor.typed.ActorRef
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
 
 object Aggregator:
-
   sealed trait Command
-  private case object ReceiveTimeout extends Command
-  private case class WrappedReply[R](reply: R) extends Command
+  private case class WrappedReply[Reply](reply: Reply) extends Command
 
   def apply[Reply: ClassTag, Aggregate](sendRequests: ActorRef[Reply] => Unit,
                                          expectedReplies: Int,
                                          replyTo: ActorRef[Aggregate],
-                                         aggregateReplies: immutable.IndexedSeq[Reply] => Aggregate,
-                                         timeout: FiniteDuration): Behavior[Command] =
+                                         aggregateReplies: List[Reply] => Aggregate): Behavior[Command] =
     Behaviors.setup { context =>
-      context.setReceiveTimeout(timeout, ReceiveTimeout)
       val replyAdapter = context.messageAdapter[Reply](WrappedReply(_))
-      sendRequests(replyAdapter)
 
-      def collecting(replies: immutable.IndexedSeq[Reply]): Behavior[Command] = {
+      def collecting(replies: List[Reply]): Behavior[Command] =
         Behaviors.receiveMessage {
           case WrappedReply(reply) =>
             val newReplies = replies :+ reply.asInstanceOf[Reply]
-            if newReplies.size == expectedReplies then
-              val result = aggregateReplies(newReplies)
-              replyTo ! result
-              Behaviors.stopped
-            else
-              collecting(newReplies)
-
-          case ReceiveTimeout =>
-            val aggregate = aggregateReplies(replies)
-            replyTo ! aggregate
-            Behaviors.stopped
+            newReplies.size match
+              case `expectedReplies` => replyToSender(newReplies)
+              case _ => collecting(newReplies)
         }
-      }
 
-      collecting(Vector.empty)
+      def replyToSender(replies: List[Reply] = List()): Behavior[Command] =
+        val aggregateMessage = aggregateReplies(replies)
+        replyTo ! aggregateMessage
+        Behaviors.stopped
+
+      expectedReplies match
+        case 0 => replyToSender()
+        case _ => sendRequests(replyAdapter); collecting(List())
     }
-
-

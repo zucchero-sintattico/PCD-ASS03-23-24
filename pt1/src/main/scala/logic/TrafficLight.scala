@@ -5,15 +5,18 @@ import akka.actor.typed.scaladsl.Behaviors
 import utils.*
 
 object TrafficLightActor:
-
   sealed trait Command
   final case class Step(dt: Int, replyTo: ActorRef[RoadActor.TrafficLightStepDone.type]) extends Command
+  final case class RequestTrafficLightRecord(replyTo: ActorRef[RoadActor.TrafficLightRecord]) extends Command
 
   def apply(trafficLight: TrafficLight): Behavior[Command] =
-    Behaviors.receive { (context, message) => message match
+    Behaviors.receiveMessage {
         case Step(dt, replyTo) =>
           replyTo ! RoadActor.TrafficLightStepDone
           TrafficLightActor(trafficLight.step(dt))
+        case RequestTrafficLightRecord(replyTo) =>
+          replyTo ! RoadActor.TrafficLightRecord(trafficLight)
+          Behaviors.same
     }
 
 enum TrafficLightState:
@@ -31,7 +34,7 @@ case class TrafficLight(agentID: String,
 
   private def updateState(dt: Int, duration: Int, nextState: TrafficLightState): TrafficLight =
     val updatedTimeInState = timeInState + dt
-    if updatedTimeInState >= duration then this.copy(state = nextState, timeInState = 0) else this.copy(timeInState = updatedTimeInState)
+    if updatedTimeInState >= duration then copy(state = nextState, timeInState = 0) else copy(timeInState = updatedTimeInState)
 
   def step(dt: Int): TrafficLight = state match
     case TrafficLightState.GREEN => updateState(dt, timingSetup.greenDuration, TrafficLightState.YELLOW)
