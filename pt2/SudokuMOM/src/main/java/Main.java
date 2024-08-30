@@ -11,19 +11,19 @@ public class Main {
     public static void main(String[] args) throws IOException, TimeoutException {
         ScreenManager screenManager = new ScreenManager();
         Controller controller = new ControllerImpl();
-        JFrame login = new LoginView(screenManager, controller);
-        JFrame menu = new MenuView(screenManager);
+        JFrame loginView = new LoginView(screenManager, controller);
+        JFrame menuView = new MenuView(screenManager);
         JFrame joinGameView = new JoinGameView(screenManager, controller);
         JFrame newGameView = new NewGameView(screenManager, controller);
-        SudokuGridView view = new SudokuGridView(screenManager, controller);
+        SudokuGridView gridView = new SudokuGridView(screenManager, controller);
 
-        screenManager.addScreen(Screen.LOGIN, login);
-        screenManager.addScreen(Screen.MENU, menu);
+        screenManager.addScreen(Screen.LOGIN, loginView);
+        screenManager.addScreen(Screen.MENU, menuView);
         screenManager.addScreen(Screen.NEW_GAME, newGameView);
         screenManager.addScreen(Screen.JOIN_GAME, joinGameView);
-        screenManager.addScreen(Screen.GRID, view);
+        screenManager.addScreen(Screen.GRID, gridView);
 
-        controller.setView(view);
+        controller.setView(gridView);
         screenManager.switchScreen(Screen.LOGIN);
     }
 }

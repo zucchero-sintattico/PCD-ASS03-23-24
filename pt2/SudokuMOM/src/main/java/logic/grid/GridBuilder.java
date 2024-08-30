@@ -20,7 +20,7 @@ public class GridBuilder {
 
     private static Grid generateGrid(){
         Grid solution = new GridImpl();
-        fillGrid(solution);
+        generateSolution(solution);
         Grid newGrid = createPuzzle(solution);
         newGrid.getCells().forEach(cell -> {
             if(cell.getNumber().isPresent() && cell.getNumber().get() != 0){
@@ -31,7 +31,7 @@ public class GridBuilder {
     }
 
     private static Grid createPuzzle(Grid grid){
-        List<Cell> cells = new ArrayList<Cell>(grid.getCells());
+        List<Cell> cells = new ArrayList<>(grid.getCells());
         Random rand = new Random();
         int numberOfEmptyBlock = NUMBER_OF_EMPTY_BLOCK;
 
@@ -49,8 +49,8 @@ public class GridBuilder {
         return grid;
     }
 
-    private static boolean fillGrid(Grid grid) {
-        return solve(grid, 0, 0);
+    private static void generateSolution(Grid grid) {
+        solve(grid, 0, 0);
     }
 
     private static boolean solve(Grid grid, int row, int col) {

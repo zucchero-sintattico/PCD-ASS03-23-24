@@ -28,14 +28,6 @@ public class SudokuGridView extends JFrame implements SudokuView {
     private final Controller controller;
     private boolean won;
 
-    @Override
-    public void setVisible(boolean b) {
-        super.setVisible(b);
-        this.gridIdLabel.setText("GridID: " + this.controller.getGridId());
-        this.labelUsername.setText("Username: " + this.controller.getUser().name());
-        this.requestFocus();
-    }
-
     public SudokuGridView(ScreenManager screenManager, Controller controller) {
         this.screenManager = screenManager;
         this.controller = controller;
@@ -100,7 +92,7 @@ public class SudokuGridView extends JFrame implements SudokuView {
         this.add(this.gridPanel, BorderLayout.CENTER);
     }
 
-    public void populateGrid(){
+    private void populateGrid(){
         IntStream.range(0, 9).forEach(row ->
                 IntStream.range(0, 9).forEach(col -> {
                     this.createAndConfigureCell(row, col);
@@ -173,6 +165,14 @@ public class SudokuGridView extends JFrame implements SudokuView {
 
         Border border = BorderFactory.createMatteBorder(top, left, bottom, right, Color.BLACK);
         cell.setBorder(border);
+    }
+
+    @Override
+    public void setVisible(boolean b) {
+        super.setVisible(b);
+        this.gridIdLabel.setText("GridID: " + this.controller.getGridId());
+        this.labelUsername.setText("Username: " + this.controller.getUser().name());
+        this.requestFocus();
     }
 
     @Override

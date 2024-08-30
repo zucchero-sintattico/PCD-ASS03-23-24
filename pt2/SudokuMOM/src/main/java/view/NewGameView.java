@@ -13,7 +13,7 @@ public class NewGameView extends AbstractInputView {
     protected void handleAction() {
         if(!this.inputField.getText().isEmpty()){
             try {
-                this.controller.createSudoku(this.controller.getUser().name(), this.inputField.getText());
+                this.controller.createSudoku(this.inputField.getText());
                 this.screenManager.switchScreen(Screen.GRID);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
