@@ -64,7 +64,7 @@ func handleClientMessage(msg ClientMessage, numberToGuess int, win *bool) Server
 	guess := msg.guess
 	fmt.Printf("%s guess: %d\n", msg.senderId, guess)
 	switch {
-	case *win: //situation where guess == numberToGuess and game is already won could be handle better
+	case *win:
 		return ServerMessage{hint: Lose}
 	case guess < numberToGuess:
 		return ServerMessage{hint: Higher}
