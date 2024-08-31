@@ -15,6 +15,8 @@ public interface Controller {
 
     String getUsername();
 
+    String getSudokuId();
+
     void leaveSudoku() throws RemoteException;
 
     void selectCell(Point2d cellPosition) throws RemoteException, IllegalArgumentException;

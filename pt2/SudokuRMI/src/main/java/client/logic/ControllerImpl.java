@@ -19,6 +19,7 @@ import java.util.function.Consumer;
 public class ControllerImpl implements Controller {
 
     private String username;
+    private String sudokuId;
     private SudokuView view;
     private RemoteSudoku remoteSudoku;
 
@@ -32,6 +33,7 @@ public class ControllerImpl implements Controller {
     @Override
     public void joinSudoku(String username, String sudokuId) throws RemoteException, IllegalArgumentException {
         this.username = username;
+        this.sudokuId = sudokuId;
         Consumer<SudokuGrid> updateHandle = this.view != null ? this.view::update : (sudokuGrid) -> {};
         RemoteClient remoteClient = new RemoteClientImpl(updateHandle);
         RemoteClient clientStub = (RemoteClient) UnicastRemoteObject.exportObject(remoteClient, 0);
@@ -47,7 +49,12 @@ public class ControllerImpl implements Controller {
     public String getUsername() {
         return this.username;
     }
-    
+
+    @Override
+    public String getSudokuId() {
+        return this.sudokuId;
+    }
+
     @Override
     public void leaveSudoku() throws RemoteException {
         this.remoteSudoku.removeUser(this.getUsername());

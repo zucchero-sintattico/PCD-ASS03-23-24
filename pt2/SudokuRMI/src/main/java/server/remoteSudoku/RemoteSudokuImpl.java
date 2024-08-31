@@ -37,7 +37,7 @@ public class RemoteSudokuImpl implements RemoteSudoku {
         this.clients.remove(username);
         if(this.clients.isEmpty()){
             this.unbindHandle.accept(this.sudokuId);
-        }else {
+        }else if(!this.grid.won()){
             this.removeSelection(username);
             this.sendUpdate();
         }
