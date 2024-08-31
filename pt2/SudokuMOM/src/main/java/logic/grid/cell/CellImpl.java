@@ -16,9 +16,9 @@ public class CellImpl implements Cell {
         this.position = point2d;
     }
 
-    public CellImpl(Point2d point2d, boolean isImmutable) {
+    public CellImpl(Point2d point2d, boolean immutable) {
         this.position = point2d;
-        this.immutable = isImmutable;
+        this.immutable = immutable;
     }
 
     @Override

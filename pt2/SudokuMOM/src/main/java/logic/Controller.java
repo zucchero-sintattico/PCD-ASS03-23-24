@@ -8,12 +8,12 @@ import java.util.concurrent.TimeoutException;
 
 public interface Controller {
 
-    void createSudoku(String username, String sudokuId) throws IOException;
-    void joinSudoku(String username, String sudokuId) throws IOException;
-    void leave() throws IOException, TimeoutException;
+    void createSudoku(String sudokuId) throws IOException;
+    void joinSudoku(String sudokuId) throws IOException;
+    void leave() throws IOException, TimeoutException, NullPointerException;
 
-    void selectCell(int row, int col) throws IOException;
-    void makeMove(int number) throws IOException;
+    void selectCell(int row, int col) throws IOException, IllegalArgumentException, NullPointerException;
+    void makeMove(int number) throws IOException, IllegalArgumentException, NullPointerException;
 
     User getUser();
     void setUser(User user);

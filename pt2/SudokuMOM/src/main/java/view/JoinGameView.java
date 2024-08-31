@@ -2,7 +2,6 @@ package view;
 
 import logic.Controller;
 import java.io.IOException;
-import java.util.Objects;
 
 public class JoinGameView extends AbstractInputView {
 
@@ -12,11 +11,11 @@ public class JoinGameView extends AbstractInputView {
 
     @Override
     protected void handleAction() {
-        if(Objects.equals(this.inputField.getText(), "")){
+        if(this.inputField.getText().isEmpty()){
             MessageDialog.showErrorMessage(this, "Session Problem", "Invalid Session ID");
         }else{
             try {
-                this.controller.joinSudoku(this.controller.getUser().name(), this.inputField.getText());
+                this.controller.joinSudoku(this.inputField.getText());
                 this.screenManager.switchScreen(Screen.GRID);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);

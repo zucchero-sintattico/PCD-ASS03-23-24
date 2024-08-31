@@ -15,9 +15,10 @@ import view.SudokuView;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
-public class ControllerImpl implements Controller{
+public class ControllerImpl implements Controller {
 
     private Channel channel;
     private String gridId;
@@ -71,7 +72,7 @@ public class ControllerImpl implements Controller{
     }
 
     @Override
-    public void createSudoku(String username, String sudokuId) throws IOException {
+    public void createSudoku(String sudokuId) throws IOException {
         this.gridId = sudokuId;
         this.setupChannel();
         Grid grid = GridBuilder.generatePartialSolution();
@@ -79,7 +80,7 @@ public class ControllerImpl implements Controller{
     }
 
     @Override
-    public void joinSudoku(String username, String sudokuId) throws IOException {
+    public void joinSudoku(String sudokuId) throws IOException {
         this.gridId = sudokuId;
         this.setupChannel();
         this.channel.basicPublish(this.gridId, MessageTopic.NEW_USER_JOINED.getTopic(), null, this.user.name().getBytes());
@@ -110,8 +111,8 @@ public class ControllerImpl implements Controller{
             if (cell.getNumber().isPresent()) {
                 newCell.setNumber(cell.getNumber().get());
             }
-            //todo modify using user equality
-            if (cell.isSelected().isPresent() && !cell.isSelected().get().name().equals(this.user.name())) {
+
+            if (cell.isSelected().isPresent() && !cell.isSelected().get().equals(this.user)) {
                 newCell.selectCell(cell.isSelected().get());
             }
 
@@ -134,11 +135,12 @@ public class ControllerImpl implements Controller{
             if (cell.getNumber().isPresent()) {
                 newCell.setNumber(cell.getNumber().get());
             }
-            if (cell.isSelected().isPresent() && cell.isSelected().get().name().equals(this.user.name())) {
-                newCell.setNumber(number);
-            }
-            if (cell.isSelected().isPresent() && !cell.isSelected().get().name().equals(this.user.name())) {
-                newCell.selectCell(cell.isSelected().get());
+            if(cell.isSelected().isPresent()){
+                if (cell.isSelected().get().equals(this.user)) {
+                    newCell.setNumber(number);
+                } else {
+                    newCell.selectCell(cell.isSelected().get());
+                }
             }
             newCellList.add(newCell);
         }
@@ -158,11 +160,11 @@ public class ControllerImpl implements Controller{
         this.grid = null;
     }
 
-    private List<Cell> deselectCell() throws NullPointerException{
+    private List<Cell> deselectCell() throws NullPointerException {
         return this.grid.getCells()
                 .stream()
                 .map(c -> {
-                    if(c.isSelected().isPresent() && c.isSelected().get().name().equals(this.user.name())){
+                    if(c.isSelected().equals(Optional.of(this.user))){
                        Cell cell = new CellImpl(c.getPosition(), c.isImmutable());
                        if (c.getNumber().isPresent()) {
                            cell.setNumber(c.getNumber().get());

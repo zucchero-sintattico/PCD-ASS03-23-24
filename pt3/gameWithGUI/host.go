@@ -87,7 +87,7 @@ func handleClients(playerChannels []chan Message, fanIn []reflect.SelectCase, nu
 func handleClientMessage(msg ClientMessage, numberToGuess int, win *bool, winnerId *string) ServerMessage {
 	guess := msg.guess
 	switch {
-	case *win: //situation where guess == numberToGuess and game is already won could be handle better
+	case *win:
 		return ServerMessage{hint: Lose}
 	case guess < numberToGuess:
 		return ServerMessage{hint: Higher}

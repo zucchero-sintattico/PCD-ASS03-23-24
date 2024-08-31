@@ -26,7 +26,7 @@ class SimulationTestWithAkkaTest extends AnyFunSuite with Matchers with BeforeAn
   private val compareResultProbe = testKit.createTestProbe[CompareResult.type]()
   private val logger = RoadSimStatistics(true)
   private val viewListenerRelayActorMockedBehavior = Behaviors.receiveMessage[ViewListenerRelayActor.Command] {
-    case ViewListenerRelayActor.SimulationEnded(_) => compareResultProbe.ref ! CompareResult; Behaviors.same
+    case ViewListenerRelayActor.SimulationEnded(duration) => logger.notifySimulationEnded(duration); compareResultProbe.ref ! CompareResult; Behaviors.same
     case ViewListenerRelayActor.Init => logger.notifyInit(); Behaviors.same
     case ViewListenerRelayActor.Stat(avgSpeed) => logger.notifyStat(avgSpeed); Behaviors.same
     case _ => Behaviors.same
