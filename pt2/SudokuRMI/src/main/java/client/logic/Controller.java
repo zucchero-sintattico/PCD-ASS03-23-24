@@ -11,9 +11,11 @@ public interface Controller {
 
     void createSudoku(String username, String sudokuId) throws RemoteException, NotBoundException, AlreadyBoundException, IllegalArgumentException;
 
-    void joinSudoku(String username, String sudokuId) throws RemoteException, NotBoundException;
+    void joinSudoku(String username, String sudokuId) throws RemoteException, AlreadyBoundException;
 
     String getUsername();
+
+    String getSudokuId();
 
     void leaveSudoku() throws RemoteException;
 

@@ -108,9 +108,9 @@ public class Menu extends JFrame implements Changeable{
                 try {
                     this.controller.createSudoku(this.usernameField.getText(), this.sudokuIdField.getText());
                     this.changeScreen.run();
-                } catch (RemoteException | NotBoundException | AlreadyBoundException ex) {
+                } catch (RemoteException ex) {
                     throw new RuntimeException(ex);
-                } catch (IllegalArgumentException ex) {
+                } catch (IllegalArgumentException | NotBoundException | AlreadyBoundException ex) {
                     this.showErrorDialog(ex.getMessage());
                 }
             }
@@ -120,16 +120,15 @@ public class Menu extends JFrame implements Changeable{
                 try {
                     this.controller.joinSudoku(this.usernameField.getText(), this.sudokuIdField.getText());
                     this.changeScreen.run();
-                } catch (RemoteException | NotBoundException ex) {
+                } catch (RemoteException ex) {
                     throw new RuntimeException(ex);
-                } catch (IllegalArgumentException ex) {
+                } catch (IllegalArgumentException | AlreadyBoundException ex) {
                     this.showErrorDialog(ex.getMessage());
                 }
             }
         });
     }
 
-    /* To limit the len of the textField */
     private static class LengthFilter extends DocumentFilter {
         private final int maxLength;
 

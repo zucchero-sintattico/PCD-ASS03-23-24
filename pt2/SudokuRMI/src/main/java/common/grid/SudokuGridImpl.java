@@ -14,7 +14,7 @@ public record SudokuGridImpl(List<Cell> cells) implements SudokuGrid {
 
     @Override
     public boolean won() {
-        return cells.stream().allMatch(cell -> cell.number().isPresent());
+        return this.cells.stream().allMatch(cell -> cell.number().isPresent());
     }
 
     @Override

@@ -18,6 +18,7 @@ public class GridView extends JFrame implements Changeable {
     private final Font numberFont = new Font("Arial", Font.BOLD, 20);
     private final JTextField[][] cells;
     private final JLabel usernameLabel = new JLabel();
+    private final JLabel sudokuIdLabel = new JLabel();
     private final JButton back = new JButton("< - Back");
 
     private final Controller controller;
@@ -57,7 +58,8 @@ public class GridView extends JFrame implements Changeable {
     public void update(SudokuGrid grid) {
         SwingUtilities.invokeLater(() -> {
             if(!this.initialized){
-                this.usernameLabel.setText("Username: " + controller.getUsername());
+                this.usernameLabel.setText("Username: " + this.controller.getUsername());
+                this.sudokuIdLabel.setText("SudokuId: " + this.controller.getSudokuId());
                 this.initialized = true;
                 grid.cells().forEach(this::initCell);
             }
@@ -84,7 +86,8 @@ public class GridView extends JFrame implements Changeable {
     private JPanel buildTopPanel() {
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new FlowLayout());
-        topPanel.add(this.usernameLabel);
+        topPanel.add(this.usernameLabel, BorderLayout.WEST);
+        topPanel.add(this.sudokuIdLabel, BorderLayout.EAST);
         return topPanel;
     }
 
@@ -104,7 +107,6 @@ public class GridView extends JFrame implements Changeable {
                 cellRender.setSelectedTextColor(Color.BLACK);
                 cellRender.setDisabledTextColor(Color.BLACK);
 
-                // Set borders for 3x3 subgrid highlighting
                 int top = (row % 3 == 0) ? 2 : 1;
                 int left = (col % 3 == 0) ? 2 : 1;
                 int bottom = (row == 8) ? 2 : 1;
@@ -158,9 +160,7 @@ public class GridView extends JFrame implements Changeable {
             }
 
             @Override
-            public void focusLost(FocusEvent e) {
-                //nothing to do
-            }
+            public void focusLost(FocusEvent e) {}
         });
     }
 

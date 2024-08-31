@@ -4,7 +4,6 @@ import common.Point2d;
 import common.grid.cell.Cell;
 import common.grid.cell.CellImpl;
 
-import javax.swing.text.Position;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +17,7 @@ public class SudokuFactory {
     private static final Random random = new Random();
     public static final int GRID_SIZE = 9;
     private static final int SUBGRID_SIZE = 3;
-    private static final int NUMBER_TO_REMOVE = 40;
+    private static final int NUMBER_TO_REMOVE = 1;
 
     public static SudokuGrid createGrid(List<Cell> cells) throws IllegalArgumentException {
         return new SudokuGridImpl(cells);
