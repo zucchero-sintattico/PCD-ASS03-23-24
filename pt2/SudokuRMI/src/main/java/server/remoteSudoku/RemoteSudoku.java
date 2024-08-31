@@ -9,9 +9,9 @@ import java.rmi.RemoteException;
 
 public interface RemoteSudoku extends Remote {
 
-    void addUser(String userId, RemoteClient clientStub) throws RemoteException, NotBoundException, IllegalArgumentException;
+    void addClient(String username, RemoteClient clientStub) throws RemoteException, NotBoundException, IllegalArgumentException;
 
-    void removeUser(String userId) throws RemoteException;
+    void removeClient(String username) throws RemoteException;
 
     void selectCell(String userId, Point2d position) throws RemoteException, IllegalArgumentException;
 

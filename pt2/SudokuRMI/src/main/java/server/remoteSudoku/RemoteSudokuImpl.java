@@ -24,7 +24,7 @@ public class RemoteSudokuImpl implements RemoteSudoku {
     }
 
     @Override
-    public synchronized void addUser(String username, RemoteClient remoteClient) throws RemoteException, IllegalArgumentException {
+    public synchronized void addClient(String username, RemoteClient remoteClient) throws RemoteException, IllegalArgumentException {
         if(this.clients.containsKey(username)){
             throw new IllegalArgumentException("User already exists for this grid");
         }
@@ -33,7 +33,7 @@ public class RemoteSudokuImpl implements RemoteSudoku {
     }
 
     @Override
-    public synchronized void removeUser(String username) throws RemoteException {
+    public synchronized void removeClient(String username) throws RemoteException {
         this.clients.remove(username);
         if(this.clients.isEmpty()){
             this.unbindHandle.accept(this.sudokuId);

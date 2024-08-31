@@ -39,7 +39,7 @@ public class ControllerImpl implements Controller {
         RemoteClient clientStub = (RemoteClient) UnicastRemoteObject.exportObject(remoteClient, 0);
         try {
             this.remoteSudoku = (RemoteSudoku) LocateRegistry.getRegistry().lookup(sudokuId);
-            this.remoteSudoku.addUser(username, clientStub);
+            this.remoteSudoku.addClient(username, clientStub);
         } catch (NotBoundException e) {
             throw new IllegalArgumentException("This sudoku doesn't exist");
         }
@@ -57,7 +57,7 @@ public class ControllerImpl implements Controller {
 
     @Override
     public void leaveSudoku() throws RemoteException {
-        this.remoteSudoku.removeUser(this.getUsername());
+        this.remoteSudoku.removeClient(this.getUsername());
     }
 
     @Override
