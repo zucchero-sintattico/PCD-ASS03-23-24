@@ -4,7 +4,6 @@ import common.Point2d;
 import common.grid.cell.Cell;
 import common.grid.cell.CellImpl;
 
-import javax.swing.text.Position;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

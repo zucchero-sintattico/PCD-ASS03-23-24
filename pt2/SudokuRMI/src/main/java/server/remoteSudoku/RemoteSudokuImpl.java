@@ -6,10 +6,7 @@ import common.grid.SudokuFactory;
 import client.logic.remoteClient.RemoteClient;
 import common.user.UserDataImpl;
 
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -20,21 +17,19 @@ public class RemoteSudokuImpl implements RemoteSudoku {
     private final Consumer<String> unbindHandle;
     private SudokuGrid grid = SudokuFactory.createGrid();
     private final Map<String, RemoteClient> clients = new HashMap<>();
-    private final Registry registry = LocateRegistry.getRegistry();
 
-    public RemoteSudokuImpl(String sudokuId, Consumer<String> unbindHandle) throws RemoteException {
+    public RemoteSudokuImpl(String sudokuId, Consumer<String> unbindHandle) {
         this.sudokuId = sudokuId;
         this.unbindHandle = unbindHandle;
     }
 
     @Override
-    public synchronized void addUser(String username) throws RemoteException, NotBoundException, IllegalArgumentException {
-        RemoteClient remoteUser = (RemoteClient) registry.lookup(username);
+    public synchronized void addUser(String username, RemoteClient remoteClient) throws RemoteException, IllegalArgumentException {
         if(this.clients.containsKey(username)){
             throw new IllegalArgumentException("User already exists for this grid");
         }
-        this.clients.put(username, remoteUser);
-        remoteUser.updateGrid(this.grid);
+        this.clients.put(username, remoteClient);
+        remoteClient.updateGrid(this.grid);
     }
 
     @Override

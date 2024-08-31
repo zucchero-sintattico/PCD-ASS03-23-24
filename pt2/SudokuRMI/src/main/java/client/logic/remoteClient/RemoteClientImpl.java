@@ -13,9 +13,8 @@ public class RemoteClientImpl implements RemoteClient {
         this.updateGridHandle = updateGridHandle;
     }
 
-    //synchronized is not needed considering the current usage
     @Override
-    public synchronized void updateGrid(SudokuGrid grid) throws RemoteException {
+    public void updateGrid(SudokuGrid grid) throws RemoteException {
         this.updateGridHandle.accept(grid);
     }
 

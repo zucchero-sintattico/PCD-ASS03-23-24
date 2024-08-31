@@ -1,5 +1,6 @@
 package server.remoteSudoku;
 
+import client.logic.remoteClient.RemoteClient;
 import common.Point2d;
 
 import java.rmi.NotBoundException;
@@ -8,7 +9,7 @@ import java.rmi.RemoteException;
 
 public interface RemoteSudoku extends Remote {
 
-    void addUser(String userId) throws RemoteException, NotBoundException, IllegalArgumentException;
+    void addUser(String userId, RemoteClient clientStub) throws RemoteException, NotBoundException, IllegalArgumentException;
 
     void removeUser(String userId) throws RemoteException;
 

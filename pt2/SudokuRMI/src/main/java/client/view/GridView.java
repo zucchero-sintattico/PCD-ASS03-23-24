@@ -23,6 +23,7 @@ public class GridView extends JFrame implements Changeable {
     private final Controller controller;
     private Runnable changeScreen = () -> {};
     private boolean initialized;
+    private boolean showVictory = true;
 
     public GridView(Controller controller) {
         this.controller = controller;
@@ -62,7 +63,8 @@ public class GridView extends JFrame implements Changeable {
                 grid.cells().forEach(this::initCell);
             }
             grid.cells().forEach(this::updateCell);
-            if(grid.won()){
+            if(grid.won() && this.showVictory){
+                this.showVictory = false;
                 grid.cells().forEach(cell -> getCellRender(cell).setEnabled(false));
                 JOptionPane.showMessageDialog(this, "You won!");
             }
@@ -104,7 +106,6 @@ public class GridView extends JFrame implements Changeable {
                 cellRender.setSelectedTextColor(Color.BLACK);
                 cellRender.setDisabledTextColor(Color.BLACK);
 
-                // Set borders for 3x3 subgrid highlighting
                 int top = (row % 3 == 0) ? 2 : 1;
                 int left = (col % 3 == 0) ? 2 : 1;
                 int bottom = (row == 8) ? 2 : 1;
@@ -158,15 +159,14 @@ public class GridView extends JFrame implements Changeable {
             }
 
             @Override
-            public void focusLost(FocusEvent e) {
-                //nothing to do
-            }
+            public void focusLost(FocusEvent e) {}
         });
     }
 
     private void attachListener(){
         this.back.addActionListener(e -> {
             this.initialized = false;
+            this.showVictory = true;
             try {
                 this.controller.leaveSudoku();
             } catch (RemoteException ex) {
