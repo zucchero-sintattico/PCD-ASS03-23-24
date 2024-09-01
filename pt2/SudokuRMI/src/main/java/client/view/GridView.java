@@ -37,9 +37,7 @@ public class GridView extends JFrame implements Changeable {
             public void windowClosing(WindowEvent e) {
                 try {
                     controller.leaveSudoku();
-                } catch (RemoteException ex) {
-                    throw new RuntimeException(ex);
-                }
+                } catch (RemoteException ignored) {}
             }
         });
     }
