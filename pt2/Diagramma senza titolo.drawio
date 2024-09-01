@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36" version="24.7.7" pages="2">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36" version="24.7.7" pages="3">
   <diagram name="ArchitetturaMOM" id="CntYA9vMGlPCgrWxbRRX">
     <mxGraphModel dx="880" dy="434" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -156,6 +156,44 @@
         </mxCell>
         <mxCell id="c7-vGzGxDoARd_i6yG1X-21" value="&lt;span style=&quot;font-size: 11px;&quot;&gt;Client&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="120" y="590" width="95" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="7pKXwrqtSC9VP4jlAEdW" name="ArchitetturaRMI2">
+    <mxGraphModel dx="880" dy="434" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="UUmq0VteE43vwz9raYu0-8" value="Client1" style="ellipse;shape=umlControl;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="240" y="600" width="78.75" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="UUmq0VteE43vwz9raYu0-9" value="ClientN" style="ellipse;shape=umlControl;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="398.75" y="600" width="78.75" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="UUmq0VteE43vwz9raYu0-14" value="" style="shape=waypoint;sketch=0;fillStyle=solid;size=6;pointerEvents=1;points=[];fillColor=none;resizable=0;rotatable=0;perimeter=centerPerimeter;snapToPoint=1;" vertex="1" parent="1">
+          <mxGeometry x="347.75" y="640" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="UUmq0VteE43vwz9raYu0-15" value="" style="shape=waypoint;sketch=0;fillStyle=solid;size=6;pointerEvents=1;points=[];fillColor=none;resizable=0;rotatable=0;perimeter=centerPerimeter;snapToPoint=1;" vertex="1" parent="1">
+          <mxGeometry x="328.75" y="640" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="UUmq0VteE43vwz9raYu0-16" value="" style="shape=waypoint;sketch=0;fillStyle=solid;size=6;pointerEvents=1;points=[];fillColor=none;resizable=0;rotatable=0;perimeter=centerPerimeter;snapToPoint=1;" vertex="1" parent="1">
+          <mxGeometry x="367.75" y="640" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="UUmq0VteE43vwz9raYu0-17" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=0.737;exitY=0.167;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="302.03874999999994" y="613.03" as="sourcePoint" />
+            <mxPoint x="334" y="568" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UUmq0VteE43vwz9raYu0-19" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=0.737;exitY=0.167;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="386.03874999999994" y="566.9999999999998" as="sourcePoint" />
+            <mxPoint x="418" y="612.0299999999997" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UUmq0VteE43vwz9raYu0-20" value="Remote&lt;div&gt;Sudoku&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="297.75" y="500" width="120" height="60" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
